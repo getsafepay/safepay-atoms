@@ -1,0 +1,73 @@
+:root{
+  --safepay-color-background: #111111;
+  --safepay-color-background-secondary: #222222;
+  --safepay-color-background-tertiary: #333333;
+  --safepay-color-primary: #6fcf97;
+  --safepay-color-secondary: #79f0aa;
+  --safepay-color-tertiary: #4f4f4f;
+  --safepay-color-info: #94cbff;
+  --safepay-color-warn: #f2994a;
+  --safepay-color-danger: #eb5757;
+  --safepay-color-success: #6fcf97;
+  --safepay-color-low-contrast: #969696;
+  --safepay-color-medium-contrast: #e0e0e0;
+  --safepay-color-high-contrast: #ffffff;
+  --safepay-color-graphic-1: #79f0aa;
+  --safepay-color-graphic-2: #d194e9;
+  --safepay-color-graphic-3: #68b2fd
+}
+:root{
+  --primary-text-color: var(--safepay-color-high-contrast);
+  --secondary-text-color: var(--safepay-color-medium-contrast);
+  --tertiary-text-color: var(--safepay-color-low-contrast);
+  --label-text-color: var(--safepay-color-medium-contrast);
+  --helper-text-color: var(--safepay-color-background-secondary);
+  --muted-text-color: var(--safepay-color-low-contrast);
+  --error-text-color: var(--safepay-color-danger);
+  --placeholder-text-color: var(--safepay-color-low-contrast);
+  --checkbox-text-color: var(--safepay-color-medium-contrast);
+  --optional-label-color: var(--safepay-color-background-tertiary);
+  --secondary-label-color: var(--safepay-color-background-secondary)
+}
+:root{
+  --input-horizontal-padding: 1rem;
+  --input-vertical-padding: .625rem;
+  --input-background: var(--safepay-color-background-secondary);
+  --input-color: var(--safepay-color-medium-contrast);
+  --input-border-color: var(--safepay-color-background-tertiary);
+  --input-border-color-hover: var(--safepay-color-tertiary);
+  --input-border-focus-color: var(--safepay-color-primary)
+}
+.safepay-drops-root{
+  color:var(--primary-text-color);
+  display:block;
+  font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+  font-size:.875rem;
+  line-height:1rem
+}
+.safepay-drops-root .iframeWrapper{
+  background:var(--safepay-color-background-secondary);
+  border-radius:.25rem;
+  border:1px solid var(--safepay-color-background-tertiary);
+  box-sizing:border-box;
+  display:block;
+  height:2.6rem;
+  padding:var(--input-vertical-padding) var(--input-horizontal-padding);
+  width:22.5rem
+}
+.safepay-drops-root .iframeWrapper:hover{
+  border:1px solid var(--safepay-color-tertiary)
+}
+.safepay-drops-root .iframeWrapper.focus,.safepay-drops-root .iframeWrapper.focus:hover{
+  border:1px solid var(--safepay-color-primary);
+  outline:none
+}
+.safepay-drops-root .errorMessage{
+  color:var(--error-text-color);
+  font-family:inherit;
+  font-size:inherit;
+  margin:.375rem 0 .375rem .5rem
+}
+.safepay-drops-root .errorMessage:empty{
+  display:none
+}
