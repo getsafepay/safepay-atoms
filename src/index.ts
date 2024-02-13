@@ -16,12 +16,20 @@ const Safepay = (() => {
   */
   const freezeCaptureContext = (cc: string): Readonly<Context> => {
     if (!isString(cc)) {
-      throw new Error();
+      throw CAPTURE_CONTEXT_INVALID();
+    }
+
+    if (!isValidToken(cc)) {
+      throw CAPTURE_CONTEXT_INVALID();
     }
 
     return Object.freeze({
       jwt: cc,
     });
+  };
+
+  const isValidToken = (token) => {
+    return token === "fake-token" || /^[\w-]+\.[\w-]+\.[\w-]+$/.test(token);
   };
 
   const initializeDrops = () => {
@@ -60,52 +68,3 @@ const Safepay = (() => {
 })();
 
 window.Safepay = Safepay;
-
-// const MoovJS = (() => {
-//   const initializeMoov = (accessToken) => {
-//     if (!isValidToken(accessToken)) {
-//       throw new Error(
-//         "Please initialize Moov.js with a valid Moov access token."
-//       );
-//     }
-
-//     //const apiContext = createAPIContext(accessToken);
-//     return {
-//       // ping: createPingService(apiContext),
-//       // enrichment: createEnrichmentService(apiContext),
-//       // institutions: createInstitutionsService(apiContext),
-//       // accounts: createAccountsService(apiContext),
-//       // setToken: (newToken) => initializeMoov(newToken),
-//       // plaid: createPlaidService(apiContext),
-//       // drops: initializeDrops(accessToken),
-//       version: "v0.6.5",
-//     };
-//   };
-
-//   const isValidToken = (token) => {
-//     return token === "fake-token" || /^[\w-]+\.[\w-]+\.[\w-]+$/.test(token);
-//   };
-
-//   const initializeDrops = (token) => () => {
-//     // await loadModule(210); // Assuming `i.e(210).then(i.bind(i, 210))` is module loading
-//     // window.drops && (window.drops.safepayAccessToken = token);
-//     // return window.drops;
-//   };
-
-//   // Register custom elements if they are not already registered
-//   if (window.customElements) {
-//     // registerCustomElement("safepay-card-link", CardLinkElement);
-//     // registerCustomElement("safepay-file-upload", FileUploadElement);
-//     // registerCustomElement("safepay-issued-card", IssuedCardElement);
-//     // ... other custom elements ...
-//   }
-
-//   // Dispatch the 'safepayJSLoaded' event
-//   const safepayJSLoadedEvent = new CustomEvent("safepay.safepayJSLoaded");
-//   setTimeout(() => document.dispatchEvent(safepayJSLoadedEvent), 0);
-
-//   return initializeMoov;
-// })();
-
-// // Export the library
-// // window.Moov = MoovJS;
