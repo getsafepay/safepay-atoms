@@ -99,11 +99,12 @@ export class CardLinkWebComponent extends HTMLElement {
   }
 
   static get observedAttributes(): string[] {
-    return ["validation-event", "environment"];
+    return ["validationEvent", "environment", "authToken"];
   }
 
   static componentProps: string[] = [
     "environment",
+    "authToken",
     "captureContext",
     "validationEvent",
     "inputStyle",

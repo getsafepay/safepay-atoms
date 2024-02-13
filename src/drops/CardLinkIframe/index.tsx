@@ -6,6 +6,7 @@ import { useAppendStyles, loadCardLinkStylesAndJsChunks } from "../../styles";
 interface CardInputProps {
   captureContext: string;
   environment: string;
+  authToken: string;
   inputStyle: React.CSSProperties;
   validationEvent?: string;
   onError?: (error: string) => void;
@@ -18,6 +19,7 @@ interface CardInputProps {
 const CardInput: React.FC<CardInputProps> = ({
   captureContext,
   environment,
+  authToken,
   inputStyle,
   validationEvent = "submit",
   onError = (e) => {},
@@ -47,6 +49,7 @@ const CardInput: React.FC<CardInputProps> = ({
     () => ({
       captureContext,
       environment,
+      authToken,
       inputStyle: { ...styles, ...inputStyle },
       validationEvent,
       waitFor: "payment-method",

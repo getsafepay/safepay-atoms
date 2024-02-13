@@ -19,11 +19,6 @@ const Safepay = (() => {
       throw new Error();
     }
 
-    // support demo's
-    if (cc === "fake-token") {
-      return Object.freeze({ jwt: cc });
-    }
-
     return Object.freeze({
       jwt: cc,
     });
