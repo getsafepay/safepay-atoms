@@ -78,6 +78,10 @@ const InframeComponent = forwardRef(
       return () => window.removeEventListener("message", messageHandler);
     }, [onInframeEvent]);
 
+    const postMessage = (message: any, targetOrigin: string) => {
+      iframeRef.current?.contentWindow?.postMessage(message, targetOrigin);
+    };
+    
     // Queues a method call to be sent to the iframe
     const queueMethodCall = (methodName: string, ...args: any[]) => {
       functionQueue(() =>
