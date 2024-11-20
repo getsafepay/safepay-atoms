@@ -29,15 +29,7 @@
     --optional-label-color: var(--safepay-color-background-tertiary);
     --secondary-label-color: var(--safepay-color-background-secondary);
 }
-:root {
-    --input-horizontal-padding: 1rem;
-    --input-vertical-padding: 0.625rem;
-    --input-background: var(--safepay-color-background-secondary);
-    --input-color: var(--safepay-color-medium-contrast);
-    --input-border-color: var(--safepay-color-background-tertiary);
-    --input-border-color-hover: var(--safepay-color-tertiary);
-    --input-border-focus-color: var(--safepay-color-primary);
-}
+
 .safepay-drops-root {
     color: var(--primary-text-color);
     display: block;
@@ -50,30 +42,13 @@
     font-size: 0.875rem;
     line-height: 1rem;
 }
+
 .safepay-drops-root .iframeWrapper {
-    background: var(--safepay-color-background-secondary);
-    border-radius: 0.25rem;
-    border: 1px solid var(--safepay-color-background-tertiary);
+    background: transparent;
     box-sizing: border-box;
     display: block;
-    height: 2.6rem;
+    visibility: hidden;
+    height: 10px;
     padding: var(--input-vertical-padding) var(--input-horizontal-padding);
-    width: 22.5rem;
-}
-.safepay-drops-root .iframeWrapper:hover {
-    border: 1px solid var(--safepay-color-tertiary);
-}
-.safepay-drops-root .iframeWrapper.focus,
-.safepay-drops-root .iframeWrapper.focus:hover {
-    border: 1px solid var(--safepay-color-primary);
-    outline: none;
-}
-.safepay-drops-root .errorMessage {
-    color: var(--error-text-color);
-    font-family: inherit;
-    font-size: inherit;
-    margin: 0.375rem 0 0.375rem 0.5rem;
-}
-.safepay-drops-root .errorMessage:empty {
-    display: none;
+    width: 10px;
 }

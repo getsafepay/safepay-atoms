@@ -10,7 +10,7 @@ function loadCardLinkStyles() {
   } catch (o) {
     console.error(
       o,
-      "Unable to add CardLink styles to the window using the corresponding js file"
+      "Unable to add CardLink styles to the window using the corresponding js file",
     );
   }
 }
@@ -21,7 +21,7 @@ function loadCardLinkJsChunks() {
   } catch (o) {
     console.error(
       o,
-      "Unable to add CardLink style imports to the window using the corresponding js file"
+      "Unable to add CardLink style imports to the window using the corresponding js file",
     );
   }
 }

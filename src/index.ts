@@ -1,57 +1,30 @@
+import { DeviceMetricsWebComponent } from "./elements";
 import { CardLinkWebComponent } from "./elements/CardLinkElement";
-import { CAPTURE_CONTEXT_INVALID } from "./errors";
-import { Context } from "./types/capture_context";
-import { isString } from "./utils";
+import { API_INTERNAL_ERROR } from "./errors";
 
 const Safepay = (() => {
-  /* 
-    Freezes the capture context body and returns an object that 
-    is readonly
-
-    throws errors so it is advised to call this function
-    inside of a try-catch
-
-    @param cc: string - Capture Context
-    @returns context: Readonly<Context> - frozen context object
-  */
-  const freezeCaptureContext = (cc: string): Readonly<Context> => {
-    if (!isString(cc)) {
-      throw CAPTURE_CONTEXT_INVALID();
-    }
-
-    if (!isValidToken(cc)) {
-      throw CAPTURE_CONTEXT_INVALID();
-    }
-
-    return Object.freeze({
-      jwt: cc,
-    });
-  };
-
-  const isValidToken = (token) => {
-    return token === "fake-token" || /^[\w-]+\.[\w-]+\.[\w-]+$/.test(token);
-  };
-
   const initializeDrops = () => {
-    return async function (cc: string) {
+    return async function () {
       await import("./drops");
-      window.drops && (window.drops.captureContext = cc);
+      window.drops;
       return window.drops;
     };
   };
 
   const initializeSafepay = async (cc: string) => {
     try {
-      // ToDo validate capture context
-      const ctx = freezeCaptureContext(cc);
       const obj = {
-        drops: await initializeDrops()(cc),
+        drops: await initializeDrops()(),
         version: "v0.0.1",
       };
 
       // Register custom elements if they are not already registered
       if (window && window.customElements) {
         window.customElements.define("safepay-card-link", CardLinkWebComponent);
+        window.customElements.define(
+          "safepay-device-metrics",
+          DeviceMetricsWebComponent,
+        );
       }
 
       // Dispatch the 'safepayJSLoaded' event
@@ -60,7 +33,7 @@ const Safepay = (() => {
 
       return obj;
     } catch (e) {
-      throw CAPTURE_CONTEXT_INVALID();
+      throw API_INTERNAL_ERROR();
     }
   };
 

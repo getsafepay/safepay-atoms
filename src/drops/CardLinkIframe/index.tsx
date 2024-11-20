@@ -63,7 +63,7 @@ const CardInput: React.FC<CardInputProps> = ({
   onValidated = () => {},
   onEnterKeyPress = () => {},
   imperativeRef,
-}) => {
+}: CardInputProps): React.ReactElement => {
   // Custom hook usage for appending styles and managing iframe methods
   const styleRef = useAppendStyles("CardLink", false);
   const inframeMethodsRef = useRef<any>(); // Should ideally specify a more detailed type
@@ -94,7 +94,7 @@ const CardInput: React.FC<CardInputProps> = ({
       validationEvent,
       waitFor: "payment-method",
     }),
-    [styles, environment, inputStyle, validationEvent, captureContext]
+    [styles, environment, inputStyle, validationEvent, captureContext],
   );
 
   useEffect(() => {

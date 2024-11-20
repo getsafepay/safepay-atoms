@@ -45,7 +45,6 @@ interface ImperativeRef {
  */
 export class CardLinkWebComponent extends HTMLElement {
   private _drop: SafepayDrop;
-  private captureContext: string;
   public imperativeRef: ImperativeRef;
 
   constructor() {
@@ -58,7 +57,6 @@ export class CardLinkWebComponent extends HTMLElement {
 
   handleSafepayDropsInitialized(): void {
     this.id = this.id || `safepay-card-link-${generateUUID()}`;
-    this.captureContext = window.drops.captureContext || "fake-token";
 
     this.imperativeRef = this.imperativeRef || { current: null };
 
@@ -76,7 +74,7 @@ export class CardLinkWebComponent extends HTMLElement {
   handleSafepayJsLoaded(): void {
     document.removeEventListener(
       "safepay.safepayJSLoaded",
-      this.handleSafepayJsLoaded
+      this.handleSafepayJsLoaded,
     );
     if (window.Safepay && !window.drops) {
       window.Safepay().drops().then(this.handleSafepayDropsInitialized);
@@ -93,7 +91,7 @@ export class CardLinkWebComponent extends HTMLElement {
     else {
       document.addEventListener(
         "safepay.safepayJSLoaded",
-        this.handleSafepayJsLoaded
+        this.handleSafepayJsLoaded,
       );
     }
   }
@@ -101,7 +99,7 @@ export class CardLinkWebComponent extends HTMLElement {
   attributeChangedCallback(
     name: string,
     oldValue: string,
-    newValue: string
+    newValue: string,
   ): void {
     if (oldValue === newValue) return;
 
@@ -129,7 +127,7 @@ export class CardLinkWebComponent extends HTMLElement {
   }
 
   static get observedAttributes(): string[] {
-    return ["validationEvent", "environment", "authToken"];
+    return ["validationEvent", "environment", "authToken", "captureContext"];
   }
 
   static componentProps: string[] = [
@@ -148,5 +146,5 @@ export class CardLinkWebComponent extends HTMLElement {
 
 defineReactiveProperties(
   CardLinkWebComponent,
-  CardLinkWebComponent.componentProps
+  CardLinkWebComponent.componentProps,
 );

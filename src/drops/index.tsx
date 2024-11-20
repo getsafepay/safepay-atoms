@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { loadIndexStylesAndJsChunks } from "../styles";
 
 const CardLink = lazy(() => import("./CardLinkIframe"));
+const DeviceMetrics = lazy(() => import("./DeviceMetricsIframe"));
 
 type Container = HTMLElement | ShadowRoot;
 type ContainerWithSafepayDrop = Container & {
@@ -38,7 +39,7 @@ type ContainerWithSafepayDrop = Container & {
 function renderReactComponent(
   element: React.ReactElement,
   container: ContainerWithSafepayDrop,
-  props: { [key: string]: any } | undefined = {}
+  props: { [key: string]: any } | undefined = {},
 ): void {
   const safepayDrop = container.safepayDrop || {
     previousRender: null,
@@ -50,7 +51,7 @@ function renderReactComponent(
   root.render(
     <React.StrictMode>
       <React.Suspense fallback={<div />}>{componentToRender}</React.Suspense>
-    </React.StrictMode>
+    </React.StrictMode>,
   );
 
   container.safepayDrop = {
@@ -95,7 +96,7 @@ const initializeSafepayDrop = (
   Component: LazyExoticComponent<FC>,
   props: { [key: string]: any },
   id: string,
-  shadow: boolean = false
+  shadow: boolean = false,
 ): SafepayDrop => {
   let container: HTMLElement;
 
@@ -129,24 +130,26 @@ export interface StyleChunks {
   index?: HTMLStyleElement;
   SeamlessIframe?: HTMLStyleElement;
   CardLink?: HTMLStyleElement;
+  DeviceMetrics?: HTMLStyleElement;
 }
 
 export interface JSChunks {
   index?: string[];
   SeamlessIframe?: string[];
   CardLink?: string[];
+  DeviceMetrics?: string[];
 }
 
 export interface SafepayDropFunctions {
   cardLink: (props: { [key: string]: any }, id: string) => SafepayDrop;
-  captureContext: string;
+  deviceMetrics: (props: { [key: string]: any }, id: string) => SafepayDrop;
   styleChunks: StyleChunks;
   jsChunkImports: JSChunks;
 }
 
 export const safepayDropFunctions: SafepayDropFunctions = {
   cardLink: (props, id) => initializeSafepayDrop(CardLink, props, id),
-  captureContext: "",
+  deviceMetrics: (props, id) => initializeSafepayDrop(DeviceMetrics, props, id),
   styleChunks: {},
   jsChunkImports: {},
 };
