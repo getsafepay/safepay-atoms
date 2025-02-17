@@ -1,5 +1,5 @@
-import { DeviceMetricsWebComponent } from "./elements";
-import { CardLinkWebComponent } from "./elements/CardLinkElement";
+import { PayerAuthenticationAtom } from "./elements";
+import { CardCaptureAtom } from "./elements/CardCaptureAtom";
 import { API_INTERNAL_ERROR } from "./errors";
 
 const Safepay = (() => {
@@ -20,10 +20,10 @@ const Safepay = (() => {
 
       // Register custom elements if they are not already registered
       if (window && window.customElements) {
-        window.customElements.define("safepay-card-link", CardLinkWebComponent);
+        window.customElements.define("safepay-card-atom", CardCaptureAtom);
         window.customElements.define(
-          "safepay-device-metrics",
-          DeviceMetricsWebComponent,
+          "safepay-payer-auth-atom",
+          PayerAuthenticationAtom,
         );
       }
 

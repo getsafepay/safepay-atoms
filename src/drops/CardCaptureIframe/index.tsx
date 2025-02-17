@@ -3,34 +3,32 @@ import InframeComponent from "./iframe";
 import { resolveBaseUrl } from "../../utils/funcs/resolveBaseUrl";
 import { useAppendStyles, loadCardLinkStylesAndJsChunks } from "../../styles";
 
-interface CardInputProps {
-  captureContext: string;
+interface CardCaptureProps {
   environment: string;
   authToken: string;
-  inputStyle: React.CSSProperties;
-  validationEvent?: string;
-  onError?: (error: string) => void;
-  onSuccess?: (newCard: any) => void; // Define a more specific type for newCard if possible
+  tracker: string;
+  validationEvent: string;
+  onRequireChallenge?: (accessToken?: string, actionUrl?: string) => void;
+  onProceedToAuthorization?: () => void;
   onValidated?: () => void;
-  onEnterKeyPress?: () => void;
+  onError?: (error: string) => void;
   imperativeRef: React.MutableRefObject<any>; // Replace 'any' with a specific type if possible
 }
 
 /**
- * `CardInput` is a React functional component designed to securely capture credit or debit card information.
+ * `CardCapture` is a React functional component designed to securely capture credit or debit card information.
  * It leverages an iframe to isolate the card input field from the rest of the application, enhancing security by
  * ensuring card data is not directly accessible by the parent application's DOM. This component is highly customizable,
  * allowing for various styles, event handling, and integration with different environments and authentication tokens.
  *
  * @component
- * @param {Object} props - The properties passed to the CardInput component.
- * @param {string} props.captureContext - A context identifier for capturing card information securely.
+ * @param {Object} props - The properties passed to the CardCapture component.
  * @param {string} props.environment - The environment in which the card input is operating, e.g., 'sandbox' or 'production'.
  * @param {string} props.authToken - An authentication token required for validating and processing the card information securely.
- * @param {React.CSSProperties} props.inputStyle - Custom styles to apply to the card input iframe.
+ * @param {(accessToken?: string, actionUrl?: string) => void} [props.onRequireChallenge] - An optional callback function triggered when additional authentication challenge is required. Receives optional accessToken and actionUrl parameters.
+ * @param {() => void} [props.onProceedToAuthorization] - An optional callback function triggered when the authentication flow proceeds to authorization without requiring additional challenges.
  * @param {string} [props.validationEvent="submit"] - Specifies when the card validation should occur. Defaults to 'submit'.
  * @param {(error: string) => void} [props.onError] - An optional callback function triggered upon encountering an error during card input processing.
- * @param {(newCard: any) => void} [props.onSuccess] - An optional callback function triggered upon successful card input. The `newCard` parameter should ideally be typed more specifically.
  * @param {() => void} [props.onValidated] - An optional callback function triggered when the card input passes validation checks.
  * @param {() => void} [props.onEnterKeyPress] - An optional callback function triggered when the Enter key is pressed within the card input field.
  * @param {React.MutableRefObject<any>} props.imperativeRef - A ref object used to expose component methods for external control. The type of `any` should be replaced with a more specific type if possible.
@@ -38,32 +36,29 @@ interface CardInputProps {
  * @returns {React.ReactElement} A React element representing the card input interface and its container.
  *
  * @example
- * <CardInput
- *   captureContext="yourCaptureContext"
+ * <CardCapture
  *   environment="sandbox"
  *   authToken="yourAuthToken"
- *   inputStyle={{ border: '1px solid #ccc', borderRadius: '4px' }}
+ *   tracker="yourTracker"
+ *   validationEvent="submit"
  *   onError={(error) => console.error(error)}
- *   onSuccess={(newCard) => console.log('Card added:', newCard)}
  *   onValidated={() => console.log('Card validated.')}
- *   onEnterKeyPress={() => console.log('Enter key pressed.')}
- *   imperativeRef={cardInputRef}
+ *   imperativeRef={CardCaptureRef}
  * />
  *
  * This component uses React hooks for managing state, effects, and refs, providing a modern approach to handling user interactions and component lifecycle.
  */
-const CardInput: React.FC<CardInputProps> = ({
-  captureContext,
+const CardCapture: React.FC<CardCaptureProps> = ({
   environment,
   authToken,
-  inputStyle,
-  validationEvent = "submit",
-  onError = (e) => {},
-  onSuccess = (c) => {},
+  tracker,
+  validationEvent,
   onValidated = () => {},
-  onEnterKeyPress = () => {},
+  onRequireChallenge = () => {},
+  onProceedToAuthorization = () => {},
+  onError = (e) => {},
   imperativeRef,
-}: CardInputProps): React.ReactElement => {
+}: CardCaptureProps): React.ReactElement => {
   // Custom hook usage for appending styles and managing iframe methods
   const styleRef = useAppendStyles("CardLink", false);
   const inframeMethodsRef = useRef<any>(); // Should ideally specify a more detailed type
@@ -82,19 +77,18 @@ const CardInput: React.FC<CardInputProps> = ({
     if (!styleRef.current) return;
     const computedStyles = {}; // Placeholder for actual style computation logic
     setStyles(computedStyles);
-  }, [inputStyle, styleRef]);
+  }, [styleRef]);
 
   // Computed props for iframe integration
   const computedProps = useMemo(
     () => ({
-      captureContext,
       environment,
       authToken,
-      inputStyle: { ...styles, ...inputStyle },
+      tracker,
+      inputStyle: { ...styles },
       validationEvent,
-      waitFor: "payment-method",
     }),
-    [styles, environment, inputStyle, validationEvent, captureContext],
+    [styles, environment, authToken, tracker, validationEvent],
   );
 
   useEffect(() => {
@@ -125,17 +119,16 @@ const CardInput: React.FC<CardInputProps> = ({
         setIsFocused(false);
         break;
       // Callback invocations based on specific iframe events
-      case "safepay-inframe__enter-key":
-        onEnterKeyPress();
-        break;
       case "safepay-inframe__error":
+      case "safepay-inframe__card-tokenization__failure":
+      case "safepay-inframe__enrollment__failed":
         const error = data.errorMessage;
         setErrorMessage(error);
         onError(error);
         break;
-      case "safepay-inframe__success":
-        onSuccess(data.newCard);
-        break;
+      // case "safepay-inframe__success":
+      //   onSuccess(data.newCard);
+      //   break;
       case "safepay-inframe__validated":
         setErrorMessage(undefined);
         onValidated();
@@ -145,6 +138,12 @@ const CardInput: React.FC<CardInputProps> = ({
           validationCallbackRef.current(data.isValid);
           validationCallbackRef.current = undefined;
         }
+        break;
+      case "safepay-inframe__enrollment__required":
+        onRequireChallenge(data.accessToken, data.actionUrl);
+        break;
+      case "safepay-inframe__enrollment__frictionless":
+        onProceedToAuthorization();
         break;
       default:
         // Additional event handling as necessary
@@ -171,4 +170,4 @@ const CardInput: React.FC<CardInputProps> = ({
 
 loadCardLinkStylesAndJsChunks();
 
-export default CardInput;
+export default CardCapture;

@@ -2,8 +2,8 @@ import React, { FC, LazyExoticComponent, lazy } from "react";
 import { createRoot } from "react-dom/client";
 import { loadIndexStylesAndJsChunks } from "../styles";
 
-const CardLink = lazy(() => import("./CardLinkIframe"));
-const DeviceMetrics = lazy(() => import("./DeviceMetricsIframe"));
+const CardAtom = lazy(() => import("./CardCaptureIframe"));
+const PayerAuthentication = lazy(() => import("./PayerAuthenticationIframe"));
 
 type Container = HTMLElement | ShadowRoot;
 type ContainerWithSafepayDrop = Container & {
@@ -129,27 +129,31 @@ const initializeSafepayDrop = (
 export interface StyleChunks {
   index?: HTMLStyleElement;
   SeamlessIframe?: HTMLStyleElement;
-  CardLink?: HTMLStyleElement;
-  DeviceMetrics?: HTMLStyleElement;
+  CardAtom?: HTMLStyleElement;
+  PayerAuthentication?: HTMLStyleElement;
 }
 
 export interface JSChunks {
   index?: string[];
   SeamlessIframe?: string[];
-  CardLink?: string[];
-  DeviceMetrics?: string[];
+  CardAtom?: string[];
+  PayerAuthentication?: string[];
 }
 
 export interface SafepayDropFunctions {
-  cardLink: (props: { [key: string]: any }, id: string) => SafepayDrop;
-  deviceMetrics: (props: { [key: string]: any }, id: string) => SafepayDrop;
+  cardAtom: (props: { [key: string]: any }, id: string) => SafepayDrop;
+  payerAuthentication: (
+    props: { [key: string]: any },
+    id: string,
+  ) => SafepayDrop;
   styleChunks: StyleChunks;
   jsChunkImports: JSChunks;
 }
 
 export const safepayDropFunctions: SafepayDropFunctions = {
-  cardLink: (props, id) => initializeSafepayDrop(CardLink, props, id),
-  deviceMetrics: (props, id) => initializeSafepayDrop(DeviceMetrics, props, id),
+  cardAtom: (props, id) => initializeSafepayDrop(CardAtom, props, id),
+  payerAuthentication: (props, id) =>
+    initializeSafepayDrop(PayerAuthentication, props, id),
   styleChunks: {},
   jsChunkImports: {},
 };

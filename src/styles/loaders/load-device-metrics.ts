@@ -1,12 +1,12 @@
 //@ts-ignore
-import * as deviceMetricStyles from "bundle-text:../css/device-metrics.css";
+import * as payerAuthenticationStyles from "bundle-text:../css/device-metrics.css";
 
-function loadDeviceMetricsStyles() {
+function loadPayerAuthenticationStyles() {
   try {
     const o = document.createElement("style");
-    o.textContent = deviceMetricStyles;
-    o.className = "safepay-drops-DeviceMetrics";
-    window.drops.styleChunks.DeviceMetrics = o;
+    o.textContent = payerAuthenticationStyles;
+    o.className = "safepay-drops-PayerAuthentication";
+    window.drops.styleChunks.PayerAuthentication = o;
   } catch (o) {
     console.error(
       o,
@@ -15,9 +15,12 @@ function loadDeviceMetricsStyles() {
   }
 }
 
-function loadDeviceMetricsJsChunks() {
+function loadPayerAuthenticationJsChunks() {
   try {
-    window.drops.jsChunkImports.DeviceMetrics = ["index", "SeamlessIframe"];
+    window.drops.jsChunkImports.PayerAuthentication = [
+      "index",
+      "SeamlessIframe",
+    ];
   } catch (o) {
     console.error(
       o,
@@ -26,7 +29,7 @@ function loadDeviceMetricsJsChunks() {
   }
 }
 
-export function loadDeviceMetricsStylesAndJsChunks() {
-  loadDeviceMetricsStyles();
-  loadDeviceMetricsJsChunks();
+export function loadPayerAuthenticationStylesAndJsChunks() {
+  loadPayerAuthenticationStyles();
+  loadPayerAuthenticationJsChunks();
 }

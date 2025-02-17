@@ -14,7 +14,7 @@ interface ImperativeRef {
 }
 
 /**
- * Defines a custom web component (`<card-link-web-component>`) for integrating Safepay card link functionality within web pages.
+ * Defines a custom web component (`<safepay-card-atom>`) for integrating Safepay card capture functionality within web pages.
  * This component encapsulates the logic for initializing and managing a Safepay Drop for card information capture,
  * exposing a set of methods for programmatic interaction. It leverages custom elements to provide a declarative API
  * for embedding and controlling the Safepay card input within a web application.
@@ -33,17 +33,17 @@ interface ImperativeRef {
  * @method clear - Clears the card information input fields.
  *
  * @example
- * <!-- Adding the CardLinkWebComponent to your HTML -->
+ * <!-- Adding the CardCaptureAtom to your HTML -->
  * <script src="path/to/safepay.js"></script>
- * <card-link-web-component id="myCardLink" environment="sandbox" auth-token="yourAuthToken"></card-link-web-component>
+ * <safepay-card-atom id="myCardAtom" environment="sandbox" auth-token="yourAuthToken"></safepay-card-atom>
  *
  * <script>
  *   // Accessing the component and invoking methods
- *   const myCardLink = document.getElementById('myCardLink');
- *   myCardLink.submit();
+ *   const myCardAtom = document.getElementById('myCardAtom');
+ *   myCardAtom.submit();
  * </script>
  */
-export class CardLinkWebComponent extends HTMLElement {
+export class CardCaptureAtom extends HTMLElement {
   private _drop: SafepayDrop;
   public imperativeRef: ImperativeRef;
 
@@ -56,18 +56,18 @@ export class CardLinkWebComponent extends HTMLElement {
   }
 
   handleSafepayDropsInitialized(): void {
-    this.id = this.id || `safepay-card-link-${generateUUID()}`;
+    this.id = this.id || `safepay-card-atom-${generateUUID()}`;
 
     this.imperativeRef = this.imperativeRef || { current: null };
 
     const props: Record<string, unknown> = {};
-    CardLinkWebComponent.componentProps.forEach((prop) => {
+    CardCaptureAtom.componentProps.forEach((prop) => {
       if (prop in this) {
         props[prop] = this[prop];
       }
     });
 
-    const drop = window.drops.cardLink(props, this.id);
+    const drop = window.drops.cardAtom(props, this.id);
     this._drop = drop;
   }
 
@@ -84,11 +84,7 @@ export class CardLinkWebComponent extends HTMLElement {
   connectedCallback(): void {
     if (window.drops) {
       this.handleSafepayDropsInitialized();
-    }
-    // else if (window.Safepay && !window.drops) {
-    //   this.handleSafepayJsLoaded();
-    // }
-    else {
+    } else {
       document.addEventListener(
         "safepay.safepayJSLoaded",
         this.handleSafepayJsLoaded,
@@ -127,24 +123,28 @@ export class CardLinkWebComponent extends HTMLElement {
   }
 
   static get observedAttributes(): string[] {
-    return ["validationEvent", "environment", "authToken", "captureContext"];
+    return [
+      "environment",
+      "authToken",
+      "tracker",
+      "validationEvent",
+      "onError",
+      "onRequireChallenge",
+      "onProceedToAuthorization",
+    ];
   }
 
   static componentProps: string[] = [
     "environment",
     "authToken",
-    "captureContext",
+    "tracker",
     "validationEvent",
-    "inputStyle",
-    "onEnterKeyPress",
-    "onError",
     "onValidated",
-    "onSuccess",
+    "onError",
+    "onRequireChallenge",
+    "onProceedToAuthorization",
     "imperativeRef",
   ];
 }
 
-defineReactiveProperties(
-  CardLinkWebComponent,
-  CardLinkWebComponent.componentProps,
-);
+defineReactiveProperties(CardCaptureAtom, CardCaptureAtom.componentProps);

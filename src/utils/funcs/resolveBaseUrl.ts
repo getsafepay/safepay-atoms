@@ -5,7 +5,8 @@ export const resolveBaseUrl = (env: string) => {
       r = "https://sandbox.api.getsafepay.com/drops";
       break;
     case "development":
-      r = "https://dev.api.getsafepay.com/drops";
+      // r = "https://dev.api.getsafepay.com/drops";
+      r = "http://localhost:9050";
       break;
     case "local":
       r = "http://127.0.0.1:3000";
