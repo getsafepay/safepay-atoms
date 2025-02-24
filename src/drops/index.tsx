@@ -146,6 +146,10 @@ export interface SafepayDropFunctions {
     props: { [key: string]: any },
     id: string,
   ) => SafepayDrop;
+  components: {
+    CardAtom: LazyExoticComponent<FC>;
+    PayerAuthentication: LazyExoticComponent<FC>;
+  };
   styleChunks: StyleChunks;
   jsChunkImports: JSChunks;
 }
@@ -154,6 +158,10 @@ export const safepayDropFunctions: SafepayDropFunctions = {
   cardAtom: (props, id) => initializeSafepayDrop(CardAtom, props, id),
   payerAuthentication: (props, id) =>
     initializeSafepayDrop(PayerAuthentication, props, id),
+  components: {
+    CardAtom,
+    PayerAuthentication,
+  },
   styleChunks: {},
   jsChunkImports: {},
 };

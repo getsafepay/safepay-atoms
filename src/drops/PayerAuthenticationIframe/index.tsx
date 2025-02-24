@@ -88,8 +88,7 @@ const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
         break;
     }
   };
-  console.log(environment);
-  console.log(baseURL);
+
   // Component rendering with conditional styles and iframe integration
   return (
     <div className="safepay-drops-root" ref={styleRef}>
