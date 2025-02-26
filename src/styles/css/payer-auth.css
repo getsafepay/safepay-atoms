@@ -52,3 +52,12 @@
     padding: var(--input-vertical-padding) var(--input-horizontal-padding);
     width: 10px;
 }
+
+.safepay-drops-root .payerAuthiframeWrapper {
+    background: transparent;
+    box-sizing: border-box;
+    display: block;
+    height: 100%;
+    padding: 2rem;
+    width: 100%;
+}

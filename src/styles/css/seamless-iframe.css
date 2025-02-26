@@ -1,8 +1,8 @@
-.safepay-drops-iframe{
-  background:transparent;
-  border:none;
-  display:block;
-  height:100%;
-  overflow:hidden;
-  width:100%
+.safepay-drops-iframe {
+    background: transparent;
+    border: none;
+    display: block;
+    height: 100%;
+    overflow: hidden;
+    width: 100%;
 }

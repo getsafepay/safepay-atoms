@@ -5,36 +5,20 @@ import {
   useAppendStyles,
   loadPayerAuthenticationStylesAndJsChunks,
 } from "../../styles";
-
-interface PayerAuthData {
-  tracker: string;
-  request_id: string;
-}
-
-interface PayerAuthErrorData extends PayerAuthData {
-  error: string;
-}
-
-interface PayerAuthSuccessData extends PayerAuthData {
-  authorization?: string;
-  payment_method?: string;
-}
-
-interface PayerAuthenticationProps {
-  environment: string;
-  threeDSJWT: string;
-  threeDSURL: string;
-  onPayerAuthenticationFailure?: (data: PayerAuthErrorData) => void;
-  onPayerAuthenticationSuccess?: (data: PayerAuthSuccessData) => void; // Define a more specific type for newCard if possible
-  imperativeRef: React.MutableRefObject<any>; // Replace 'any' with a specific type if possible
-}
+import { PayerAuthenticationProps } from "./types";
 
 const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
   environment,
-  threeDSJWT,
-  threeDSURL,
+  tracker,
+  clientSecret,
+  deviceDataCollectionJwt,
+  deviceDataCollectionUrl,
+  billing,
   onPayerAuthenticationFailure = () => {},
   onPayerAuthenticationSuccess = () => {},
+  onPayerAuthenticationRequired = () => {},
+  onPayerAuthenticationFrictionless = () => {},
+  onPayerAuthenticationUnavailable = () => {},
   imperativeRef,
 }: PayerAuthenticationProps): React.ReactElement => {
   // Custom hook usage for appending styles and managing iframe methods
@@ -58,11 +42,21 @@ const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
   const computedProps = useMemo(
     () => ({
       environment,
-      threeDSJWT,
-      threeDSURL,
+      tracker,
+      clientSecret,
+      deviceDataCollectionJwt,
+      deviceDataCollectionUrl,
+      billing,
       inputStyle: { ...styles },
     }),
-    [styles, environment, threeDSJWT, threeDSURL],
+    [
+      styles,
+      environment,
+      tracker,
+      clientSecret,
+      deviceDataCollectionJwt,
+      deviceDataCollectionUrl,
+    ],
   );
 
   useEffect(() => {
@@ -77,6 +71,15 @@ const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
   // Event handling for iframe communications and interactions
   const handleInframeEvent = (event: string, data: any) => {
     switch (event) {
+      case "safepay-inframe__enrollment__required":
+        onPayerAuthenticationRequired({ tracker });
+        break;
+      case "safepay-inframe__enrollment__frictionless":
+        onPayerAuthenticationFrictionless({ tracker });
+        break;
+      case "safepay-inframe__enrollment__failed":
+        onPayerAuthenticationUnavailable({ tracker });
+        break;
       case "safepay-inframe__cardinal-3ds__failure":
         onPayerAuthenticationFailure(data);
         break;
@@ -92,9 +95,9 @@ const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
   // Component rendering with conditional styles and iframe integration
   return (
     <div className="safepay-drops-root" ref={styleRef}>
-      <div className={`iframeWrapper`}>
+      <div className={`payerAuthiframeWrapper`}>
         <InframeComponent
-          src={`${baseURL}/threeds`}
+          src={`${baseURL}/authlink`}
           title="Safepay PayerAuthentication"
           ref={inframeMethodsRef}
           onInframeEvent={handleInframeEvent}
