@@ -10,9 +10,9 @@ import { PayerAuthenticationProps } from "./types";
 const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
   environment,
   tracker,
-  clientSecret,
-  deviceDataCollectionJwt,
-  deviceDataCollectionUrl,
+  authToken,
+  deviceDataCollectionJWT,
+  deviceDataCollectionURL,
   billing,
   onPayerAuthenticationFailure = () => {},
   onPayerAuthenticationSuccess = () => {},
@@ -43,9 +43,9 @@ const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
     () => ({
       environment,
       tracker,
-      clientSecret,
-      deviceDataCollectionJwt,
-      deviceDataCollectionUrl,
+      authToken,
+      deviceDataCollectionJWT,
+      deviceDataCollectionURL,
       billing,
       inputStyle: { ...styles },
     }),
@@ -53,9 +53,10 @@ const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
       styles,
       environment,
       tracker,
-      clientSecret,
-      deviceDataCollectionJwt,
-      deviceDataCollectionUrl,
+      authToken,
+      deviceDataCollectionJWT,
+      deviceDataCollectionURL,
+      billing
     ],
   );
 

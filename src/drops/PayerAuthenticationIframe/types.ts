@@ -23,9 +23,9 @@ interface Billing {
 export interface PayerAuthenticationProps {
   environment: string;
   tracker: string;
-  clientSecret: string;
-  deviceDataCollectionJwt: string;
-  deviceDataCollectionUrl: string;
+  authToken: string;
+  deviceDataCollectionJWT: string;
+  deviceDataCollectionURL: string;
   billing?: Billing;
   onPayerAuthenticationFailure?: (data: PayerAuthErrorData) => void;
   onPayerAuthenticationSuccess?: (data: PayerAuthSuccessData) => void;
