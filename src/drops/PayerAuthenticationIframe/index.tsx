@@ -96,7 +96,7 @@ const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
   // Component rendering with conditional styles and iframe integration
   return (
     <div className="safepay-drops-root" ref={styleRef}>
-      <div className={`payerAuthiframeWrapper`}>
+      <div className="payerAuthiframeWrapper">
         <InframeComponent
           src={`${baseURL}/authlink`}
           title="Safepay PayerAuthentication"

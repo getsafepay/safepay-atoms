@@ -1,5 +1,4 @@
 import { SafepayDrop } from "../../drops";
-import { Context } from "../../types/capture_context";
 import { generateUUID } from "../../utils";
 import { defineReactiveProperties } from "../../utils/funcs/defineReactiveProperties";
 import { toCamelCase } from "../../utils/funcs/toCamelCase";

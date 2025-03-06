@@ -1,5 +1,4 @@
 import { SafepayDrop } from "../../drops";
-import { Context } from "../../types/capture_context";
 import { generateUUID } from "../../utils";
 import { defineReactiveProperties } from "../../utils/funcs/defineReactiveProperties";
 import { toCamelCase } from "../../utils/funcs/toCamelCase";
@@ -19,7 +18,7 @@ export class PayerAuthenticationAtom extends HTMLElement {
 
   constructor() {
     super();
-
+    
     this.handleSafepayDropsInitialized =
       this.handleSafepayDropsInitialized.bind(this);
     this.handleSafepayJsLoaded = this.handleSafepayJsLoaded.bind(this);
@@ -88,6 +87,11 @@ export class PayerAuthenticationAtom extends HTMLElement {
         "deviceDataCollectionJWT",
         "deviceDataCollectionURL",
         "billing",
+        "onPayerAuthenticationFailure",
+        "onPayerAuthenticationSuccess",
+        "onPayerAuthenticationFrictionless",
+        "onPayerAuthenticationRequired",
+        "onPayerAuthenticationUnavailable"
     ];
   }
 
@@ -98,6 +102,11 @@ export class PayerAuthenticationAtom extends HTMLElement {
     "deviceDataCollectionJWT",
     "deviceDataCollectionURL",
     "billing",
+    "onPayerAuthenticationFailure",
+    "onPayerAuthenticationSuccess",
+    "onPayerAuthenticationFrictionless",
+    "onPayerAuthenticationRequired",
+    "onPayerAuthenticationUnavailable",
     "imperativeRef",
   ];
 }

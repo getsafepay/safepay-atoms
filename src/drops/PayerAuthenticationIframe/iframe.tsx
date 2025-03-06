@@ -127,7 +127,9 @@ const InframeComponent = forwardRef(
         src={src}
         title={title}
         style={isVisible ? undefined : { visibility: "hidden" }}
-      />
+        height="100%"
+        width="100%"
+      />   
     );
   },
 );

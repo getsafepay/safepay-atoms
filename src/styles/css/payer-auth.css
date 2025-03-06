@@ -16,6 +16,7 @@
     --safepay-color-graphic-2: #3d50ec;
     --safepay-color-graphic-3: #3d50ec;
 }
+
 :root {
     --primary-text-color: var(--safepay-color-high-contrast);
     --secondary-text-color: var(--safepay-color-medium-contrast);
@@ -41,23 +42,15 @@
         sans-serif;
     font-size: 0.875rem;
     line-height: 1rem;
-}
-
-.safepay-drops-root .iframeWrapper {
-    background: transparent;
-    box-sizing: border-box;
-    display: block;
-    visibility: hidden;
-    height: 10px;
-    padding: var(--input-vertical-padding) var(--input-horizontal-padding);
-    width: 10px;
+    height: 100%;
+    width: 100%;
 }
 
 .safepay-drops-root .payerAuthiframeWrapper {
     background: transparent;
     box-sizing: border-box;
     display: block;
-    height: 100%;
     padding: 2rem;
+    height: 100%;
     width: 100%;
 }
