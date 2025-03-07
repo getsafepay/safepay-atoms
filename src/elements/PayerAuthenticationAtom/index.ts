@@ -1,7 +1,7 @@
-import { SafepayDrop } from "../../drops";
-import { generateUUID } from "../../utils";
-import { defineReactiveProperties } from "../../utils/funcs/defineReactiveProperties";
-import { toCamelCase } from "../../utils/funcs/toCamelCase";
+import { SafepayDrop } from '../../types/drops';
+import { generateUUID } from '../../utils';
+import { defineReactiveProperties } from '../../utils/funcs/defineReactiveProperties';
+import { toCamelCase } from '../../utils/funcs/toCamelCase';
 
 interface ImperativeRef {
   current: null | {
@@ -18,10 +18,7 @@ export class PayerAuthenticationAtom extends HTMLElement {
 
   constructor() {
     super();
-    
-    this.handleSafepayDropsInitialized =
-      this.handleSafepayDropsInitialized.bind(this);
-    this.handleSafepayJsLoaded = this.handleSafepayJsLoaded.bind(this);
+    this.handleSafepayDropsInitialized = this.handleSafepayDropsInitialized.bind(this);
   }
 
   handleSafepayDropsInitialized(): void {
@@ -40,36 +37,11 @@ export class PayerAuthenticationAtom extends HTMLElement {
     this._drop = drop;
   }
 
-  handleSafepayJsLoaded(): void {
-    document.removeEventListener(
-      "safepay.safepayJSLoaded",
-      this.handleSafepayJsLoaded,
-    );
-    if (window.Safepay && !window.drops) {
-      window.Safepay().drops().then(this.handleSafepayDropsInitialized);
-    }
-  }
-
   connectedCallback(): void {
-    if (window.drops) {
-      this.handleSafepayDropsInitialized();
-    }
-    // else if (window.Safepay && !window.drops) {
-    //   this.handleSafepayJsLoaded();
-    // }
-    else {
-      document.addEventListener(
-        "safepay.safepayJSLoaded",
-        this.handleSafepayJsLoaded,
-      );
-    }
+    this.handleSafepayDropsInitialized();
   }
 
-  attributeChangedCallback(
-    name: string,
-    oldValue: string,
-    newValue: string,
-  ): void {
+  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
     if (oldValue === newValue) return;
 
     let propName = toCamelCase(name);
@@ -81,37 +53,34 @@ export class PayerAuthenticationAtom extends HTMLElement {
 
   static get observedAttributes(): string[] {
     return [
-        "environment",
-        "tracker",
-        "authToken",
-        "deviceDataCollectionJWT",
-        "deviceDataCollectionURL",
-        "billing",
-        "onPayerAuthenticationFailure",
-        "onPayerAuthenticationSuccess",
-        "onPayerAuthenticationFrictionless",
-        "onPayerAuthenticationRequired",
-        "onPayerAuthenticationUnavailable"
+      'environment',
+      'tracker',
+      'authToken',
+      'deviceDataCollectionJWT',
+      'deviceDataCollectionURL',
+      'billing',
+      'onPayerAuthenticationFailure',
+      'onPayerAuthenticationSuccess',
+      'onPayerAuthenticationFrictionless',
+      'onPayerAuthenticationRequired',
+      'onPayerAuthenticationUnavailable',
     ];
   }
 
   static componentProps: string[] = [
-    "environment",
-    "tracker",
-    "authToken",
-    "deviceDataCollectionJWT",
-    "deviceDataCollectionURL",
-    "billing",
-    "onPayerAuthenticationFailure",
-    "onPayerAuthenticationSuccess",
-    "onPayerAuthenticationFrictionless",
-    "onPayerAuthenticationRequired",
-    "onPayerAuthenticationUnavailable",
-    "imperativeRef",
+    'environment',
+    'tracker',
+    'authToken',
+    'deviceDataCollectionJWT',
+    'deviceDataCollectionURL',
+    'billing',
+    'onPayerAuthenticationFailure',
+    'onPayerAuthenticationSuccess',
+    'onPayerAuthenticationFrictionless',
+    'onPayerAuthenticationRequired',
+    'onPayerAuthenticationUnavailable',
+    'imperativeRef',
   ];
 }
 
-defineReactiveProperties(
-  PayerAuthenticationAtom,
-  PayerAuthenticationAtom.componentProps,
-);
+defineReactiveProperties(PayerAuthenticationAtom, PayerAuthenticationAtom.componentProps);

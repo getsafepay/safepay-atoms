@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Safepay Card Capture Demo</title>
+    <script src="http://localhost:3000/dist/index.js"></script>
+  </head>
+  <style type="text/css">
+    .modal-backdrop {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      inset: 0px;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 2;
+      cursor: pointer;
+    }
+
+    .show {
+      display: block;
+    }
+
+    .hide {
+      display: none;
+    }
+
+    .popup {
+      position: absolute;
+      top: 12.5%;
+      left: 25%;
+      width: 40%;
+      height: 75%;
+      border: 1px solid black;
+      background-color: white;
+      z-index: 2;
+    }
+  </style>
+  <body>
+    <h1>Card Capture Atom</h1>
+    <safepay-card-atom></safepay-card-atom>
+    <button onclick="handleSubmit()">Submit</button>
+    <div id="threeds-modal" class="modal-backdrop hide">
+      <div class="popup">
+        <safepay-payer-auth-atom></safepay-payer-auth-atom>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      var safepay = Safepay();
+
+      const cardAtom = document.querySelector('safepay-card-atom');
+      const payerAuthAtom = document.querySelector('safepay-payer-auth-atom');
+      const modal = document.getElementById('threeds-modal');
+
+      cardAtom.authToken = '5mDuRgITVcHvwbLC35Ksqix0P6XCsQ8waFmcTrTKBNZL8QuHCtl1T2Iw2l2MEq6znlk0xLQI3g==';
+      cardAtom.environment = 'development';
+      cardAtom.tracker = 'track_390d312c-8836-4506-9455-e425adeeb77b';
+      cardAtom.validationEvent = 'submit';
+      cardAtom.onError = function (err) {
+        console.log(err);
+      };
+      cardAtom.onValidated = function () {
+        console.log('validated');
+      };
+      cardAtom.onRequireChallenge = function (accessToken, actionUrl) {
+        console.log(accessToken);
+        console.log(actionUrl);
+
+        payerAuthAtom.environment = 'development';
+        payerAuthAtom.threeDSJWT = accessToken;
+        payerAuthAtom.threeDSURL = actionUrl;
+        payerAuthAtom.onPayerAuthenticationSuccess = function (data) {
+          console.log(data);
+        };
+        payerAuthAtom.onPayerAuthenticationFailure = function (data) {
+          console.log(data);
+        };
+
+        modal.classList.remove('hide');
+        modal.classList.add('show');
+      };
+      cardAtom.onProceedToAuthorization = function () {};
+      cardAtom.onSuccess = function (card) {
+        console.log(card);
+      };
+
+      function handleSubmit(e) {
+        const validityPromise = cardAtom.fetchValidity();
+        validityPromise.then((isValid) => {
+          console.log(isValid);
+          cardAtom.submit();
+        });
+      }
+    </script>
+  </body>
+</html>

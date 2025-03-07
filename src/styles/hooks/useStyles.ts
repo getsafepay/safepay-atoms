@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef } from 'react';
 
 type ChunkName = string; // Replace this with the actual type of your chunk names if they are not just strings.
 
@@ -53,10 +53,9 @@ export const useAppendStyles = (chunkName: ChunkName, isShadow: boolean) => {
    * @returns {ChunkName[]} An array of related chunk names.
    */
   const getRelatedStyleChunks = (name: ChunkName): ChunkName[] => {
-    const chunks = [
-      ...(window.drops?.jsChunkImports?.[name] || []),
-      name,
-    ].filter((chunk) => !!window.drops?.styleChunks?.[chunk]);
+    const chunks = [...(window.drops?.jsChunkImports?.[name] || []), name].filter(
+      (chunk) => !!window.drops?.styleChunks?.[chunk]
+    );
 
     if (chunks.length === 0) {
       console.error(
@@ -79,17 +78,14 @@ export const useAppendStyles = (chunkName: ChunkName, isShadow: boolean) => {
       chunkNames.reverse();
       chunkNames.forEach((name) => {
         const styleElement = cloneStyleChunk(name);
-        if (
-          styleElement &&
-          !shadowRoot.querySelector(`.${styleElement.className}`)
-        ) {
+        if (styleElement && !shadowRoot.querySelector(`.${styleElement.className}`)) {
           shadowRoot.prepend(styleElement);
           appendRootStyles(styleElement);
         }
       });
     } else {
       console.error(
-        "Failed to attach styles to Shadow Root. Make sure that isShadow is set correctly and cssRootRef is assigned to an element within the Shadow DOM."
+        'Failed to attach styles to Shadow Root. Make sure that isShadow is set correctly and cssRootRef is assigned to an element within the Shadow DOM.'
       );
     }
   };
@@ -103,10 +99,7 @@ export const useAppendStyles = (chunkName: ChunkName, isShadow: boolean) => {
   const attachStylesToHead = (chunkNames: ChunkName[]) => {
     chunkNames.forEach((name) => {
       const styleElement = cloneStyleChunk(name);
-      if (
-        styleElement &&
-        !document.head.querySelector(`.${styleElement.className}`)
-      ) {
+      if (styleElement && !document.head.querySelector(`.${styleElement.className}`)) {
         document.head.append(styleElement);
       }
     });
@@ -121,8 +114,8 @@ export const useAppendStyles = (chunkName: ChunkName, isShadow: boolean) => {
     if (document.head.querySelector(`.${styleElement.className}-root`)) return;
     const rootStyles = styleElement.innerText.match(/:root{(.|\n)+?}/g);
     if (!rootStyles) return;
-    const rootCss = rootStyles.join("\n");
-    const rootStyleElement = document.createElement("style");
+    const rootCss = rootStyles.join('\n');
+    const rootStyleElement = document.createElement('style');
     rootStyleElement.innerText = rootCss;
     rootStyleElement.className = `${styleElement.className}-root`;
     document.head.append(rootStyleElement);

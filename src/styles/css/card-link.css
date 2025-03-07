@@ -1,79 +1,79 @@
 :root {
-    --safepay-color-background: #ffffff;
-    --safepay-color-background-secondary: #f5f6f9;
-    --safepay-color-background-tertiary: #e7e7f1;
-    --safepay-color-primary: #4a5cf5;
-    --safepay-color-secondary: #3d50ec;
-    --safepay-color-tertiary: #b9bbc3;
-    --safepay-color-info: #94cbff;
-    --safepay-color-warn: #eb5757;
-    --safepay-color-danger: #ea0f43;
-    --safepay-color-success: #62e599;
-    --safepay-color-low-contrast: #5b5d6a;
-    --safepay-color-medium-contrast: #494a57;
-    --safepay-color-high-contrast: #000000;
-    --safepay-color-graphic-1: #3d50ec;
-    --safepay-color-graphic-2: #3d50ec;
-    --safepay-color-graphic-3: #3d50ec;
+  --safepay-color-background: #ffffff;
+  --safepay-color-background-secondary: #f5f6f9;
+  --safepay-color-background-tertiary: #e7e7f1;
+  --safepay-color-primary: #4a5cf5;
+  --safepay-color-secondary: #3d50ec;
+  --safepay-color-tertiary: #b9bbc3;
+  --safepay-color-info: #94cbff;
+  --safepay-color-warn: #eb5757;
+  --safepay-color-danger: #ea0f43;
+  --safepay-color-success: #62e599;
+  --safepay-color-low-contrast: #5b5d6a;
+  --safepay-color-medium-contrast: #494a57;
+  --safepay-color-high-contrast: #000000;
+  --safepay-color-graphic-1: #3d50ec;
+  --safepay-color-graphic-2: #3d50ec;
+  --safepay-color-graphic-3: #3d50ec;
 }
 :root {
-    --primary-text-color: var(--safepay-color-high-contrast);
-    --secondary-text-color: var(--safepay-color-medium-contrast);
-    --tertiary-text-color: var(--safepay-color-low-contrast);
-    --label-text-color: var(--safepay-color-medium-contrast);
-    --helper-text-color: var(--safepay-color-background-secondary);
-    --muted-text-color: var(--safepay-color-low-contrast);
-    --error-text-color: var(--safepay-color-danger);
-    --placeholder-text-color: var(--safepay-color-low-contrast);
-    --checkbox-text-color: var(--safepay-color-medium-contrast);
-    --optional-label-color: var(--safepay-color-background-tertiary);
-    --secondary-label-color: var(--safepay-color-background-secondary);
+  --primary-text-color: var(--safepay-color-high-contrast);
+  --secondary-text-color: var(--safepay-color-medium-contrast);
+  --tertiary-text-color: var(--safepay-color-low-contrast);
+  --label-text-color: var(--safepay-color-medium-contrast);
+  --helper-text-color: var(--safepay-color-background-secondary);
+  --muted-text-color: var(--safepay-color-low-contrast);
+  --error-text-color: var(--safepay-color-danger);
+  --placeholder-text-color: var(--safepay-color-low-contrast);
+  --checkbox-text-color: var(--safepay-color-medium-contrast);
+  --optional-label-color: var(--safepay-color-background-tertiary);
+  --secondary-label-color: var(--safepay-color-background-secondary);
 }
 :root {
-    --input-horizontal-padding: 1rem;
-    --input-vertical-padding: 0.625rem;
-    --input-background: var(--safepay-color-background-secondary);
-    --input-color: var(--safepay-color-medium-contrast);
-    --input-border-color: var(--safepay-color-background-tertiary);
-    --input-border-color-hover: var(--safepay-color-tertiary);
-    --input-border-focus-color: var(--safepay-color-primary);
+  --input-horizontal-padding: 1rem;
+  --input-vertical-padding: 0.625rem;
+  --input-background: var(--safepay-color-background-secondary);
+  --input-color: var(--safepay-color-medium-contrast);
+  --input-border-color: var(--safepay-color-background-tertiary);
+  --input-border-color-hover: var(--safepay-color-tertiary);
+  --input-border-focus-color: var(--safepay-color-primary);
 }
 .safepay-drops-root {
-    color: var(--primary-text-color);
-    display: block;
-    font-family:
-        ui-sans-serif,
-        system-ui,
-        -apple-system,
-        BlinkMacSystemFont,
-        sans-serif;
-    font-size: 0.875rem;
-    line-height: 1rem;
+  color: var(--primary-text-color);
+  display: block;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 0.875rem;
+  line-height: 1rem;
 }
 .safepay-drops-root .iframeWrapper {
-    background: var(--safepay-color-background-secondary);
-    border-radius: 0.25rem;
-    border: 1px solid var(--safepay-color-background-tertiary);
-    box-sizing: border-box;
-    display: block;
-    height: 2.6rem;
-    padding: var(--input-vertical-padding) var(--input-horizontal-padding);
-    width: 22.5rem;
+  background: var(--safepay-color-background-secondary);
+  border-radius: 0.25rem;
+  border: 1px solid var(--safepay-color-background-tertiary);
+  box-sizing: border-box;
+  display: block;
+  height: 2.6rem;
+  padding: var(--input-vertical-padding) var(--input-horizontal-padding);
+  width: 22.5rem;
 }
 .safepay-drops-root .iframeWrapper:hover {
-    border: 1px solid var(--safepay-color-tertiary);
+  border: 1px solid var(--safepay-color-tertiary);
 }
 .safepay-drops-root .iframeWrapper.focus,
 .safepay-drops-root .iframeWrapper.focus:hover {
-    border: 1px solid var(--safepay-color-primary);
-    outline: none;
+  border: 1px solid var(--safepay-color-primary);
+  outline: none;
 }
 .safepay-drops-root .errorMessage {
-    color: var(--error-text-color);
-    font-family: inherit;
-    font-size: inherit;
-    margin: 0.375rem 0 0.375rem 0.5rem;
+  color: var(--error-text-color);
+  font-family: inherit;
+  font-size: inherit;
+  margin: 0.375rem 0 0.375rem 0.5rem;
 }
 .safepay-drops-root .errorMessage:empty {
-    display: none;
+  display: none;
 }

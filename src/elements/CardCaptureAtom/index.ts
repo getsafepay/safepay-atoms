@@ -1,7 +1,7 @@
-import { SafepayDrop } from "../../drops";
-import { generateUUID } from "../../utils";
-import { defineReactiveProperties } from "../../utils/funcs/defineReactiveProperties";
-import { toCamelCase } from "../../utils/funcs/toCamelCase";
+import { SafepayDrop } from '../../types/drops';
+import { generateUUID } from '../../utils';
+import { defineReactiveProperties } from '../../utils/funcs/defineReactiveProperties';
+import { toCamelCase } from '../../utils/funcs/toCamelCase';
 
 interface ImperativeRef {
   current: null | {
@@ -21,7 +21,6 @@ interface ImperativeRef {
  * @property {ImperativeRef} imperativeRef - A reference object that exposes methods to interact with the card input programmatically, including submit, validate, fetchValidity, and clear.
  *
  * @fires handleSafepayDropsInitialized - Initializes the Safepay Drop once Safepay is ready or when the component is connected to the document.
- * @fires handleSafepayJsLoaded - Handles the loading of Safepay.js and initializes the drop accordingly.
  *
  * @listens connectedCallback - Lifecycle callback invoked when the component is added to the document's DOM.
  * @listens attributeChangedCallback - Lifecycle callback invoked when one of the component's observed attributes is added, removed, or changed.
@@ -49,9 +48,7 @@ export class CardCaptureAtom extends HTMLElement {
   constructor() {
     super();
 
-    this.handleSafepayDropsInitialized =
-      this.handleSafepayDropsInitialized.bind(this);
-    this.handleSafepayJsLoaded = this.handleSafepayJsLoaded.bind(this);
+    this.handleSafepayDropsInitialized = this.handleSafepayDropsInitialized.bind(this);
   }
 
   handleSafepayDropsInitialized(): void {
@@ -70,32 +67,11 @@ export class CardCaptureAtom extends HTMLElement {
     this._drop = drop;
   }
 
-  handleSafepayJsLoaded(): void {
-    document.removeEventListener(
-      "safepay.safepayJSLoaded",
-      this.handleSafepayJsLoaded,
-    );
-    if (window.Safepay && !window.drops) {
-      window.Safepay().drops().then(this.handleSafepayDropsInitialized);
-    }
-  }
-
   connectedCallback(): void {
-    if (window.drops) {
-      this.handleSafepayDropsInitialized();
-    } else {
-      document.addEventListener(
-        "safepay.safepayJSLoaded",
-        this.handleSafepayJsLoaded,
-      );
-    }
+    this.handleSafepayDropsInitialized();
   }
 
-  attributeChangedCallback(
-    name: string,
-    oldValue: string,
-    newValue: string,
-  ): void {
+  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
     if (oldValue === newValue) return;
 
     let propName = toCamelCase(name);
@@ -123,26 +99,26 @@ export class CardCaptureAtom extends HTMLElement {
 
   static get observedAttributes(): string[] {
     return [
-      "environment",
-      "authToken",
-      "tracker",
-      "validationEvent",
-      "onError",
-      "onRequireChallenge",
-      "onProceedToAuthorization",
+      'environment',
+      'authToken',
+      'tracker',
+      'validationEvent',
+      'onError',
+      'onRequireChallenge',
+      'onProceedToAuthorization',
     ];
   }
 
   static componentProps: string[] = [
-    "environment",
-    "authToken",
-    "tracker",
-    "validationEvent",
-    "onValidated",
-    "onError",
-    "onRequireChallenge",
-    "onProceedToAuthorization",
-    "imperativeRef",
+    'environment',
+    'authToken',
+    'tracker',
+    'validationEvent',
+    'onValidated',
+    'onError',
+    'onRequireChallenge',
+    'onProceedToAuthorization',
+    'imperativeRef',
   ];
 }
 

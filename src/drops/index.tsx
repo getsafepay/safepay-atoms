@@ -1,10 +1,12 @@
-import React, { FC, LazyExoticComponent, lazy } from "react";
-import { createRoot } from "react-dom/client";
-import { loadIndexStylesAndJsChunks } from "../styles";
+import React, { FC, lazy } from 'react';
+import { createRoot } from 'react-dom/client';
+import { loadIndexStylesAndJsChunks } from '../styles';
+import { SafepayDrop, SafepayDropFunctions } from '../types/drops';
 
-const CardAtom = lazy(() => import("./CardCaptureIframe"));
-const PayerAuthentication = lazy(() => import("./PayerAuthenticationIframe"));
+const CardAtom = lazy(() => import('./CardCaptureIframe'));
+const PayerAuthentication = lazy(() => import('./PayerAuthenticationIframe'));
 
+// Types for container elements
 type Container = HTMLElement | ShadowRoot;
 type ContainerWithSafepayDrop = Container & {
   safepayDrop?: {
@@ -14,106 +16,78 @@ type ContainerWithSafepayDrop = Container & {
 
 /**
  * Renders a React component within a specified container, optionally merging properties from a previous render.
- * This function is designed to work with containers that are prepared to handle Safepay drops, allowing for
- * the dynamic injection of React components with updated props on subsequent renders. It uses React's strict mode
- * and suspense features to enhance the development experience and handle loading states respectively.
  *
- * @param {React.ReactElement} element - The React element to be rendered. This is typically a JSX element or a component invocation.
- * @param {ContainerWithSafepayDrop} container - The DOM element or container where the React element will be rendered. This container is expected to have a `safepayDrop` property for tracking the previous render state.
- * @param {Object} [props={}] - An optional object containing properties that should be merged with any properties from the element's previous render. This allows for dynamic updating of component props.
+ * @param {React.ReactElement} element - The React element to be rendered
+ * @param {ContainerWithSafepayDrop} container - The DOM element or Shadow Root where the React element will be rendered
+ * @param {Object} props - Optional properties to merge with previous render properties
  *
  * @example
- * // Define a container element in your HTML
  * const container = document.getElementById('my-container');
- * container.safepayDrop = {}; // Prepare the container for Safepay drops
- *
- * // Define a React component
- * const MyComponent = () => <div>Hello, World!</div>;
- *
- * // Render the component inside the container
- * renderReactComponent(<MyComponent />, container, { additionalProp: 'value' });
- *
- * // Subsequent calls can update the props
- * renderReactComponent(<MyComponent />, container, { additionalProp: 'new value' });
+ * renderReactComponent(<MyComponent />, container, { someProperty: 'value' });
  */
 function renderReactComponent(
   element: React.ReactElement,
   container: ContainerWithSafepayDrop,
-  props: { [key: string]: any } | undefined = {},
+  props: { [key: string]: any } = {}
 ): void {
+  // Initialize or get existing safepayDrop
   const safepayDrop = container.safepayDrop || {
     previousRender: null,
   };
+
+  // Merge previous and new props
   const combinedProps = { ...safepayDrop.previousRender?.props, ...props };
   const componentToRender = React.cloneElement(element, combinedProps);
   const root = createRoot(container!);
 
-  root.render(
-    <React.StrictMode>
-      <React.Suspense fallback={<div />}>{componentToRender}</React.Suspense>
-    </React.StrictMode>,
-  );
+  // Render component with StrictMode for better development experience
+  root.render(<React.StrictMode>{componentToRender}</React.StrictMode>);
 
+  // Update container's safepayDrop reference
   container.safepayDrop = {
     ...safepayDrop,
     previousRender: componentToRender,
   };
 }
 
-export interface SafepayDrop {
-  remove: () => void;
-  render: (newProps: any) => void;
-}
-
 /**
- * Initializes a Safepay Drop by dynamically injecting a React component into the DOM,
- * optionally within a Shadow DOM to encapsulate the styling and markup. This function
- * creates or selects a container based on the provided ID and then renders the specified
- * React component into this container with the given props. Additional props can be provided
- * on subsequent renders without re-initializing the Safepay Drop.
+ * Initializes a Safepay Drop by creating a container and rendering a React component.
  *
- * @param {LazyExoticComponent<FC>} Component - The React component to be dynamically injected. This component should be lazy-loaded to leverage React's code-splitting capabilities.
- * @param {Object} props - An object containing initial props for the component. These props can be updated on subsequent renders.
- * @param {string} id - The ID of the container element into which the component should be rendered. If the container does not exist, it will be created.
- * @param {boolean} [shadow=false] - Determines whether the component should be rendered within a Shadow DOM. Using Shadow DOM encapsulates the component's styles and markup, preventing conflicts with the host page.
- *
- * @returns {SafepayDrop} An object representing the Safepay Drop instance, providing methods for removing the component or rendering it with new props.
+ * @param {FC} Component - The React component to render
+ * @param {Object} props - Initial properties for the component
+ * @param {string} id - DOM element ID for the container
+ * @param {boolean} shadow - Whether to use Shadow DOM for style encapsulation
+ * @returns {SafepayDrop} Object containing methods to control the rendered component
  *
  * @example
- * // Lazy-load a React component
- * const MyLazyComponent = React.lazy(() => import('./MyComponent'));
- *
- * // Initialize a Safepay Drop
- * const drop = initializeSafepayDrop(MyLazyComponent, { prop1: 'value' }, 'my-container-id');
- *
- * // Update the component's props
- * drop.render({ prop1: 'new value' });
- *
- * // Remove the component from the DOM when it's no longer needed
- * drop.remove();
+ * const drop = initializeSafepayDrop(CardAtom, { theme: 'dark' }, 'card-container');
+ * drop.render({ theme: 'light' }); // Update props
+ * drop.remove(); // Remove from DOM
  */
 const initializeSafepayDrop = (
-  Component: LazyExoticComponent<FC>,
+  Component: FC,
   props: { [key: string]: any },
   id: string,
-  shadow: boolean = false,
+  shadow: boolean = false
 ): SafepayDrop => {
+  // Create or find container element
   let container: HTMLElement;
-
   if (id) {
-    container = document.getElementById(id) || document.createElement("div");
+    container = document.getElementById(id) || document.createElement('div');
     container.id = id;
   } else {
-    container = document.createElement("div");
+    container = document.createElement('div');
     document.body.appendChild(container);
   }
 
+  // Setup Shadow DOM if requested
   if (shadow && !container.shadowRoot) {
-    container.attachShadow({ mode: "open" });
+    container.attachShadow({ mode: 'open' });
   }
 
   const target = container.shadowRoot || container;
 
+  // Create SafepayDrop instance
   const safepayDrop = {
     remove: () => container.remove(),
     render: (newProps) => {
@@ -121,43 +95,18 @@ const initializeSafepayDrop = (
     },
   };
 
+  // Initial render
   safepayDrop.render(props);
 
   return safepayDrop;
 };
 
-export interface StyleChunks {
-  index?: HTMLStyleElement;
-  SeamlessIframe?: HTMLStyleElement;
-  CardAtom?: HTMLStyleElement;
-  PayerAuthentication?: HTMLStyleElement;
-}
-
-export interface JSChunks {
-  index?: string[];
-  SeamlessIframe?: string[];
-  CardAtom?: string[];
-  PayerAuthentication?: string[];
-}
-
-export interface SafepayDropFunctions {
-  cardAtom: (props: { [key: string]: any }, id: string) => SafepayDrop;
-  payerAuthentication: (
-    props: { [key: string]: any },
-    id: string,
-  ) => SafepayDrop;
-  components: {
-    CardAtom: LazyExoticComponent<FC>;
-    PayerAuthentication: LazyExoticComponent<FC>;
-  };
-  styleChunks: StyleChunks;
-  jsChunkImports: JSChunks;
-}
-
+/**
+ * Main export object containing all Safepay Drop functionality
+ */
 export const safepayDropFunctions: SafepayDropFunctions = {
   cardAtom: (props, id) => initializeSafepayDrop(CardAtom, props, id),
-  payerAuthentication: (props, id) =>
-    initializeSafepayDrop(PayerAuthentication, props, id),
+  payerAuthentication: (props, id) => initializeSafepayDrop(PayerAuthentication, props, id),
   components: {
     CardAtom,
     PayerAuthentication,
@@ -166,5 +115,6 @@ export const safepayDropFunctions: SafepayDropFunctions = {
   jsChunkImports: {},
 };
 
+// Attach to window and load styles
 window.drops = safepayDropFunctions;
 loadIndexStylesAndJsChunks();

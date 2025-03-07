@@ -1,11 +1,8 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
-import InframeComponent from "./iframe";
-import { resolveBaseUrl } from "../../utils/funcs/resolveBaseUrl";
-import {
-  useAppendStyles,
-  loadPayerAuthenticationStylesAndJsChunks,
-} from "../../styles";
-import { PayerAuthenticationProps } from "./types";
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import InframeComponent from './iframe';
+import { resolveBaseUrl } from '../../utils/funcs/resolveBaseUrl';
+import { useAppendStyles, loadPayerAuthenticationStylesAndJsChunks } from '../../styles';
+import { PayerAuthenticationProps } from './types';
 
 const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
   environment,
@@ -22,7 +19,7 @@ const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
   imperativeRef,
 }: PayerAuthenticationProps): React.ReactElement => {
   // Custom hook usage for appending styles and managing iframe methods
-  const styleRef = useAppendStyles("PayerAuth", false);
+  const styleRef = useAppendStyles('PayerAuthentication', false);
   const inframeMethodsRef = useRef<any>(); // Should ideally specify a more detailed type
 
   // Component state management for UI and validation states
@@ -49,15 +46,7 @@ const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
       billing,
       inputStyle: { ...styles },
     }),
-    [
-      styles,
-      environment,
-      tracker,
-      authToken,
-      deviceDataCollectionJWT,
-      deviceDataCollectionURL,
-      billing
-    ],
+    [styles, environment, tracker, authToken, deviceDataCollectionJWT, deviceDataCollectionURL, billing]
   );
 
   useEffect(() => {
@@ -72,19 +61,19 @@ const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
   // Event handling for iframe communications and interactions
   const handleInframeEvent = (event: string, data: any) => {
     switch (event) {
-      case "safepay-inframe__enrollment__required":
+      case 'safepay-inframe__enrollment__required':
         onPayerAuthenticationRequired({ tracker });
         break;
-      case "safepay-inframe__enrollment__frictionless":
+      case 'safepay-inframe__enrollment__frictionless':
         onPayerAuthenticationFrictionless({ tracker });
         break;
-      case "safepay-inframe__enrollment__failed":
+      case 'safepay-inframe__enrollment__failed':
         onPayerAuthenticationUnavailable({ tracker });
         break;
-      case "safepay-inframe__cardinal-3ds__failure":
+      case 'safepay-inframe__cardinal-3ds__failure':
         onPayerAuthenticationFailure(data);
         break;
-      case "safepay-inframe__cardinal-3ds__success":
+      case 'safepay-inframe__cardinal-3ds__success':
         onPayerAuthenticationSuccess(data);
         break;
       default:

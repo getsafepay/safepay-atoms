@@ -1,8 +1,9 @@
-import { SafepayDropFunctions } from "../drops";
+import { SafepayDropFunctions } from './drops';
+import { Safepay } from './safepay';
 
 declare global {
   interface Window {
-    Safepay: any;
+    Safepay: Safepay;
     drops: SafepayDropFunctions;
   }
 }

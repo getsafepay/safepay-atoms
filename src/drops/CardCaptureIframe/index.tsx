@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
-import InframeComponent from "./iframe";
-import { resolveBaseUrl } from "../../utils/funcs/resolveBaseUrl";
-import { useAppendStyles, loadCardLinkStylesAndJsChunks } from "../../styles";
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import InframeComponent from './iframe';
+import { resolveBaseUrl } from '../../utils/funcs/resolveBaseUrl';
+import { useAppendStyles, loadCardLinkStylesAndJsChunks } from '../../styles';
 
 interface CardCaptureProps {
   environment: string;
@@ -60,7 +60,7 @@ const CardCapture: React.FC<CardCaptureProps> = ({
   imperativeRef,
 }: CardCaptureProps): React.ReactElement => {
   // Custom hook usage for appending styles and managing iframe methods
-  const styleRef = useAppendStyles("CardLink", false);
+  const styleRef = useAppendStyles('CardAtom', false);
   const inframeMethodsRef = useRef<any>(); // Should ideally specify a more detailed type
   const validationCallbackRef = useRef<(isValid: boolean) => void>();
 
@@ -88,22 +88,22 @@ const CardCapture: React.FC<CardCaptureProps> = ({
       inputStyle: { ...styles },
       validationEvent,
     }),
-    [styles, environment, authToken, tracker, validationEvent],
+    [styles, environment, authToken, tracker, validationEvent]
   );
 
   useEffect(() => {
     // Exposing component methods via imperativeRef for external control
     if (imperativeRef) {
       imperativeRef.current = {
-        submit: () => inframeMethodsRef.current.queueMethodCall("submit"),
-        validate: () => inframeMethodsRef.current.queueMethodCall("validate"),
+        submit: () => inframeMethodsRef.current.queueMethodCall('submit'),
+        validate: () => inframeMethodsRef.current.queueMethodCall('validate'),
         fetchValidity: async () => {
-          inframeMethodsRef.current.queueMethodCall("fetchValidity");
+          inframeMethodsRef.current.queueMethodCall('fetchValidity');
           return new Promise((resolve) => {
             validationCallbackRef.current = resolve;
           });
         },
-        clear: () => inframeMethodsRef.current.queueMethodCall("clear"),
+        clear: () => inframeMethodsRef.current.queueMethodCall('clear'),
       };
     }
   }, [imperativeRef]);
@@ -112,16 +112,16 @@ const CardCapture: React.FC<CardCaptureProps> = ({
   const handleInframeEvent = (event: string, data: any) => {
     switch (event) {
       // Focus and blur states management
-      case "safepay-inframe__focus":
+      case 'safepay-inframe__focus':
         setIsFocused(true);
         break;
-      case "safepay-inframe__blur":
+      case 'safepay-inframe__blur':
         setIsFocused(false);
         break;
       // Callback invocations based on specific iframe events
-      case "safepay-inframe__error":
-      case "safepay-inframe__card-tokenization__failure":
-      case "safepay-inframe__enrollment__failed":
+      case 'safepay-inframe__error':
+      case 'safepay-inframe__card-tokenization__failure':
+      case 'safepay-inframe__enrollment__failed':
         const error = data.errorMessage;
         setErrorMessage(error);
         onError(error);
@@ -129,20 +129,20 @@ const CardCapture: React.FC<CardCaptureProps> = ({
       // case "safepay-inframe__success":
       //   onSuccess(data.newCard);
       //   break;
-      case "safepay-inframe__validated":
+      case 'safepay-inframe__validated':
         setErrorMessage(undefined);
         onValidated();
         break;
-      case "safepay-inframe__fetch-validity":
+      case 'safepay-inframe__fetch-validity':
         if (validationCallbackRef.current) {
           validationCallbackRef.current(data.isValid);
           validationCallbackRef.current = undefined;
         }
         break;
-      case "safepay-inframe__enrollment__required":
+      case 'safepay-inframe__enrollment__required':
         onRequireChallenge(data.accessToken, data.actionUrl);
         break;
-      case "safepay-inframe__enrollment__frictionless":
+      case 'safepay-inframe__enrollment__frictionless':
         onProceedToAuthorization();
         break;
       default:
@@ -154,7 +154,7 @@ const CardCapture: React.FC<CardCaptureProps> = ({
   // Component rendering with conditional styles and iframe integration
   return (
     <div className="safepay-drops-root" ref={styleRef}>
-      <div className={`iframeWrapper ${isFocused ? "focus" : ""}`}>
+      <div className={`iframeWrapper ${isFocused ? 'focus' : ''}`}>
         <InframeComponent
           src={`${baseURL}/cardlink`}
           title="Safepay Credit/Debit Card Input"

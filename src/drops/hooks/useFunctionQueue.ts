@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from 'react';
 
 /**
  * A custom React hook that manages a queue of functions to be executed sequentially.

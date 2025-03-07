@@ -1,28 +1,22 @@
 //@ts-ignore
-import * as indexStyles from "bundle-text:../css/index.css";
+import * as indexStyles from 'bundle-text:../css/index.css';
 
 function loadIndexStyles() {
   try {
-    const o = document.createElement("style");
+    const o = document.createElement('style');
     o.textContent = indexStyles;
-    o.className = "safepay-drops-index";
+    o.className = 'safepay-drops-index';
     window.drops.styleChunks.index = o;
   } catch (o) {
-    console.error(
-      o,
-      "Unable to add index styles to the window using the corresponding js file"
-    );
+    console.error(o, 'Unable to add index styles to the window using the corresponding js file');
   }
 }
 
 function loadIndexJsChunks() {
   try {
-    window.drops.jsChunkImports.index = ["CardLink"];
+    window.drops.jsChunkImports.index = ['CardLink', 'PayerAuthentication'];
   } catch (o) {
-    console.error(
-      o,
-      "Unable to add index style imports to the window using the corresponding js file"
-    );
+    console.error(o, 'Unable to add index style imports to the window using the corresponding js file');
   }
 }
 

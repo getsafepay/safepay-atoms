@@ -36,7 +36,7 @@
 export function defineReactiveProperties<T extends HTMLElement>(
   cls: new () => T,
   properties: string[],
-  renderProperty: string | undefined = "_drop"
+  renderProperty: string | undefined = '_drop'
 ): void {
   properties.forEach((prop) => {
     // Define a private property for internal use

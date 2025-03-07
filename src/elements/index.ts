@@ -1,2 +1,2 @@
-export * from "./CardCaptureAtom";
-export * from "./PayerAuthenticationAtom";
+export * from './CardCaptureAtom';
+export * from './PayerAuthenticationAtom';
