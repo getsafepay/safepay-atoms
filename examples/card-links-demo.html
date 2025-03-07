@@ -62,7 +62,7 @@
       cardAtom.onValidated = function () {
         console.log('validated');
       };
-      cardAtom.onRequireChallenge = function (accessToken, actionUrl) {
+      cardAtom.onProceedToAuthentication = function (accessToken, actionUrl) {
         console.log(accessToken);
         console.log(actionUrl);
 
@@ -78,10 +78,6 @@
 
         modal.classList.remove('hide');
         modal.classList.add('show');
-      };
-      cardAtom.onProceedToAuthorization = function () {};
-      cardAtom.onSuccess = function (card) {
-        console.log(card);
       };
 
       function handleSubmit(e) {

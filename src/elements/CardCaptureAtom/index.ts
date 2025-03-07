@@ -104,8 +104,8 @@ export class CardCaptureAtom extends HTMLElement {
       'tracker',
       'validationEvent',
       'onError',
-      'onRequireChallenge',
-      'onProceedToAuthorization',
+      'onValidated',
+      'onProceedToAuthentication',
     ];
   }
 
@@ -116,8 +116,7 @@ export class CardCaptureAtom extends HTMLElement {
     'validationEvent',
     'onValidated',
     'onError',
-    'onRequireChallenge',
-    'onProceedToAuthorization',
+    'onProceedToAuthentication',
     'imperativeRef',
   ];
 }

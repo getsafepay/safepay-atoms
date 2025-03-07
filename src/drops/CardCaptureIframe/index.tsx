@@ -8,7 +8,7 @@ interface CardCaptureProps {
   authToken: string;
   tracker: string;
   validationEvent: string;
-  onRequireChallenge?: (accessToken?: string, actionUrl?: string) => void;
+  onProceedToAuthentication?: (accessToken?: string, actionUrl?: string) => void;
   onProceedToAuthorization?: () => void;
   onValidated?: () => void;
   onError?: (error: string) => void;
@@ -25,7 +25,7 @@ interface CardCaptureProps {
  * @param {Object} props - The properties passed to the CardCapture component.
  * @param {string} props.environment - The environment in which the card input is operating, e.g., 'sandbox' or 'production'.
  * @param {string} props.authToken - An authentication token required for validating and processing the card information securely.
- * @param {(accessToken?: string, actionUrl?: string) => void} [props.onRequireChallenge] - An optional callback function triggered when additional authentication challenge is required. Receives optional accessToken and actionUrl parameters.
+ * @param {(accessToken?: string, actionUrl?: string) => void} [props.onProceedToAuthentication] - An optional callback function triggered when additional authentication challenge is required. Receives optional accessToken and actionUrl parameters.
  * @param {() => void} [props.onProceedToAuthorization] - An optional callback function triggered when the authentication flow proceeds to authorization without requiring additional challenges.
  * @param {string} [props.validationEvent="submit"] - Specifies when the card validation should occur. Defaults to 'submit'.
  * @param {(error: string) => void} [props.onError] - An optional callback function triggered upon encountering an error during card input processing.
@@ -54,7 +54,7 @@ const CardCapture: React.FC<CardCaptureProps> = ({
   tracker,
   validationEvent,
   onValidated = () => {},
-  onRequireChallenge = () => {},
+  onProceedToAuthentication = () => {},
   onProceedToAuthorization = () => {},
   onError = (e) => {},
   imperativeRef,
@@ -121,7 +121,6 @@ const CardCapture: React.FC<CardCaptureProps> = ({
       // Callback invocations based on specific iframe events
       case 'safepay-inframe__error':
       case 'safepay-inframe__card-tokenization__failure':
-      case 'safepay-inframe__enrollment__failed':
         const error = data.errorMessage;
         setErrorMessage(error);
         onError(error);
@@ -139,11 +138,8 @@ const CardCapture: React.FC<CardCaptureProps> = ({
           validationCallbackRef.current = undefined;
         }
         break;
-      case 'safepay-inframe__enrollment__required':
-        onRequireChallenge(data.accessToken, data.actionUrl);
-        break;
-      case 'safepay-inframe__enrollment__frictionless':
-        onProceedToAuthorization();
+      case 'safepay-inframe__proceed__authentication':
+        onProceedToAuthentication(data.accessToken, data.actionUrl);
         break;
       default:
         // Additional event handling as necessary
