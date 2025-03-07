@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "clean": "rimraf dist",
-    "serve": "run-s clean build serve",
+    "serve": "run-s clean build dev",
     "dev": "serve",
     "build": "run-s clean compile",
     "compile": "parcel build --no-cache",
