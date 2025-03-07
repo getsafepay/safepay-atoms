@@ -48,13 +48,17 @@
     <script type="text/javascript">
       var safepay = Safepay();
 
+      var ENVIRONMENT = 'development';
+      var TRACKER = '';
+      var CLIENT_SECRET = '';
+
       const cardAtom = document.querySelector('safepay-card-atom');
       const payerAuthAtom = document.querySelector('safepay-payer-auth-atom');
       const modal = document.getElementById('threeds-modal');
 
-      cardAtom.authToken = '5mDuRgITVcHvwbLC35Ksqix0P6XCsQ8waFmcTrTKBNZL8QuHCtl1T2Iw2l2MEq6znlk0xLQI3g==';
-      cardAtom.environment = 'development';
-      cardAtom.tracker = 'track_390d312c-8836-4506-9455-e425adeeb77b';
+      cardAtom.environment = ENVIRONMENT;
+      cardAtom.authToken = CLIENT_SECRET;
+      cardAtom.tracker = TRACKER;
       cardAtom.validationEvent = 'submit';
       cardAtom.onError = function (err) {
         console.log(err);
@@ -66,13 +70,28 @@
         console.log(accessToken);
         console.log(actionUrl);
 
-        payerAuthAtom.environment = 'development';
-        payerAuthAtom.threeDSJWT = accessToken;
-        payerAuthAtom.threeDSURL = actionUrl;
+        payerAuthAtom.environment = ENVIRONMENT;
+        payerAuthAtom.authToken = CLIENT_SECRET;
+        payerAuthAtom.tracker = TRACKER;
+        payerAuthAtom.deviceDataCollectionJWT = accessToken;
+        payerAuthAtom.deviceDataCollectionURL = actionUrl;
+
         payerAuthAtom.onPayerAuthenticationSuccess = function (data) {
           console.log(data);
         };
         payerAuthAtom.onPayerAuthenticationFailure = function (data) {
+          console.log(data);
+        };
+        payerAuthAtom.onPayerAuthenticationFailure = function (data) {
+          console.log(data);
+        };
+        payerAuthAtom.onPayerAuthenticationSuccess = function (data) {
+          console.log(data);
+        };
+        payerAuthAtom.onPayerAuthenticationFrictionless = function (data) {
+          console.log(data);
+        };
+        payerAuthAtom.onPayerAuthenticationUnavailable = function (data) {
           console.log(data);
         };
 
