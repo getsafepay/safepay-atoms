@@ -14,7 +14,7 @@ function loadCardLinkStyles() {
 
 function loadCardLinkJsChunks() {
   try {
-    window.drops.jsChunkImports.CardAtom = ['index', 'SeamlessIframe'];
+    window.drops.jsChunkImports.CardAtom = ["index", "SeamlessIframe"];
   } catch (o) {
     console.error(o, 'Unable to add CardAtom style imports to the window using the corresponding js file');
   }

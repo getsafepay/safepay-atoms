@@ -19,7 +19,7 @@ const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
   imperativeRef,
 }: PayerAuthenticationProps): React.ReactElement => {
   // Custom hook usage for appending styles and managing iframe methods
-  const styleRef = useAppendStyles('PayerAuthentication', false);
+  const styleRef = useAppendStyles("PayerAuthentication", false);
   const inframeMethodsRef = useRef<any>(); // Should ideally specify a more detailed type
 
   // Component state management for UI and validation states

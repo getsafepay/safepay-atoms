@@ -8,7 +8,10 @@ function loadPayerAuthenticationStyles() {
     o.className = 'safepay-drops-PayerAuthentication';
     window.drops.styleChunks.PayerAuthentication = o;
   } catch (o) {
-    console.error(o, 'Unable to add CardLink styles to the window using the corresponding js file');
+    console.error(
+      o,
+      "Unable to add PayerAuth styles to the window using the corresponding js file",
+    );
   }
 }
 
@@ -16,7 +19,10 @@ function loadPayerAuthenticationJsChunks() {
   try {
     window.drops.jsChunkImports.PayerAuthentication = ['index', 'SeamlessIframe'];
   } catch (o) {
-    console.error(o, 'Unable to add CardLink style imports to the window using the corresponding js file');
+    console.error(
+      o,
+      "Unable to add PayerAuth style imports to the window using the corresponding js file",
+    );
   }
 }
 

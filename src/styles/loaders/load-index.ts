@@ -14,7 +14,7 @@ function loadIndexStyles() {
 
 function loadIndexJsChunks() {
   try {
-    window.drops.jsChunkImports.index = ['CardLink', 'PayerAuthentication'];
+    window.drops.jsChunkImports.index = ["CardAtom", "PayerAuthentication"];
   } catch (o) {
     console.error(o, 'Unable to add index style imports to the window using the corresponding js file');
   }
