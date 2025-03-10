@@ -51,21 +51,19 @@ export class PayerAuthenticationAtom extends HTMLElement {
     }
   }
 
-  static get observedAttributes(): string[] {
-    return [
-      'environment',
-      'tracker',
-      'authToken',
-      'deviceDataCollectionJWT',
-      'deviceDataCollectionURL',
-      'billing',
-      'onPayerAuthenticationFailure',
-      'onPayerAuthenticationSuccess',
-      'onPayerAuthenticationFrictionless',
-      'onPayerAuthenticationRequired',
-      'onPayerAuthenticationUnavailable',
-    ];
-  }
+  static observedAttributes: string[] = [
+    'environment',
+    'tracker',
+    'authToken',
+    'deviceDataCollectionJWT',
+    'deviceDataCollectionURL',
+    'billing',
+    'onPayerAuthenticationFailure',
+    'onPayerAuthenticationSuccess',
+    'onPayerAuthenticationFrictionless',
+    'onPayerAuthenticationRequired',
+    'onPayerAuthenticationUnavailable',
+  ];
 
   static componentProps: string[] = [
     'environment',

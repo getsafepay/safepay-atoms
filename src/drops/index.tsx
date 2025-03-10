@@ -36,7 +36,8 @@ function renderReactComponent(
   };
 
   // Merge previous and new props
-  const combinedProps = { ...safepayDrop.previousRender?.props, ...props };
+  const filteredProps = Object.fromEntries(Object.entries(props).filter(([_, value]) => value !== undefined));
+  const combinedProps = { ...safepayDrop.previousRender?.props, ...filteredProps };
   const componentToRender = React.cloneElement(element, combinedProps);
   const root = createRoot(container!);
 

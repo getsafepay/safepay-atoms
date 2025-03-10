@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <title>Safepay Card Capture Demo</title>
-    <script src="http://localhost:3000/dist/index.js"></script>
+    <script src="/dist/index.js"></script>
   </head>
   <style type="text/css">
     .modal-backdrop {
@@ -41,7 +41,7 @@
     <button onclick="handleSubmit()">Submit</button>
     <div id="threeds-modal" class="modal-backdrop hide">
       <div class="popup">
-        <safepay-payer-auth-atom></safepay-payer-auth-atom>
+        <safepay-payer-auth-atom environment="development"></safepay-payer-auth-atom>
       </div>
     </div>
 
@@ -49,8 +49,8 @@
       var safepay = Safepay();
 
       var ENVIRONMENT = 'development';
-      var TRACKER = '';
-      var CLIENT_SECRET = '';
+      var TRACKER = 'track_0d276c8f-dfa5-4cec-9542-9dfd71732b9e';
+      var CLIENT_SECRET = 'ykTrRgITVcHvwbLC35KsqopS7vn1QyB0RpmbcYaqJTlbvxWBn3xmqIjlDxdGzGgqUpoJ6Z2JCQ==';
 
       const cardAtom = document.querySelector('safepay-card-atom');
       const payerAuthAtom = document.querySelector('safepay-payer-auth-atom');
@@ -69,6 +69,8 @@
       cardAtom.onProceedToAuthentication = function (accessToken, actionUrl) {
         console.log(accessToken);
         console.log(actionUrl);
+
+        console.log(payerAuthAtom);
 
         payerAuthAtom.environment = ENVIRONMENT;
         payerAuthAtom.authToken = CLIENT_SECRET;
