@@ -1,27 +1,22 @@
-import { SafepayDrop } from '../../types/drops';
+import { SafepayAtom } from '../../types/atoms';
 import { generateUUID } from '../../utils';
 import { defineReactiveProperties } from '../../utils/funcs/defineReactiveProperties';
 import { toCamelCase } from '../../utils/funcs/toCamelCase';
 
 interface ImperativeRef {
-  current: null | {
-    submit: () => void;
-    validate: () => void;
-    fetchValidity: () => boolean;
-    clear: () => void;
-  };
+  current: null | {};
 }
 
 export class PayerAuthenticationAtom extends HTMLElement {
-  private _drop: SafepayDrop;
+  private _atom: SafepayAtom;
   public imperativeRef: ImperativeRef;
 
   constructor() {
     super();
-    this.handleSafepayDropsInitialized = this.handleSafepayDropsInitialized.bind(this);
+    this.handleSafepayAtomsInitialized = this.handleSafepayAtomsInitialized.bind(this);
   }
 
-  handleSafepayDropsInitialized(): void {
+  handleSafepayAtomsInitialized(): void {
     this.id = this.id || `safepay-payer-authentication-${generateUUID()}`;
 
     this.imperativeRef = this.imperativeRef || { current: null };
@@ -33,12 +28,12 @@ export class PayerAuthenticationAtom extends HTMLElement {
       }
     });
 
-    const drop = window.drops.payerAuthentication(props, this.id);
-    this._drop = drop;
+    const atom = window.atoms.payerAuthentication(props, this.id);
+    this._atom = atom;
   }
 
   connectedCallback(): void {
-    this.handleSafepayDropsInitialized();
+    this.handleSafepayAtomsInitialized();
   }
 
   attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
@@ -55,9 +50,9 @@ export class PayerAuthenticationAtom extends HTMLElement {
     'environment',
     'tracker',
     'authToken',
+    'billing',
     'deviceDataCollectionJWT',
     'deviceDataCollectionURL',
-    'billing',
     'onPayerAuthenticationFailure',
     'onPayerAuthenticationSuccess',
     'onPayerAuthenticationFrictionless',
@@ -69,9 +64,9 @@ export class PayerAuthenticationAtom extends HTMLElement {
     'environment',
     'tracker',
     'authToken',
+    'billing',
     'deviceDataCollectionJWT',
     'deviceDataCollectionURL',
-    'billing',
     'onPayerAuthenticationFailure',
     'onPayerAuthenticationSuccess',
     'onPayerAuthenticationFrictionless',

@@ -1,9 +1,9 @@
 import { FC } from 'react';
 
 /**
- * Interface defining the methods available on a SafepayDrop instance
+ * Interface defining the methods available on a SafepayAtom instance
  */
-export interface SafepayDrop {
+export interface SafepayAtom {
   remove: () => void;
   render: (newProps: any) => void;
 }
@@ -29,11 +29,11 @@ export interface JSChunks {
 }
 
 /**
- * Interface defining all available Safepay Drop functionality
+ * Interface defining all available Safepay Atom functionality
  */
-export interface SafepayDropFunctions {
-  cardAtom: (props: { [key: string]: any }, id: string) => SafepayDrop;
-  payerAuthentication: (props: { [key: string]: any }, id: string) => SafepayDrop;
+export interface SafepayAtomFunctions {
+  cardAtom: (props: { [key: string]: any }, id: string) => SafepayAtom;
+  payerAuthentication: (props: { [key: string]: any }, id: string) => SafepayAtom;
   components: {
     CardAtom: FC;
     PayerAuthentication: FC;

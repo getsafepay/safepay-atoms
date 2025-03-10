@@ -1,4 +1,4 @@
-import { SafepayDrop } from '../../types/drops';
+import { SafepayAtom } from '../../types/atoms';
 import { generateUUID } from '../../utils';
 import { defineReactiveProperties } from '../../utils/funcs/defineReactiveProperties';
 import { toCamelCase } from '../../utils/funcs/toCamelCase';
@@ -14,13 +14,13 @@ interface ImperativeRef {
 
 /**
  * Defines a custom web component (`<safepay-card-atom>`) for integrating Safepay card capture functionality within web pages.
- * This component encapsulates the logic for initializing and managing a Safepay Drop for card information capture,
+ * This component encapsulates the logic for initializing and managing a Safepay Atom for card information capture,
  * exposing a set of methods for programmatic interaction. It leverages custom elements to provide a declarative API
  * for embedding and controlling the Safepay card input within a web application.
  *
  * @property {ImperativeRef} imperativeRef - A reference object that exposes methods to interact with the card input programmatically, including submit, validate, fetchValidity, and clear.
  *
- * @fires handleSafepayDropsInitialized - Initializes the Safepay Drop once Safepay is ready or when the component is connected to the document.
+ * @fires handleSafepayAtomsInitialized - Initializes the Safepay Atom once Safepay is ready or when the component is connected to the document.
  *
  * @listens connectedCallback - Lifecycle callback invoked when the component is added to the document's DOM.
  * @listens attributeChangedCallback - Lifecycle callback invoked when one of the component's observed attributes is added, removed, or changed.
@@ -42,16 +42,16 @@ interface ImperativeRef {
  * </script>
  */
 export class CardCaptureAtom extends HTMLElement {
-  private _drop: SafepayDrop;
+  private _atom: SafepayAtom;
   public imperativeRef: ImperativeRef;
 
   constructor() {
     super();
 
-    this.handleSafepayDropsInitialized = this.handleSafepayDropsInitialized.bind(this);
+    this.handleSafepayAtomsInitialized = this.handleSafepayAtomsInitialized.bind(this);
   }
 
-  handleSafepayDropsInitialized(): void {
+  handleSafepayAtomsInitialized(): void {
     this.id = this.id || `safepay-card-atom-${generateUUID()}`;
 
     this.imperativeRef = this.imperativeRef || { current: null };
@@ -63,12 +63,12 @@ export class CardCaptureAtom extends HTMLElement {
       }
     });
 
-    const drop = window.drops.cardAtom(props, this.id);
-    this._drop = drop;
+    const atom = window.atoms.cardAtom(props, this.id);
+    this._atom = atom;
   }
 
   connectedCallback(): void {
-    this.handleSafepayDropsInitialized();
+    this.handleSafepayAtomsInitialized();
   }
 
   attributeChangedCallback(name: string, oldValue: string, newValue: string): void {

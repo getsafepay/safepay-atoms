@@ -29,7 +29,7 @@ export const useAppendStyles = (chunkName: ChunkName, isShadow: boolean) => {
    * @returns {HTMLStyleElement | null} The cloned style element if found, or null otherwise.
    */
   const cloneStyleChunk = (name: ChunkName): HTMLStyleElement | null => {
-    const styleChunk = window.drops?.styleChunks?.[name];
+    const styleChunk = window.atoms?.styleChunks?.[name];
     return styleChunk ? (styleChunk.cloneNode(true) as HTMLStyleElement) : null;
   };
 
@@ -53,13 +53,13 @@ export const useAppendStyles = (chunkName: ChunkName, isShadow: boolean) => {
    * @returns {ChunkName[]} An array of related chunk names.
    */
   const getRelatedStyleChunks = (name: ChunkName): ChunkName[] => {
-    const chunks = [...(window.drops?.jsChunkImports?.[name] || []), name].filter(
-      (chunk) => !!window.drops?.styleChunks?.[chunk]
+    const chunks = [...(window.atoms?.jsChunkImports?.[name] || []), name].filter(
+      (chunk) => !!window.atoms?.styleChunks?.[chunk]
     );
 
     if (chunks.length === 0) {
       console.error(
-        `Failed to find any related style chunks for ${name}. Make sure that ${name} is a valid chunk name and dist/DropsChunk.${name}.hash.js exists.`
+        `Failed to find any related style chunks for ${name}. Make sure that ${name} is a valid chunk name and dist/AtomsChunk.${name}.hash.js exists.`
       );
     }
 

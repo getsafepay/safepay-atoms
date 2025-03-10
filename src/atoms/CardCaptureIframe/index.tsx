@@ -149,7 +149,7 @@ const CardCapture: React.FC<CardCaptureProps> = ({
 
   // Component rendering with conditional styles and iframe integration
   return (
-    <div className="safepay-drops-root" ref={styleRef}>
+    <div className="safepay-atoms-root" ref={styleRef}>
       <div className={`iframeWrapper ${isFocused ? 'focus' : ''}`}>
         <InframeComponent
           src={`${baseURL}/cardlink`}

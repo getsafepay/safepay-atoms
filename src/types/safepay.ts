@@ -1,6 +1,6 @@
-import { SafepayDropFunctions } from './drops';
+import { SafepayAtomFunctions } from './atoms';
 
 export type Safepay = () => Promise<{
-  drops: SafepayDropFunctions;
+  atoms: SafepayAtomFunctions;
   version: string;
 }>;

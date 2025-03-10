@@ -2,15 +2,15 @@ import { PayerAuthenticationAtom, CardCaptureAtom } from './elements';
 import { API_INTERNAL_ERROR } from './errors';
 
 const Safepay = (() => {
-  const initializeDrops = async () => {
-    await import('./drops');
-    window.drops;
-    return window.drops;
+  const initializeAtoms = async () => {
+    await import('./atoms');
+    window.atoms;
+    return window.atoms;
   };
   const initializeSafepay = async () => {
     try {
       const obj = {
-        drops: await initializeDrops(),
+        atoms: await initializeAtoms(),
         version: 'v0.0.1',
       };
 

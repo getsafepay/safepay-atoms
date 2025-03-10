@@ -11,7 +11,7 @@
  * @param {new () => T} cls - The class of the custom HTMLElement to be enhanced with reactive properties.
  * @param {string[]} properties - An array of property names that should become reactive.
  * @param {string | undefined} renderProperty - The name of the property on the class instance that, if present,
- * will be called with the new property value to trigger a render or state update. Defaults to "_drop".
+ * will be called with the new property value to trigger a render or state update. Defaults to "_atom".
  *
  * @example
  * class MyComponent extends HTMLElement {
@@ -20,7 +20,7 @@
  *     // Initial setup
  *   }
  *
- *   _drop = {
+ *   _atom = {
  *     render: (props: Record<string, unknown>) => {
  *       // Render logic based on props
  *     }
@@ -31,12 +31,12 @@
  * defineReactiveProperties(MyComponent, ['foo', 'bar']);
  *
  * const myComponentInstance = new MyComponent();
- * myComponentInstance.foo = 'new value'; // Automatically triggers _drop.render({ foo: 'new value' })
+ * myComponentInstance.foo = 'new value'; // Automatically triggers _atom.render({ foo: 'new value' })
  */
 export function defineReactiveProperties<T extends HTMLElement>(
   cls: new () => T,
   properties: string[],
-  renderProperty: string | undefined = '_drop'
+  renderProperty: string | undefined = '_atom'
 ): void {
   properties.forEach((prop) => {
     // Define a private property for internal use

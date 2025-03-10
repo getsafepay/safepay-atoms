@@ -1,15 +1,15 @@
 import React, { FC, lazy } from 'react';
 import { createRoot } from 'react-dom/client';
 import { loadIndexStylesAndJsChunks } from '../styles';
-import { SafepayDrop, SafepayDropFunctions } from '../types/drops';
+import { SafepayAtom, SafepayAtomFunctions } from '../types/atoms';
 
 const CardAtom = lazy(() => import('./CardCaptureIframe'));
 const PayerAuthentication = lazy(() => import('./PayerAuthenticationIframe'));
 
 // Types for container elements
 type Container = HTMLElement | ShadowRoot;
-type ContainerWithSafepayDrop = Container & {
-  safepayDrop?: {
+type ContainerWithSafepayAtom = Container & {
+  safepayAtom?: {
     previousRender: React.ReactElement | null;
   };
 };
@@ -18,7 +18,7 @@ type ContainerWithSafepayDrop = Container & {
  * Renders a React component within a specified container, optionally merging properties from a previous render.
  *
  * @param {React.ReactElement} element - The React element to be rendered
- * @param {ContainerWithSafepayDrop} container - The DOM element or Shadow Root where the React element will be rendered
+ * @param {ContainerWithSafepayAtom} container - The DOM element or Shadow Root where the React element will be rendered
  * @param {Object} props - Optional properties to merge with previous render properties
  *
  * @example
@@ -27,50 +27,50 @@ type ContainerWithSafepayDrop = Container & {
  */
 function renderReactComponent(
   element: React.ReactElement,
-  container: ContainerWithSafepayDrop,
+  container: ContainerWithSafepayAtom,
   props: { [key: string]: any } = {}
 ): void {
-  // Initialize or get existing safepayDrop
-  const safepayDrop = container.safepayDrop || {
+  // Initialize or get existing safepayAtom
+  const safepayAtom = container.safepayAtom || {
     previousRender: null,
   };
 
   // Merge previous and new props
   const filteredProps = Object.fromEntries(Object.entries(props).filter(([_, value]) => value !== undefined));
-  const combinedProps = { ...safepayDrop.previousRender?.props, ...filteredProps };
+  const combinedProps = { ...safepayAtom.previousRender?.props, ...filteredProps };
   const componentToRender = React.cloneElement(element, combinedProps);
   const root = createRoot(container!);
 
   // Render component with StrictMode for better development experience
   root.render(<React.StrictMode>{componentToRender}</React.StrictMode>);
 
-  // Update container's safepayDrop reference
-  container.safepayDrop = {
-    ...safepayDrop,
+  // Update container's safepayAtom reference
+  container.safepayAtom = {
+    ...safepayAtom,
     previousRender: componentToRender,
   };
 }
 
 /**
- * Initializes a Safepay Drop by creating a container and rendering a React component.
+ * Initializes a Safepay Atom by creating a container and rendering a React component.
  *
  * @param {FC} Component - The React component to render
  * @param {Object} props - Initial properties for the component
  * @param {string} id - DOM element ID for the container
  * @param {boolean} shadow - Whether to use Shadow DOM for style encapsulation
- * @returns {SafepayDrop} Object containing methods to control the rendered component
+ * @returns {SafepayAtom} Object containing methods to control the rendered component
  *
  * @example
- * const drop = initializeSafepayDrop(CardAtom, { theme: 'dark' }, 'card-container');
- * drop.render({ theme: 'light' }); // Update props
- * drop.remove(); // Remove from DOM
+ * const atom = initializeSafepayAtom(CardAtom, { theme: 'dark' }, 'card-container');
+ * atom.render({ theme: 'light' }); // Update props
+ * atom.remove(); // Remove from DOM
  */
-const initializeSafepayDrop = (
+const initializeSafepayAtom = (
   Component: FC,
   props: { [key: string]: any },
   id: string,
   shadow: boolean = false
-): SafepayDrop => {
+): SafepayAtom => {
   // Create or find container element
   let container: HTMLElement;
   if (id) {
@@ -88,8 +88,8 @@ const initializeSafepayDrop = (
 
   const target = container.shadowRoot || container;
 
-  // Create SafepayDrop instance
-  const safepayDrop = {
+  // Create SafepayAtom instance
+  const safepayAtom = {
     remove: () => container.remove(),
     render: (newProps) => {
       renderReactComponent(<Component />, target, { ...props, ...newProps });
@@ -97,17 +97,17 @@ const initializeSafepayDrop = (
   };
 
   // Initial render
-  safepayDrop.render(props);
+  safepayAtom.render(props);
 
-  return safepayDrop;
+  return safepayAtom;
 };
 
 /**
- * Main export object containing all Safepay Drop functionality
+ * Main export object containing all Safepay Atom functionality
  */
-export const safepayDropFunctions: SafepayDropFunctions = {
-  cardAtom: (props, id) => initializeSafepayDrop(CardAtom, props, id),
-  payerAuthentication: (props, id) => initializeSafepayDrop(PayerAuthentication, props, id),
+export const safepayAtomFunctions: SafepayAtomFunctions = {
+  cardAtom: (props, id) => initializeSafepayAtom(CardAtom, props, id),
+  payerAuthentication: (props, id) => initializeSafepayAtom(PayerAuthentication, props, id),
   components: {
     CardAtom,
     PayerAuthentication,
@@ -117,5 +117,5 @@ export const safepayDropFunctions: SafepayDropFunctions = {
 };
 
 // Attach to window and load styles
-window.drops = safepayDropFunctions;
+window.atoms = safepayAtomFunctions;
 loadIndexStylesAndJsChunks();
