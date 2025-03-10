@@ -6,7 +6,7 @@ function loadIndexStyles() {
     const o = document.createElement('style');
     o.textContent = indexStyles;
     o.className = 'safepay-drops-index';
-    window.drops.styleChunks.index = o;
+    window.atoms.styleChunks.index = o;
   } catch (o) {
     console.error(o, 'Unable to add index styles to the window using the corresponding js file');
   }
@@ -14,7 +14,7 @@ function loadIndexStyles() {
 
 function loadIndexJsChunks() {
   try {
-    window.drops.jsChunkImports.index = ["CardAtom", "PayerAuthentication"];
+    window.atoms.jsChunkImports.index = ["CardAtom", "PayerAuthentication"];
   } catch (o) {
     console.error(o, 'Unable to add index style imports to the window using the corresponding js file');
   }

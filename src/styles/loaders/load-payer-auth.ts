@@ -6,7 +6,7 @@ function loadPayerAuthenticationStyles() {
     const o = document.createElement('style');
     o.textContent = payerAuthenticationStyles;
     o.className = 'safepay-drops-PayerAuthentication';
-    window.drops.styleChunks.PayerAuthentication = o;
+    window.atoms.styleChunks.PayerAuthentication = o;
   } catch (o) {
     console.error(
       o,
@@ -17,7 +17,7 @@ function loadPayerAuthenticationStyles() {
 
 function loadPayerAuthenticationJsChunks() {
   try {
-    window.drops.jsChunkImports.PayerAuthentication = ['index', 'SeamlessIframe'];
+    window.atoms.jsChunkImports.PayerAuthentication = ['index', 'SeamlessIframe'];
   } catch (o) {
     console.error(
       o,
