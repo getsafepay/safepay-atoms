@@ -16,6 +16,7 @@ const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
   onPayerAuthenticationRequired = () => {},
   onPayerAuthenticationFrictionless = () => {},
   onPayerAuthenticationUnavailable = () => {},
+  onSafepayError = () => {},
   imperativeRef,
 }: PayerAuthenticationProps): React.ReactElement => {
   // Custom hook usage for appending styles and managing iframe methods
@@ -76,9 +77,12 @@ const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
       case 'safepay-inframe__cardinal-3ds__success':
         onPayerAuthenticationSuccess(data);
         break;
-      default:
-        // Additional event handling as necessary
+      case 'safepay-error':
+        onSafepayError(data);
         break;
+      default:
+          // Additional event handling as necessary
+          break;
     }
   };
 

@@ -20,6 +20,13 @@ interface Billing {
   postal_code?: string;
 }
 
+interface SafepayError {
+    error: {
+        message: string,
+        status: number
+    }
+}
+
 export interface PayerAuthenticationProps {
   environment: string;
   tracker: string;
@@ -32,5 +39,6 @@ export interface PayerAuthenticationProps {
   onPayerAuthenticationRequired?: (data: PayerAuthData) => void;
   onPayerAuthenticationFrictionless?: (data: PayerAuthData) => void;
   onPayerAuthenticationUnavailable?: (data: PayerAuthData) => void;
+  onSafepayError?: (data: SafepayError) => void;
   imperativeRef: React.MutableRefObject<any>;
 }

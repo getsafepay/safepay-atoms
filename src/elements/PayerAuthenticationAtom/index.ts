@@ -58,6 +58,7 @@ export class PayerAuthenticationAtom extends HTMLElement {
     'onPayerAuthenticationFrictionless',
     'onPayerAuthenticationRequired',
     'onPayerAuthenticationUnavailable',
+    'onSafepayError'
   ];
 
   static componentProps: string[] = [
@@ -72,6 +73,7 @@ export class PayerAuthenticationAtom extends HTMLElement {
     'onPayerAuthenticationFrictionless',
     'onPayerAuthenticationRequired',
     'onPayerAuthenticationUnavailable',
+    'onSafepayError',
     'imperativeRef',
   ];
 }

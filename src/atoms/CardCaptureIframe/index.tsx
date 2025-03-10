@@ -141,6 +141,10 @@ const CardCapture: React.FC<CardCaptureProps> = ({
       case 'safepay-inframe__proceed__authentication':
         onProceedToAuthentication(data.accessToken, data.actionUrl);
         break;
+      case 'safepay-error':
+        const { error: safepayError } = data;
+        setErrorMessage(safepayError.message);
+        onError(safepayError);
       default:
         // Additional event handling as necessary
         break;

@@ -49,8 +49,8 @@
       var safepay = Safepay();
 
       var ENVIRONMENT = 'development';
-      var TRACKER = 'track_0d276c8f-dfa5-4cec-9542-9dfd71732b9e';
-      var CLIENT_SECRET = 'ykTrRgITVcHvwbLC35KsqopS7vn1QyB0RpmbcYaqJTlbvxWBn3xmqIjlDxdGzGgqUpoJ6Z2JCQ==';
+      var TRACKER = 'track_f9d7b31f-a07b-4002-81b3-d98b85e48a6b';
+      var CLIENT_SECRET = '7XzsRgITVcHkyLSUiZSmrN2anrjYyibbx17ysMqjDlMGJcL4O_Jy_u5H6z9gh9l0mhiIU30k-Q==';
 
       const cardAtom = document.querySelector('safepay-card-atom');
       const payerAuthAtom = document.querySelector('safepay-payer-auth-atom');
@@ -94,6 +94,9 @@
           console.log(data);
         };
         payerAuthAtom.onPayerAuthenticationUnavailable = function (data) {
+          console.log(data);
+        };
+        payerAuthAtom.onSafepayError = function (data) {
           console.log(data);
         };
 
