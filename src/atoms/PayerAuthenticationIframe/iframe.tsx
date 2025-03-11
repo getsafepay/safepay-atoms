@@ -111,7 +111,7 @@ const InframeComponent = forwardRef(
     return (
       <iframe
         ref={iframeRef}
-        className={'safepay-drops-iframe'}
+        className={'safepay-atoms-iframe'}
         src={src}
         title={title}
         style={isVisible ? undefined : { visibility: 'hidden' }}

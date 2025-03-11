@@ -6,6 +6,10 @@
     <script src="/dist/index.js"></script>
   </head>
   <style type="text/css">
+    .card-frame {
+      width: 22.5rem;
+      height: 2.6rem;
+    }
     .modal-backdrop {
       position: fixed;
       width: 100%;
@@ -37,7 +41,9 @@
   </style>
   <body>
     <h1>Card Capture Atom</h1>
-    <safepay-card-atom></safepay-card-atom>
+    <div class="card-frame">
+      <safepay-card-atom></safepay-card-atom>
+    </div>
     <button onclick="handleSubmit()">Submit</button>
     <div id="threeds-modal" class="modal-backdrop hide">
       <div class="popup">
@@ -49,12 +55,36 @@
       var safepay = Safepay();
 
       var ENVIRONMENT = 'development';
-      var TRACKER = 'track_f9d7b31f-a07b-4002-81b3-d98b85e48a6b';
-      var CLIENT_SECRET = '7XzsRgITVcHkyLSUiZSmrN2anrjYyibbx17ysMqjDlMGJcL4O_Jy_u5H6z9gh9l0mhiIU30k-Q==';
+      var TRACKER = 'track_60b8387d-546c-492b-a487-7a3993e1c1f0';
+      var CLIENT_SECRET = 'wEXaRgITVcHvwbLC35KsquUeH-1WId-tjKzRuFpH4tNRSCk33A3EqYp43U17Xl77a2QWy_7O1A==';
 
       const cardAtom = document.querySelector('safepay-card-atom');
       const payerAuthAtom = document.querySelector('safepay-payer-auth-atom');
       const modal = document.getElementById('threeds-modal');
+
+      payerAuthAtom.environment = ENVIRONMENT;
+      payerAuthAtom.authToken = CLIENT_SECRET;
+      payerAuthAtom.tracker = TRACKER;
+
+      payerAuthAtom.onPayerAuthenticationFailure = function (error) {
+        modal.classList.remove('show');
+        modal.classList.add('hide');
+        alert(error);
+      };
+      payerAuthAtom.onPayerAuthenticationSuccess = function (data) {
+        console.log(data);
+        modal.classList.remove('show');
+        modal.classList.add('hide');
+      };
+      payerAuthAtom.onPayerAuthenticationFrictionless = function (data) {
+        console.log(data);
+      };
+      payerAuthAtom.onPayerAuthenticationUnavailable = function (data) {
+        console.log(data);
+      };
+      payerAuthAtom.onSafepayError = function (data) {
+        console.log(data);
+      };
 
       cardAtom.environment = ENVIRONMENT;
       cardAtom.authToken = CLIENT_SECRET;
@@ -67,38 +97,8 @@
         console.log('validated');
       };
       cardAtom.onProceedToAuthentication = function (accessToken, actionUrl) {
-        console.log(accessToken);
-        console.log(actionUrl);
-
-        console.log(payerAuthAtom);
-
-        payerAuthAtom.environment = ENVIRONMENT;
-        payerAuthAtom.authToken = CLIENT_SECRET;
-        payerAuthAtom.tracker = TRACKER;
         payerAuthAtom.deviceDataCollectionJWT = accessToken;
         payerAuthAtom.deviceDataCollectionURL = actionUrl;
-
-        payerAuthAtom.onPayerAuthenticationSuccess = function (data) {
-          console.log(data);
-        };
-        payerAuthAtom.onPayerAuthenticationFailure = function (data) {
-          console.log(data);
-        };
-        payerAuthAtom.onPayerAuthenticationFailure = function (data) {
-          console.log(data);
-        };
-        payerAuthAtom.onPayerAuthenticationSuccess = function (data) {
-          console.log(data);
-        };
-        payerAuthAtom.onPayerAuthenticationFrictionless = function (data) {
-          console.log(data);
-        };
-        payerAuthAtom.onPayerAuthenticationUnavailable = function (data) {
-          console.log(data);
-        };
-        payerAuthAtom.onSafepayError = function (data) {
-          console.log(data);
-        };
 
         modal.classList.remove('hide');
         modal.classList.add('show');

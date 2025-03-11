@@ -5,7 +5,7 @@ function loadSeamlessIframeStyles() {
   try {
     const o = document.createElement('style');
     o.textContent = seamlessIframStyles;
-    o.className = 'safepay-drops-SeamlessIframe';
+    o.className = 'safepay-atoms-SeamlessIframe';
     window.atoms.styleChunks.SeamlessIframe = o;
   } catch (o) {
     console.error(o, 'Unable to add SeamlessIframe styles to the window using the corresponding js file');

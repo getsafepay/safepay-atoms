@@ -31,7 +31,7 @@
   --secondary-label-color: var(--safepay-color-background-secondary);
 }
 
-.safepay-drops-root {
+.safepay-atoms-root {
   color: var(--primary-text-color);
   display: block;
   font-family:
@@ -46,7 +46,7 @@
   width: 100%;
 }
 
-.safepay-drops-root .payerAuthiframeWrapper {
+.safepay-atoms-root .payerAuthiframeWrapper {
   background: transparent;
   box-sizing: border-box;
   display: block;
