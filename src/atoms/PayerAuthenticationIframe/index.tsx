@@ -92,7 +92,7 @@ const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
       <div className="payerAuthiframeWrapper">
         <InframeComponent
           src={`${baseURL}/authlink`}
-          title="Safepay PayerAuthentication"
+          title="Safepay Payer Authentication"
           ref={inframeMethodsRef}
           onInframeEvent={handleInframeEvent}
           inframeProps={computedProps}

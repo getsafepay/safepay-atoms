@@ -19,7 +19,7 @@
       "context": "browser",
       "optimize": true,
       "isLibrary": true,
-      "sourceMap": true
+      "sourceMap": false
     }
   },
   "devDependencies": {
