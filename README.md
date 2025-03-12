@@ -147,7 +147,6 @@ function PaymentForm() {
 | tracker                           | string               | Tracking identifier                            |
 | validationEvent                   | string               | Validation trigger event                       |
 | onProceedToAuthentication         | function             | `(accessToken?: string, actionUrl?: string) => void` |
-| onProceedToAuthorization         | function             | `() => void`                                   |
 | onValidated                       | function             | `() => void`                                   |
 | onError                           | function             | `(error: string) => void`                      |
 | imperativeRef                     | React.MutableRefObject| Reference for imperative methods              |

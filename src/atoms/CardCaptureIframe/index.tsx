@@ -4,15 +4,14 @@ import { resolveBaseUrl } from '../../utils/funcs/resolveBaseUrl';
 import { useAppendStyles, loadCardLinkStylesAndJsChunks } from '../../styles';
 
 interface CardCaptureProps {
-  environment: string;
-  authToken: string;
-  tracker: string;
-  validationEvent: string;
-  onProceedToAuthentication?: (accessToken?: string, actionUrl?: string) => void;
-  onProceedToAuthorization?: () => void;
-  onValidated?: () => void;
-  onError?: (error: string) => void;
-  imperativeRef: React.MutableRefObject<any>; // Replace 'any' with a specific type if possible
+    environment: string;
+    authToken: string;
+    tracker: string;
+    validationEvent: string;
+    onProceedToAuthentication?: (accessToken?: string, actionUrl?: string) => void;
+    onValidated?: () => void;
+    onError?: (error: string) => void;
+    imperativeRef: React.MutableRefObject<any>; // Replace 'any' with a specific type if possible
 }
 
 /**
@@ -26,7 +25,6 @@ interface CardCaptureProps {
  * @param {string} props.environment - The environment in which the card input is operating, e.g., 'sandbox' or 'production'.
  * @param {string} props.authToken - An authentication token required for validating and processing the card information securely.
  * @param {(accessToken?: string, actionUrl?: string) => void} [props.onProceedToAuthentication] - An optional callback function triggered when additional authentication challenge is required. Receives optional accessToken and actionUrl parameters.
- * @param {() => void} [props.onProceedToAuthorization] - An optional callback function triggered when the authentication flow proceeds to authorization without requiring additional challenges.
  * @param {string} [props.validationEvent="submit"] - Specifies when the card validation should occur. Defaults to 'submit'.
  * @param {(error: string) => void} [props.onError] - An optional callback function triggered upon encountering an error during card input processing.
  * @param {() => void} [props.onValidated] - An optional callback function triggered when the card input passes validation checks.
@@ -49,123 +47,122 @@ interface CardCaptureProps {
  * This component uses React hooks for managing state, effects, and refs, providing a modern approach to handling user interactions and component lifecycle.
  */
 const CardCapture: React.FC<CardCaptureProps> = ({
-  environment,
-  authToken,
-  tracker,
-  validationEvent,
-  onValidated = () => {},
-  onProceedToAuthentication = () => {},
-  onProceedToAuthorization = () => {},
-  onError = (e) => {},
-  imperativeRef,
+    environment,
+    authToken,
+    tracker,
+    validationEvent,
+    onValidated = () => { },
+    onProceedToAuthentication = () => { },
+    onError = (e) => { },
+    imperativeRef,
 }: CardCaptureProps): React.ReactElement => {
-  // Custom hook usage for appending styles and managing iframe methods
-  const styleRef = useAppendStyles('CardAtom', false);
-  const inframeMethodsRef = useRef<any>(); // Should ideally specify a more detailed type
-  const validationCallbackRef = useRef<(isValid: boolean) => void>();
+    // Custom hook usage for appending styles and managing iframe methods
+    const styleRef = useAppendStyles('CardAtom', false);
+    const inframeMethodsRef = useRef<any>(); // Should ideally specify a more detailed type
+    const validationCallbackRef = useRef<(isValid: boolean) => void>();
 
-  // Component state management for UI and validation states
-  const [isFocused, setIsFocused] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | undefined>();
-  const [styles, setStyles] = useState<React.CSSProperties>({});
+    // Component state management for UI and validation states
+    const [isFocused, setIsFocused] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | undefined>();
+    const [styles, setStyles] = useState<React.CSSProperties>({});
 
-  // Base URL resolution based on the environment
-  const baseURL = resolveBaseUrl(environment);
+    // Base URL resolution based on the environment
+    const baseURL = resolveBaseUrl(environment);
 
-  useEffect(() => {
-    // Styles computation and application logic
-    if (!styleRef.current) return;
-    const computedStyles = {}; // Placeholder for actual style computation logic
-    setStyles(computedStyles);
-  }, [styleRef]);
+    useEffect(() => {
+        // Styles computation and application logic
+        if (!styleRef.current) return;
+        const computedStyles = {}; // Placeholder for actual style computation logic
+        setStyles(computedStyles);
+    }, [styleRef]);
 
-  // Computed props for iframe integration
-  const computedProps = useMemo(
-    () => ({
-      environment,
-      authToken,
-      tracker,
-      inputStyle: { ...styles },
-      validationEvent,
-    }),
-    [styles, environment, authToken, tracker, validationEvent]
-  );
+    // Computed props for iframe integration
+    const computedProps = useMemo(
+        () => ({
+            environment,
+            authToken,
+            tracker,
+            inputStyle: { ...styles },
+            validationEvent,
+        }),
+        [styles, environment, authToken, tracker, validationEvent]
+    );
 
-  useEffect(() => {
-    // Exposing component methods via imperativeRef for external control
-    if (imperativeRef) {
-      imperativeRef.current = {
-        submit: () => inframeMethodsRef.current.queueMethodCall('submit'),
-        validate: () => inframeMethodsRef.current.queueMethodCall('validate'),
-        fetchValidity: async () => {
-          inframeMethodsRef.current.queueMethodCall('fetchValidity');
-          return new Promise((resolve) => {
-            validationCallbackRef.current = resolve;
-          });
-        },
-        clear: () => inframeMethodsRef.current.queueMethodCall('clear'),
-      };
-    }
-  }, [imperativeRef]);
-
-  // Event handling for iframe communications and interactions
-  const handleInframeEvent = (event: string, data: any) => {
-    switch (event) {
-      // Focus and blur states management
-      case 'safepay-inframe__focus':
-        setIsFocused(true);
-        break;
-      case 'safepay-inframe__blur':
-        setIsFocused(false);
-        break;
-      // Callback invocations based on specific iframe events
-      case 'safepay-inframe__error':
-      case 'safepay-inframe__card-tokenization__failure':
-        const error = data.errorMessage;
-        setErrorMessage(error);
-        onError(error);
-        break;
-      // case "safepay-inframe__success":
-      //   onSuccess(data.newCard);
-      //   break;
-      case 'safepay-inframe__validated':
-        setErrorMessage(undefined);
-        onValidated();
-        break;
-      case 'safepay-inframe__fetch-validity':
-        if (validationCallbackRef.current) {
-          validationCallbackRef.current(data.isValid);
-          validationCallbackRef.current = undefined;
+    useEffect(() => {
+        // Exposing component methods via imperativeRef for external control
+        if (imperativeRef) {
+            imperativeRef.current = {
+                submit: () => inframeMethodsRef.current.queueMethodCall('submit'),
+                validate: () => inframeMethodsRef.current.queueMethodCall('validate'),
+                fetchValidity: async () => {
+                    inframeMethodsRef.current.queueMethodCall('fetchValidity');
+                    return new Promise((resolve) => {
+                        validationCallbackRef.current = resolve;
+                    });
+                },
+                clear: () => inframeMethodsRef.current.queueMethodCall('clear'),
+            };
         }
-        break;
-      case 'safepay-inframe__proceed__authentication':
-        onProceedToAuthentication(data.accessToken, data.actionUrl);
-        break;
-      case 'safepay-error':
-        const { error: safepayError } = data;
-        setErrorMessage(safepayError.message);
-        onError(safepayError);
-      default:
-        // Additional event handling as necessary
-        break;
-    }
-  };
+    }, [imperativeRef]);
 
-  // Component rendering with conditional styles and iframe integration
-  return (
-    <div className="safepay-atoms-root" ref={styleRef}>
-      <div className={`iframeWrapper ${isFocused ? 'focus' : ''}`}>
-        <InframeComponent
-          src={`${baseURL}/cardlink`}
-          title="Safepay Credit/Debit Card Input"
-          ref={inframeMethodsRef}
-          onInframeEvent={handleInframeEvent}
-          inframeProps={computedProps}
-        />
-      </div>
-      {errorMessage && <p className="errorMessage">{errorMessage}</p>}
-    </div>
-  );
+    // Event handling for iframe communications and interactions
+    const handleInframeEvent = (event: string, data: any) => {
+        switch (event) {
+            // Focus and blur states management
+            case 'safepay-inframe__focus':
+                setIsFocused(true);
+                break;
+            case 'safepay-inframe__blur':
+                setIsFocused(false);
+                break;
+            // Callback invocations based on specific iframe events
+            case 'safepay-inframe__error':
+            case 'safepay-inframe__card-tokenization__failure':
+                const error = data.errorMessage;
+                setErrorMessage(error);
+                onError(error);
+                break;
+            // case "safepay-inframe__success":
+            //   onSuccess(data.newCard);
+            //   break;
+            case 'safepay-inframe__validated':
+                setErrorMessage(undefined);
+                onValidated();
+                break;
+            case 'safepay-inframe__fetch-validity':
+                if (validationCallbackRef.current) {
+                    validationCallbackRef.current(data.isValid);
+                    validationCallbackRef.current = undefined;
+                }
+                break;
+            case 'safepay-inframe__proceed__authentication':
+                onProceedToAuthentication(data.accessToken, data.actionUrl);
+                break;
+            case 'safepay-error':
+                const { error: safepayError } = data;
+                setErrorMessage(safepayError.message);
+                onError(safepayError);
+            default:
+                // Additional event handling as necessary
+                break;
+        }
+    };
+
+    // Component rendering with conditional styles and iframe integration
+    return (
+        <div className="safepay-atoms-root" ref={styleRef}>
+            <div className={`iframeWrapper ${isFocused ? 'focus' : ''}`}>
+                <InframeComponent
+                    src={`${baseURL}/cardlink`}
+                    title="Safepay Credit/Debit Card Input"
+                    ref={inframeMethodsRef}
+                    onInframeEvent={handleInframeEvent}
+                    inframeProps={computedProps}
+                />
+            </div>
+            {errorMessage && <p className="errorMessage">{errorMessage}</p>}
+        </div>
+    );
 };
 
 loadCardLinkStylesAndJsChunks();
