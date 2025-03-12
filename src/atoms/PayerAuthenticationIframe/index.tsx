@@ -66,7 +66,7 @@ const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
         onPayerAuthenticationRequired({ tracker });
         break;
       case 'safepay-inframe__enrollment__frictionless':
-        onPayerAuthenticationFrictionless({ tracker });
+        onPayerAuthenticationFrictionless(data);
         break;
       case 'safepay-inframe__enrollment__failed':
         onPayerAuthenticationUnavailable({ tracker });
