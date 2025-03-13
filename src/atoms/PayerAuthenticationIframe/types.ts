@@ -34,6 +34,10 @@ export interface PayerAuthenticationProps {
   deviceDataCollectionJWT: string;
   deviceDataCollectionURL: string;
   billing?: Billing;
+  authorizationOptions?: {
+    do_capture?: boolean;
+    do_card_on_file?: boolean;
+  };
   onPayerAuthenticationFailure?: (data: PayerAuthErrorData) => void;
   onPayerAuthenticationSuccess?: (data: PayerAuthSuccessData) => void;
   onPayerAuthenticationRequired?: (data: PayerAuthData) => void;

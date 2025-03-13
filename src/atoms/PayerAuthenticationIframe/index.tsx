@@ -11,6 +11,7 @@ const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
   deviceDataCollectionJWT,
   deviceDataCollectionURL,
   billing,
+  authorizationOptions = {}, 
   onPayerAuthenticationFailure = () => {},
   onPayerAuthenticationSuccess = () => {},
   onPayerAuthenticationRequired = () => {},
@@ -45,9 +46,10 @@ const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
       deviceDataCollectionJWT,
       deviceDataCollectionURL,
       billing,
+      authorizationOptions,
       inputStyle: { ...styles },
     }),
-    [styles, environment, tracker, authToken, deviceDataCollectionJWT, deviceDataCollectionURL, billing]
+    [styles, environment, tracker, authToken, deviceDataCollectionJWT, deviceDataCollectionURL, authorizationOptions, billing]
   );
 
   useEffect(() => {

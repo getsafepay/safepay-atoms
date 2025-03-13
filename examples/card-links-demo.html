@@ -65,23 +65,27 @@
       payerAuthAtom.environment = ENVIRONMENT;
       payerAuthAtom.authToken = CLIENT_SECRET;
       payerAuthAtom.tracker = TRACKER;
+      payerAuthAtom.authorizationOptions = {
+        do_capture: false,
+        do_card_on_file: true
+      };
 
       payerAuthAtom.onPayerAuthenticationFailure = function (data) {
-        console.log(data);
+        console.log("onPayerAuthenticationFailure", data);
       };
       payerAuthAtom.onPayerAuthenticationSuccess = function (data) {
-        console.log(data);
+        console.log("onPayerAuthenticationSuccess", data);
         modal.classList.remove('show');
         modal.classList.add('hide');
       };
       payerAuthAtom.onPayerAuthenticationFrictionless = function (data) {
-        console.log(data);
+        console.log("onPayerAuthenticationFrictionless", data);
       };
       payerAuthAtom.onPayerAuthenticationUnavailable = function (data) {
-        console.log(data);
+        console.log("onPayerAuthenticationUnavailable", data);
       };
       payerAuthAtom.onSafepayError = function (error) {
-        console.log(error.message);
+        console.log("onSafepayError", error.message);
       };
 
       cardAtom.environment = ENVIRONMENT;
