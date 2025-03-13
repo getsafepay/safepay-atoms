@@ -1,8 +1,14 @@
 {
-  "name": "safepay-ui-links",
+  "name": "@sfpy/atoms",
   "version": "0.0.1",
+  "description": "Atomic building blocks to build custom payment interfaces",
   "main": "dist/main.js",
   "type": "module",
+  "keywords": [
+    "safepay",
+    "payments"
+  ],
+  "author": "Safepay",
   "scripts": {
     "clean": "rimraf dist",
     "serve": "run-s clean build dev",
