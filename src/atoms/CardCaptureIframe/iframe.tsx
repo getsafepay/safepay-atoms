@@ -1,12 +1,6 @@
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useImperativeHandle,
-  forwardRef,
-} from "react";
-import { loadSeamlessIframeStylesAndJsChunks } from "../../styles";
-import useFunctionQueue from "../hooks/useFunctionQueue";
+import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import { loadSeamlessIframeStylesAndJsChunks } from '../../styles';
+import useFunctionQueue from '../hooks/useFunctionQueue';
 
 interface InframeProps {
   src: string;
@@ -44,10 +38,7 @@ interface InframeProps {
  * are sent in order and handled correctly by the iframe's content.
  */
 const InframeComponent = forwardRef(
-  (
-    { src, title, inframeProps, onInframeEvent = (e, d) => {} }: InframeProps,
-    ref
-  ) => {
+  ({ src, title, inframeProps, onInframeEvent = (e, d) => {} }: InframeProps, ref) => {
     const [isReady, setIsReady] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
     const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -60,39 +51,36 @@ const InframeComponent = forwardRef(
         if (
           iframeRef.current &&
           event.source === iframeRef.current.contentWindow &&
-          event.data.type === "safepay-inframe-event"
+          event.data.type === 'safepay-inframe-event'
         ) {
           const { name, detail } = event.data;
-          if (name === "safepay-inframe__ready") setIsReady(true);
-          if (
-            name === "safepay-inframe__messages-processed" &&
-            messagesProcessedCallback.current
-          ) {
+          if (name === 'safepay-inframe__ready') setIsReady(true);
+          if (name === 'safepay-inframe__messages-processed' && messagesProcessedCallback.current) {
             messagesProcessedCallback.current();
           }
           onInframeEvent(name, detail);
         }
       };
 
-      window.addEventListener("message", messageHandler);
-      return () => window.removeEventListener("message", messageHandler);
+      window.addEventListener('message', messageHandler);
+      return () => window.removeEventListener('message', messageHandler);
     }, [onInframeEvent]);
 
     const postMessage = (message: any, targetOrigin: string) => {
       iframeRef.current?.contentWindow?.postMessage(message, targetOrigin);
     };
-    
+
     // Queues a method call to be sent to the iframe
     const queueMethodCall = (methodName: string, ...args: any[]) => {
       functionQueue(() =>
         ((methodName, ...args) => {
           postMessage(
             {
-              type: "safepay-method-call",
+              type: 'safepay-method-call',
               method: methodName,
               args: args,
             },
-            "*"
+            '*'
           );
         })(methodName, ...args)
       );
@@ -111,9 +99,9 @@ const InframeComponent = forwardRef(
       // Handles iframe visibility and properties update
       if (isReady) {
         if (inframeProps) {
-          postMessage(
-            { type: "safepay-property-update", properties: inframeProps },
-            "*"
+          iframeRef.current.contentWindow.postMessage(
+            { type: 'safepay-property-update', properties: inframeProps },
+            '*'
           );
           messagesProcessedCallback.current = () => setIsVisible(true);
         } else {
@@ -125,10 +113,10 @@ const InframeComponent = forwardRef(
     return (
       <iframe
         ref={iframeRef}
-        className={"safepay-drops-iframe"}
+        className={'safepay-atoms-iframe'}
         src={src}
         title={title}
-        style={isVisible ? undefined : { visibility: "hidden" }}
+        style={isVisible ? undefined : { visibility: 'hidden' }}
       />
     );
   }

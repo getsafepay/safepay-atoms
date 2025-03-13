@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Safepay Card Capture Demo</title>
+    <script src="/dist/index.js"></script>
+  </head>
+  <style type="text/css">
+    .card-frame {
+      width: 22.5rem;
+      height: 2.6rem;
+    }
+    .modal-backdrop {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      inset: 0px;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 2;
+      cursor: pointer;
+    }
+
+    .show {
+      display: block;
+    }
+
+    .hide {
+      display: none;
+    }
+
+    .popup {
+      position: absolute;
+      top: 12.5%;
+      left: 25%;
+      width: 40%;
+      height: 75%;
+      border: 1px solid black;
+      background-color: white;
+      z-index: 2;
+    }
+  </style>
+  <body>
+    <h1>Card Capture Atom</h1>
+    <div class="card-frame">
+      <safepay-card-atom></safepay-card-atom>
+    </div>
+    <button onclick="handleSubmit()">Submit</button>
+    <div id="threeds-modal" class="modal-backdrop hide">
+      <div class="popup">
+        <safepay-payer-auth-atom environment="development"></safepay-payer-auth-atom>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      var safepay = Safepay();
+
+      var ENVIRONMENT = 'development';
+      var TRACKER = '';
+      var CLIENT_SECRET = '';
+
+      const cardAtom = document.querySelector('safepay-card-atom');
+      const payerAuthAtom = document.querySelector('safepay-payer-auth-atom');
+      const modal = document.getElementById('threeds-modal');
+
+      payerAuthAtom.environment = ENVIRONMENT;
+      payerAuthAtom.authToken = CLIENT_SECRET;
+      payerAuthAtom.tracker = TRACKER;
+      payerAuthAtom.authorizationOptions = {
+        do_capture: false,
+        do_card_on_file: true
+      };
+
+      payerAuthAtom.onPayerAuthenticationFailure = function (data) {
+        console.log("onPayerAuthenticationFailure", data);
+      };
+      payerAuthAtom.onPayerAuthenticationSuccess = function (data) {
+        console.log("onPayerAuthenticationSuccess", data);
+        modal.classList.remove('show');
+        modal.classList.add('hide');
+      };
+      payerAuthAtom.onPayerAuthenticationFrictionless = function (data) {
+        console.log("onPayerAuthenticationFrictionless", data);
+      };
+      payerAuthAtom.onPayerAuthenticationUnavailable = function (data) {
+        console.log("onPayerAuthenticationUnavailable", data);
+      };
+      payerAuthAtom.onSafepayError = function (error) {
+        console.log("onSafepayError", error.message);
+      };
+
+      cardAtom.environment = ENVIRONMENT;
+      cardAtom.authToken = CLIENT_SECRET;
+      cardAtom.tracker = TRACKER;
+      cardAtom.validationEvent = 'submit';
+      cardAtom.onError = function (err) {
+        console.log(err);
+      };
+      cardAtom.onValidated = function () {
+        console.log('validated');
+      };
+      cardAtom.onProceedToAuthentication = function (data) {
+        payerAuthAtom.deviceDataCollectionJWT = data.accessToken;
+        payerAuthAtom.deviceDataCollectionURL = data.deviceDataCollectionURL;
+
+        modal.classList.remove('hide');
+        modal.classList.add('show');
+      };
+
+      function handleSubmit(e) {
+        const validityPromise = cardAtom.fetchValidity();
+        validityPromise.then((isValid) => {
+          console.log(isValid);
+          cardAtom.submit();
+        });
+      }
+    </script>
+  </body>
+</html>

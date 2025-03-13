@@ -1,28 +1,22 @@
 //@ts-ignore
-import * as cardLinkStyles from "bundle-text:../css/card-link.css";
+import * as cardLinkStyles from 'bundle-text:../css/card-link.css';
 
 function loadCardLinkStyles() {
   try {
-    const o = document.createElement("style");
+    const o = document.createElement('style');
     o.textContent = cardLinkStyles;
-    o.className = "safepay-drops-CardLink";
-    window.drops.styleChunks.CardLink = o;
+    o.className = 'safepay-atoms-CardAtom';
+    window.atoms.styleChunks.CardAtom = o;
   } catch (o) {
-    console.error(
-      o,
-      "Unable to add CardLink styles to the window using the corresponding js file",
-    );
+    console.error(o, 'Unable to add CardAtom styles to the window using the corresponding js file');
   }
 }
 
 function loadCardLinkJsChunks() {
   try {
-    window.drops.jsChunkImports.CardLink = ["index", "SeamlessIframe"];
+    window.atoms.jsChunkImports.CardAtom = ['index', 'SeamlessIframe'];
   } catch (o) {
-    console.error(
-      o,
-      "Unable to add CardLink style imports to the window using the corresponding js file",
-    );
+    console.error(o, 'Unable to add CardAtom style imports to the window using the corresponding js file');
   }
 }
 

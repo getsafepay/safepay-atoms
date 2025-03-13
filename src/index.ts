@@ -1,35 +1,24 @@
-import { DeviceMetricsWebComponent } from "./elements";
-import { CardLinkWebComponent } from "./elements/CardLinkElement";
-import { API_INTERNAL_ERROR } from "./errors";
+import { PayerAuthenticationAtom, CardCaptureAtom } from './elements';
+import { API_INTERNAL_ERROR } from './errors';
 
 const Safepay = (() => {
-  const initializeDrops = () => {
-    return async function () {
-      await import("./drops");
-      window.drops;
-      return window.drops;
-    };
+  const initializeAtoms = async () => {
+    await import('./atoms');
+    window.atoms;
+    return window.atoms;
   };
-
-  const initializeSafepay = async (cc: string) => {
+  const initializeSafepay = async () => {
     try {
       const obj = {
-        drops: await initializeDrops()(),
-        version: "v0.0.1",
+        atoms: await initializeAtoms(),
+        version: 'v0.0.1',
       };
 
       // Register custom elements if they are not already registered
       if (window && window.customElements) {
-        window.customElements.define("safepay-card-link", CardLinkWebComponent);
-        window.customElements.define(
-          "safepay-device-metrics",
-          DeviceMetricsWebComponent,
-        );
+        window.customElements.define('safepay-card-atom', CardCaptureAtom);
+        window.customElements.define('safepay-payer-auth-atom', PayerAuthenticationAtom);
       }
-
-      // Dispatch the 'safepayJSLoaded' event
-      const safepayJSLoadedEvent = new CustomEvent("safepay.safepayJSLoaded");
-      setTimeout(() => document.dispatchEvent(safepayJSLoadedEvent), 0);
 
       return obj;
     } catch (e) {

@@ -16,6 +16,7 @@
   --safepay-color-graphic-2: #3d50ec;
   --safepay-color-graphic-3: #3d50ec;
 }
+
 :root {
   --primary-text-color: var(--safepay-color-high-contrast);
   --secondary-text-color: var(--safepay-color-medium-contrast);
@@ -29,15 +30,7 @@
   --optional-label-color: var(--safepay-color-background-tertiary);
   --secondary-label-color: var(--safepay-color-background-secondary);
 }
-:root {
-  --input-horizontal-padding: 1rem;
-  --input-vertical-padding: 0.625rem;
-  --input-background: var(--safepay-color-background-secondary);
-  --input-color: var(--safepay-color-medium-contrast);
-  --input-border-color: var(--safepay-color-background-tertiary);
-  --input-border-color-hover: var(--safepay-color-tertiary);
-  --input-border-focus-color: var(--safepay-color-primary);
-}
+
 .safepay-atoms-root {
   color: var(--primary-text-color);
   display: block;
@@ -49,31 +42,15 @@
     sans-serif;
   font-size: 0.875rem;
   line-height: 1rem;
+  height: 100%;
+  width: 100%;
 }
-.safepay-atoms-root .iframeWrapper {
-  background: var(--safepay-color-background-secondary);
-  border-radius: 0.25rem;
-  border: 1px solid var(--safepay-color-background-tertiary);
+
+.safepay-atoms-root .payerAuthiframeWrapper {
+  background: transparent;
   box-sizing: border-box;
   display: block;
   height: 100%;
-  padding: var(--input-vertical-padding) var(--input-horizontal-padding);
+  padding: 2rem;
   width: 100%;
-}
-.safepay-atoms-root .iframeWrapper:hover {
-  border: 1px solid var(--safepay-color-tertiary);
-}
-.safepay-atoms-root .iframeWrapper.focus,
-.safepay-atoms-root .iframeWrapper.focus:hover {
-  border: 1px solid var(--safepay-color-primary);
-  outline: none;
-}
-.safepay-atoms-root .errorMessage {
-  color: var(--error-text-color);
-  font-family: inherit;
-  font-size: inherit;
-  margin: 0.375rem 0 0.375rem 0.5rem;
-}
-.safepay-atoms-root .errorMessage:empty {
-  display: none;
 }
