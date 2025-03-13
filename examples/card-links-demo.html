@@ -94,9 +94,9 @@
       cardAtom.onValidated = function () {
         console.log('validated');
       };
-      cardAtom.onProceedToAuthentication = function (accessToken, actionUrl) {
-        payerAuthAtom.deviceDataCollectionJWT = accessToken;
-        payerAuthAtom.deviceDataCollectionURL = actionUrl;
+      cardAtom.onProceedToAuthentication = function (data) {
+        payerAuthAtom.deviceDataCollectionJWT = data.accessToken;
+        payerAuthAtom.deviceDataCollectionURL = data.deviceDataCollectionURL;
 
         modal.classList.remove('hide');
         modal.classList.add('show');
