@@ -108,10 +108,6 @@ const initializeSafepayAtom = (
 export const safepayAtomFunctions: SafepayAtomFunctions = {
   cardAtom: (props, id) => initializeSafepayAtom(CardAtom, props, id),
   payerAuthentication: (props, id) => initializeSafepayAtom(PayerAuthentication, props, id),
-  components: {
-    CardAtom,
-    PayerAuthentication,
-  },
   styleChunks: {},
   jsChunkImports: {},
 };

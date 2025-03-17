@@ -49,6 +49,8 @@
     sans-serif;
   font-size: 0.875rem;
   line-height: 1rem;
+  width: 100%;
+  height: 100%;
 }
 .safepay-atoms-root .iframeWrapper {
   background: var(--safepay-color-background-secondary);

@@ -1,5 +1,3 @@
-import { FC } from 'react';
-
 /**
  * Interface defining the methods available on a SafepayAtom instance
  */
@@ -34,10 +32,6 @@ export interface JSChunks {
 export interface SafepayAtomFunctions {
   cardAtom: (props: { [key: string]: any }, id: string) => SafepayAtom;
   payerAuthentication: (props: { [key: string]: any }, id: string) => SafepayAtom;
-  components: {
-    CardAtom: FC;
-    PayerAuthentication: FC;
-  };
   styleChunks: StyleChunks;
   jsChunkImports: JSChunks;
 }

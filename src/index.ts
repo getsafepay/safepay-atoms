@@ -4,13 +4,15 @@ import { API_INTERNAL_ERROR } from './errors';
 const Safepay = (() => {
   const initializeAtoms = async () => {
     await import('./atoms');
-    window.atoms;
-    return window.atoms;
+    return {
+      atoms: window.atoms,
+    };
   };
   const initializeSafepay = async () => {
     try {
+      const { atoms } = await initializeAtoms();
       const obj = {
-        atoms: await initializeAtoms(),
+        atoms,
         version: 'v0.0.1',
       };
 

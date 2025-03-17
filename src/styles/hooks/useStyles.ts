@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 type ChunkName = string; // Replace this with the actual type of your chunk names if they are not just strings.
 
