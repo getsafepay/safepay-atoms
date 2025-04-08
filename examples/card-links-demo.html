@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <title>Safepay Card Capture Demo</title>
-    <script src="/dist/index.js"></script>
+    <script src="/dist/components.js"></script>
   </head>
   <style type="text/css">
     .card-frame {
@@ -47,16 +47,16 @@
     <button onclick="handleSubmit()">Submit</button>
     <div id="threeds-modal" class="modal-backdrop hide">
       <div class="popup">
-        <safepay-payer-auth-atom environment="development"></safepay-payer-auth-atom>
+        <safepay-payer-auth-atom></safepay-payer-auth-atom>
       </div>
     </div>
 
     <script type="text/javascript">
       var safepay = Safepay();
 
-      var ENVIRONMENT = 'development';
-      var TRACKER = '';
-      var CLIENT_SECRET = '';
+      var ENVIRONMENT = 'sandbox';
+      var TRACKER = 'track_1be77692-3e8b-4d42-beae-767bf3cd1065';
+      var CLIENT_SECRET = 'hRUSYaQ304j6WbJO3ULndy8O-nOO3DLSUPaZ5kQHi5CHECc5hBEgIM5xshCrgQukD3t3Q9Da9Q==';
 
       const cardAtom = document.querySelector('safepay-card-atom');
       const payerAuthAtom = document.querySelector('safepay-payer-auth-atom');
@@ -66,26 +66,26 @@
       payerAuthAtom.authToken = CLIENT_SECRET;
       payerAuthAtom.tracker = TRACKER;
       payerAuthAtom.authorizationOptions = {
-        do_capture: false,
-        do_card_on_file: true
+        do_capture: true,
+        do_card_on_file: true,
       };
 
       payerAuthAtom.onPayerAuthenticationFailure = function (data) {
-        console.log("onPayerAuthenticationFailure", data);
+        console.log('onPayerAuthenticationFailure', data);
       };
       payerAuthAtom.onPayerAuthenticationSuccess = function (data) {
-        console.log("onPayerAuthenticationSuccess", data);
+        console.log('onPayerAuthenticationSuccess', data);
         modal.classList.remove('show');
         modal.classList.add('hide');
       };
       payerAuthAtom.onPayerAuthenticationFrictionless = function (data) {
-        console.log("onPayerAuthenticationFrictionless", data);
+        console.log('onPayerAuthenticationFrictionless', data);
       };
       payerAuthAtom.onPayerAuthenticationUnavailable = function (data) {
-        console.log("onPayerAuthenticationUnavailable", data);
+        console.log('onPayerAuthenticationUnavailable', data);
       };
       payerAuthAtom.onSafepayError = function (error) {
-        console.log("onSafepayError", error.message);
+        console.log('onSafepayError', error.message);
       };
 
       cardAtom.environment = ENVIRONMENT;

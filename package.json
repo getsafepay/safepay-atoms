@@ -3,7 +3,7 @@
   "version": "0.0.2",
   "description": "Atomic building blocks to build custom payment interfaces",
   "main": "dist/index.js",
-  "type": "module",
+  "module": "dist/index.esm.js",
   "types": "types/index.d.ts",
   "typings": "types/index.d.ts",
   "keywords": [
@@ -21,13 +21,23 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\""
   },
+  "components": "dist/index.js",
+  "react": "dist/index.esm.js",
   "targets": {
-    "library": {
+    "components": {
       "source": "src/index.ts",
       "context": "browser",
       "optimize": true,
       "isLibrary": true,
-      "sourceMap": true
+      "sourceMap": false
+    },
+    "react": {
+      "source": "src/atoms/index.ts",
+      "context": "browser",
+      "outputFormat": "esmodule",
+      "optimize": true,
+      "isLibrary": true,
+      "sourceMap": false
     }
   },
   "devDependencies": {

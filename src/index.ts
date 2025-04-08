@@ -3,7 +3,7 @@ import { API_INTERNAL_ERROR } from './errors';
 
 const Safepay = (() => {
   const initializeAtoms = async () => {
-    await import('./atoms');
+    await import('./bridge');
     return {
       atoms: window.atoms,
     };

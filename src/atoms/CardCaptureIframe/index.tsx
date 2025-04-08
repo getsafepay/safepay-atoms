@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import InframeComponent from './iframe';
 import { resolveBaseUrl } from '../../utils/funcs/resolveBaseUrl';
-import { useAppendStyles, loadCardLinkStylesAndJsChunks } from '../../styles';
+import '../../styles/css/index.css';
+import '../../styles/css/card-link.css';
+import '../../styles/css/seamless-iframe.css';
 
-interface CardCaptureProps {
+export interface CardCaptureProps {
   environment: string;
   authToken: string;
   tracker: string;
@@ -57,7 +59,7 @@ const CardCapture: React.FC<CardCaptureProps> = ({
   imperativeRef,
 }: CardCaptureProps): React.ReactElement => {
   // Custom hook usage for appending styles and managing iframe methods
-  const styleRef = useAppendStyles('CardAtom', false);
+  // const styleRef = useAppendStyles('CardAtom', false);
   const inframeMethodsRef = useRef<any>(); // Should ideally specify a more detailed type
   const validationCallbackRef = useRef<(isValid: boolean) => void>();
 
@@ -69,12 +71,12 @@ const CardCapture: React.FC<CardCaptureProps> = ({
   // Base URL resolution based on the environment
   const baseURL = resolveBaseUrl(environment);
 
-  useEffect(() => {
-    // Styles computation and application logic
-    if (!styleRef.current) return;
-    const computedStyles = {}; // Placeholder for actual style computation logic
-    setStyles(computedStyles);
-  }, [styleRef]);
+  // useEffect(() => {
+  //   // Styles computation and application logic
+  //   if (!styleRef.current) return;
+  //   const computedStyles = {}; // Placeholder for actual style computation logic
+  //   setStyles(computedStyles);
+  // }, [styleRef]);
 
   // Computed props for iframe integration
   const computedProps = useMemo(
@@ -150,7 +152,7 @@ const CardCapture: React.FC<CardCaptureProps> = ({
 
   // Component rendering with conditional styles and iframe integration
   return (
-    <div className="safepay-atoms-root" ref={styleRef}>
+    <div className="safepay-atoms-root">
       <div className={`iframeWrapper ${isFocused ? 'focus' : ''}`}>
         <InframeComponent
           src={`${baseURL}/cardlink`}
@@ -164,7 +166,5 @@ const CardCapture: React.FC<CardCaptureProps> = ({
     </div>
   );
 };
-
-loadCardLinkStylesAndJsChunks();
 
 export default CardCapture;

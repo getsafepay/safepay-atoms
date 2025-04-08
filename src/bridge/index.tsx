@@ -1,10 +1,10 @@
 import React, { FC, lazy } from 'react';
 import { createRoot } from 'react-dom/client';
-import { loadIndexStylesAndJsChunks } from '../styles';
 import { SafepayAtom, SafepayAtomFunctions } from '../types/atoms';
+import { loadAllStylesAndJsChunks, loadIndexStylesAndJsChunks, useAppendStyles } from '../styles';
 
-const CardAtom = lazy(() => import('./CardCaptureIframe'));
-const PayerAuthentication = lazy(() => import('./PayerAuthenticationIframe'));
+const CardAtom = lazy(() => import('./CardAtom'));
+const PayerAuthentication = lazy(() => import('./PayerAuthentication'));
 
 // Types for container elements
 type Container = HTMLElement | ShadowRoot;
@@ -114,4 +114,4 @@ export const safepayAtomFunctions: SafepayAtomFunctions = {
 
 // Attach to window and load styles
 window.atoms = safepayAtomFunctions;
-loadIndexStylesAndJsChunks();
+loadAllStylesAndJsChunks();
