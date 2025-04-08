@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
-import { loadSeamlessIframeStylesAndJsChunks } from '../../styles';
 import useFunctionQueue from '../hooks/useFunctionQueue';
 
 interface InframeProps {
@@ -119,7 +118,5 @@ const InframeComponent = forwardRef(
     );
   }
 );
-
-loadSeamlessIframeStylesAndJsChunks();
 
 export default InframeComponent;

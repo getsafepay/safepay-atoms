@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import InframeComponent from './iframe';
 import { resolveBaseUrl } from '../../utils/funcs/resolveBaseUrl';
-import { useAppendStyles, loadPayerAuthenticationStylesAndJsChunks } from '../../styles';
 import { PayerAuthenticationProps } from './types';
+import '../../styles/css/index.css';
+import '../../styles/css/payer-auth.css';
+import '../../styles/css/seamless-iframe.css';
 
 const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
   environment,
@@ -11,7 +13,7 @@ const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
   deviceDataCollectionJWT,
   deviceDataCollectionURL,
   billing,
-  authorizationOptions = {}, 
+  authorizationOptions = {},
   onPayerAuthenticationFailure = () => {},
   onPayerAuthenticationSuccess = () => {},
   onPayerAuthenticationRequired = () => {},
@@ -21,18 +23,18 @@ const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
   imperativeRef,
 }: PayerAuthenticationProps): React.ReactElement => {
   // Custom hook usage for appending styles and managing iframe methods
-  const styleRef = useAppendStyles('PayerAuthentication', false);
+  // const styleRef = useAppendStyles('PayerAuthentication', false);
   const inframeMethodsRef = useRef<any>(); // Should ideally specify a more detailed type
 
   // Component state management for UI and validation states
   const [styles, setStyles] = useState<React.CSSProperties>({});
 
-  useEffect(() => {
-    // Styles computation and application logic
-    if (!styleRef.current) return;
-    const computedStyles = {}; // Placeholder for actual style computation logic
-    setStyles(computedStyles);
-  }, [styleRef]);
+  // useEffect(() => {
+  //   // Styles computation and application logic
+  //   if (!styleRef.current) return;
+  //   const computedStyles = {}; // Placeholder for actual style computation logic
+  //   setStyles(computedStyles);
+  // }, [styleRef]);
 
   // Base URL resolution based on the environment
   const baseURL = resolveBaseUrl(environment);
@@ -49,7 +51,16 @@ const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
       authorizationOptions,
       inputStyle: { ...styles },
     }),
-    [styles, environment, tracker, authToken, deviceDataCollectionJWT, deviceDataCollectionURL, authorizationOptions, billing]
+    [
+      styles,
+      environment,
+      tracker,
+      authToken,
+      deviceDataCollectionJWT,
+      deviceDataCollectionURL,
+      authorizationOptions,
+      billing,
+    ]
   );
 
   useEffect(() => {
@@ -90,7 +101,7 @@ const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
 
   // Component rendering with conditional styles and iframe integration
   return (
-    <div className="safepay-atoms-root" ref={styleRef}>
+    <div className="safepay-atoms-root">
       <div className="payerAuthiframeWrapper">
         <InframeComponent
           src={`${baseURL}/authlink`}
@@ -103,7 +114,5 @@ const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
     </div>
   );
 };
-
-loadPayerAuthenticationStylesAndJsChunks();
 
 export default PayerAuthentication;

@@ -122,6 +122,6 @@ const InframeComponent = forwardRef(
   }
 );
 
-loadSeamlessIframeStylesAndJsChunks();
+//loadSeamlessIframeStylesAndJsChunks();
 
 export default InframeComponent;

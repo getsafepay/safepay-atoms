@@ -21,7 +21,7 @@ type ChunkName = string; // Replace this with the actual type of your chunk name
  * // since styles are added to the document's head, not a specific encapsulating element.
  */
 export const useAppendStyles = (chunkName: ChunkName, isShadow: boolean) => {
-  const cssRootRef = useRef<HTMLDivElement | null>(null);
+  const cssRootRef = React.useRef<HTMLDivElement | null>(null);
 
   /**
    * Clones the style element associated with a given chunk name.
