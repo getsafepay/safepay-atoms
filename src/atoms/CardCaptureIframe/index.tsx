@@ -1,16 +1,16 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import InframeComponent from './iframe';
-import { resolveBaseUrl } from '../../utils/funcs/resolveBaseUrl';
-import '../../styles/css/index.css';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import '../../styles/css/card-link.css';
+import '../../styles/css/index.css';
 import '../../styles/css/seamless-iframe.css';
+import { resolveBaseUrl } from '../../utils/funcs/resolveBaseUrl';
+import InframeComponent from './iframe';
 
 export interface CardCaptureProps {
   environment: string;
   authToken: string;
   tracker: string;
   validationEvent: string;
-  onProceedToAuthentication?: (data) => void;
+  onProceedToAuthentication?: (data: any) => void;
   onValidated?: () => void;
   onError?: (error: string) => void;
   imperativeRef: React.MutableRefObject<any>; // Replace 'any' with a specific type if possible
@@ -66,17 +66,9 @@ const CardCapture: React.FC<CardCaptureProps> = ({
   // Component state management for UI and validation states
   const [isFocused, setIsFocused] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
-  const [styles, setStyles] = useState<React.CSSProperties>({});
 
   // Base URL resolution based on the environment
   const baseURL = resolveBaseUrl(environment);
-
-  // useEffect(() => {
-  //   // Styles computation and application logic
-  //   if (!styleRef.current) return;
-  //   const computedStyles = {}; // Placeholder for actual style computation logic
-  //   setStyles(computedStyles);
-  // }, [styleRef]);
 
   // Computed props for iframe integration
   const computedProps = useMemo(
@@ -84,10 +76,9 @@ const CardCapture: React.FC<CardCaptureProps> = ({
       environment,
       authToken,
       tracker,
-      inputStyle: { ...styles },
       validationEvent,
     }),
-    [styles, environment, authToken, tracker, validationEvent]
+    [environment, authToken, tracker, validationEvent]
   );
 
   useEffect(() => {
@@ -144,6 +135,7 @@ const CardCapture: React.FC<CardCaptureProps> = ({
         const { error: safepayError } = data;
         setErrorMessage(safepayError.message);
         onError(safepayError);
+        break;
       default:
         // Additional event handling as necessary
         break;

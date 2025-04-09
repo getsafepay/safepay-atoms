@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import InframeComponent from './iframe';
-import { resolveBaseUrl } from '../../utils/funcs/resolveBaseUrl';
-import { PayerAuthenticationProps } from './types';
+import React, { useEffect, useMemo, useRef } from 'react';
 import '../../styles/css/index.css';
 import '../../styles/css/payer-auth.css';
 import '../../styles/css/seamless-iframe.css';
+import { resolveBaseUrl } from '../../utils/funcs/resolveBaseUrl';
+import InframeComponent from './iframe';
+import { PayerAuthenticationProps } from './types';
 
 const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
   environment,
@@ -22,19 +22,7 @@ const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
   onSafepayError = () => {},
   imperativeRef,
 }: PayerAuthenticationProps): React.ReactElement => {
-  // Custom hook usage for appending styles and managing iframe methods
-  // const styleRef = useAppendStyles('PayerAuthentication', false);
   const inframeMethodsRef = useRef<any>(); // Should ideally specify a more detailed type
-
-  // Component state management for UI and validation states
-  const [styles, setStyles] = useState<React.CSSProperties>({});
-
-  // useEffect(() => {
-  //   // Styles computation and application logic
-  //   if (!styleRef.current) return;
-  //   const computedStyles = {}; // Placeholder for actual style computation logic
-  //   setStyles(computedStyles);
-  // }, [styleRef]);
 
   // Base URL resolution based on the environment
   const baseURL = resolveBaseUrl(environment);
@@ -48,11 +36,9 @@ const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
       deviceDataCollectionJWT,
       deviceDataCollectionURL,
       billing,
-      authorizationOptions,
-      inputStyle: { ...styles },
+      authorizationOptions
     }),
     [
-      styles,
       environment,
       tracker,
       authToken,
