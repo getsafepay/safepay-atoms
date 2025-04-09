@@ -26,6 +26,7 @@ export interface CardCaptureProps {
  * @param {Object} props - The properties passed to the CardCapture component.
  * @param {string} props.environment - The environment in which the card input is operating, e.g., 'sandbox' or 'production'.
  * @param {string} props.authToken - An authentication token required for validating and processing the card information securely.
+ * @param {string} props.tracker - Safepay Tracker
  * @param {(accessToken?: string, actionUrl?: string) => void} [props.onProceedToAuthentication] - An optional callback function triggered when additional authentication challenge is required. Receives optional accessToken and actionUrl parameters.
  * @param {string} [props.validationEvent="submit"] - Specifies when the card validation should occur. Defaults to 'submit'.
  * @param {(error: string) => void} [props.onError] - An optional callback function triggered upon encountering an error during card input processing.

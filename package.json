@@ -33,11 +33,13 @@
     },
     "react": {
       "source": "src/atoms/index.ts",
-      "context": "browser",
       "outputFormat": "esmodule",
-      "optimize": true,
+      "optimize": false,
       "isLibrary": true,
-      "sourceMap": false
+      "sourceMap": false,
+      "includeNodeModules": [
+        "react"
+      ]
     }
   },
   "devDependencies": {
