@@ -1,12 +1,9 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import '../../styles/css/index.css';
-import '../../styles/css/payer-auth.css';
-import '../../styles/css/seamless-iframe.css';
 import { resolveBaseUrl } from '../../utils/funcs/resolveBaseUrl';
 import InframeComponent from './iframe';
 import { PayerAuthenticationProps } from './types';
 
-const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
+const PayerAuthentication = ({
   environment,
   tracker,
   authToken,
@@ -21,7 +18,7 @@ const PayerAuthentication: React.FC<PayerAuthenticationProps> = ({
   onPayerAuthenticationUnavailable = () => {},
   onSafepayError = () => {},
   imperativeRef,
-}: PayerAuthenticationProps): React.ReactElement => {
+}: PayerAuthenticationProps): JSX.Element  => {
   const inframeMethodsRef = useRef<any>(); // Should ideally specify a more detailed type
 
   // Base URL resolution based on the environment

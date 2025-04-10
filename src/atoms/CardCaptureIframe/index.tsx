@@ -1,7 +1,4 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import '../../styles/css/card-link.css';
-import '../../styles/css/index.css';
-import '../../styles/css/seamless-iframe.css';
 import { resolveBaseUrl } from '../../utils/funcs/resolveBaseUrl';
 import InframeComponent from './iframe';
 
@@ -48,16 +45,16 @@ export interface CardCaptureProps {
  *
  * This component uses React hooks for managing state, effects, and refs, providing a modern approach to handling user interactions and component lifecycle.
  */
-const CardCapture: React.FC<CardCaptureProps> = ({
-  environment,
-  authToken,
-  tracker,
-  validationEvent,
-  onValidated = () => {},
-  onProceedToAuthentication = () => {},
-  onError = (e) => {},
-  imperativeRef,
-}: CardCaptureProps): React.ReactElement => {
+const CardCapture = ({
+    environment,
+    authToken,
+    tracker,
+    validationEvent,
+    onValidated = () => {},
+    onProceedToAuthentication = () => {},
+    onError = (e: string) => {},
+    imperativeRef,
+}: CardCaptureProps): JSX.Element => {
   // Custom hook usage for appending styles and managing iframe methods
   // const styleRef = useAppendStyles('CardAtom', false);
   const inframeMethodsRef = useRef<any>(); // Should ideally specify a more detailed type
