@@ -1,4 +1,5 @@
-import CardCapture from './CardCaptureIframe';
-import PayerAuthentication from './PayerAuthenticationIframe';
-
-export { CardCapture, PayerAuthentication };
+export { default as CardCapture } from './CardCaptureIframe';
+export { default as PayerAuthentication } from './PayerAuthenticationIframe';
+export * from './CardCaptureIframe';
+export * from './PayerAuthenticationIframe';
+export * from './hooks';

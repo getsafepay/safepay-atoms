@@ -1,3 +1,10 @@
 dist
+dist/react
 node_modules
 .parcel-cache
+
+# tarballs
+*.tgz
+
+# Apple files
+.DS_Store

@@ -41,7 +41,7 @@ The `<safepay-card-atom>` component provides card capture functionality.
 ></safepay-card-atom>
 ```
 
-#### Available Props/Attributes
+#### Available Props / Attributes
 
 | Attribute                           | Type      | Description                              |
 |-------------------------------------|-----------|------------------------------------------|
@@ -103,7 +103,7 @@ The `<safepay-payer-authentication>` component handles payer authentication flow
 ></safepay-payer-authentication>
 ```
 
-#### Available Props/Attributes
+#### Available Props / Attributes
 
 | Attribute                           | Type      | Description                              |
 |-------------------------------------|-----------|------------------------------------------|
@@ -119,16 +119,27 @@ The `<safepay-payer-authentication>` component handles payer authentication flow
 
 ## React Components
 
-### CardCaptureIframe
+### Using Styles
+The Safepay Atoms library includes pre-built CSS styles that you can import into your project. These styles are bundled into a single file for convenience.
+
+### Importing Styles
+To use the styles in your project, import the bundled CSS file:
+
+```jsx
+// Import t`e styles in your JavaScript/TypeScript project
+import '@sfpy/atoms/styles'`
+```
+
+### CardCapture
 
 ```jsx
 import { Suspense } from 'react';
-import { CardCaptureIframe } from '@sfpy/atoms';
+import { CardCapture } from '@sfpy/atoms';
 
 function PaymentForm() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <CardCaptureIframe
+      <CardCapture
         environment="sandbox"
         authToken="your-auth-token"
         tracker="your-tracker"
@@ -151,9 +162,9 @@ function PaymentForm() {
 | onError                           | function             | `(error: string) => void`                      |
 | imperativeRef                     | React.MutableRefObject| Reference for imperative methods              |
 
-### CardCaptureIframe Imperative Methods
+### CardCapture Imperative Methods
 
-The CardCaptureIframe component can be controlled using a ref. These methods are accessed through the `imperativeRef` prop:
+The CardCapture component can be controlled using a ref. These methods are accessed through the `imperativeRef` prop:
 
 ```typescript
 // Define the ref
@@ -175,7 +186,7 @@ const cardRef = useRef<{
 
 ```jsx
 import React, { useRef } from 'react';
-import { CardCaptureIframe } from '@sfpy/atoms';
+import { CardCapture } from '@sfpy/atoms';
 
 function PaymentForm() {
   const cardRef = useRef(null);
@@ -200,7 +211,7 @@ function PaymentForm() {
   };
 
   return (
-    <CardCaptureIframe
+    <CardCapture
       imperativeRef={cardRef}
       environment="sandbox"
       authToken="your-auth-token"
@@ -210,16 +221,16 @@ function PaymentForm() {
 }
 ```
 
-### PayerAuthenticationIframe
+### PayerAuthentication
 
 ```jsx
 import { Suspense } from 'react';
-import { PayerAuthenticationIframe } from '@sfpy/atoms';
+import { PayerAuthentication } from '@sfpy/atoms';
 
 function AuthenticationForm() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <PayerAuthenticationIframe
+      <PayerAuthentication
         environment="sandbox"
         authToken="your-auth-token"
         tracker="your-tracker"
@@ -250,54 +261,78 @@ function AuthenticationForm() {
 ## Project Structure
 
 ```
-safepay-ui-links/
-├── dist/                     # Compiled files
-├── src/
-│   ├── atoms/               # React components implementation
-│   │   ├── CardCaptureIframe/
+.
+├── README.md
+├── examples
+│   ├── card-links-demo.html
+│   └── device-metrics-demo.html
+├── package-lock.json
+├── package.json
+├── postcss.config.js
+├── src
+│   ├── atoms
+│   │   ├── CardCaptureIframe
+│   │   │   ├── iframe.tsx
+│   │   │   └── index.tsx
+│   │   ├── PayerAuthenticationIframe
 │   │   │   ├── iframe.tsx
 │   │   │   ├── index.tsx
 │   │   │   └── types.ts
-│   │   ├── PayerAuthenticationIframe/
-│   │   │   ├── iframe.tsx
-│   │   │   ├── index.tsx
-│   │   │   └── types.ts
+│   │   ├── hooks
+│   │   │   ├── index.ts
+│   │   │   └── useFunctionQueue.ts
 │   │   └── index.ts
-│   │
-│   ├── elements/            # Web Components implementation
-│   │   ├── CardCaptureAtom/
+│   ├── bridge
+│   │   ├── CardAtom.tsx
+│   │   ├── PayerAuthentication.tsx
+│   │   └── index.tsx
+│   ├── elements
+│   │   ├── CardCaptureAtom
 │   │   │   └── index.ts
-│   │   ├── PayerAuthenticationAtom/
+│   │   ├── PayerAuthenticationAtom
 │   │   │   └── index.ts
 │   │   └── index.ts
-│   │
-│   ├── styles/             # Styling utilities and configurations
-│   │   ├── CardAtom/
-│   │   ├── PayerAuthentication/
-│   │   └── index.ts
-│   │
-│   ├── types/              # TypeScript type definitions
+│   ├── errors.ts
+│   ├── index.ts
+│   ├── styles
+│   │   ├── css
+│   │   │   ├── card-link.css
+│   │   │   ├── index.css
+│   │   │   ├── payer-auth.css
+│   │   │   └── seamless-iframe.css
+│   │   ├── hooks
+│   │   │   ├── index.ts
+│   │   │   └── useStyles.ts
+│   │   ├── index.css
+│   │   ├── index.ts
+│   │   └── loaders
+│   │       ├── index.ts
+│   │       ├── load-all.ts
+│   │       ├── load-card-link.ts
+│   │       ├── load-index.ts
+│   │       ├── load-payer-auth.ts
+│   │       └── load-seamless-iframe.ts
+│   ├── types
 │   │   ├── atoms.ts
-│   │   ├── components.ts
-│   │   └── index.ts
-│   │
-│   ├── utils/              # Utility functions and helpers
-│   │   ├── funcs/
+│   │   ├── index.ts
+│   │   └── safepay.ts
+│   ├── utils
+│   │   ├── funcs
+│   │   │   ├── base64.ts
 │   │   │   ├── defineReactiveProperties.ts
+│   │   │   ├── generateUUID.ts
+│   │   │   ├── isObject.ts
+│   │   │   ├── isString.ts
 │   │   │   ├── resolveBaseUrl.ts
 │   │   │   └── toCamelCase.ts
 │   │   └── index.ts
-│   │
-│   └── index.ts            # Main entry point
-│
-├── node_modules/           # Dependencies
-├── tests/                  # Test files
-│   ├── atoms/
-│   └── elements/
-│
-├── .gitignore
-├── package.json
-├── README.md
+│   └── utils.ts
 ├── tsconfig.json
-└── yarn.lock
+├── tsconfig.react.json
+└── types
+    ├── atoms
+    │   ├── index.d.ts
+    │   └── models.d.ts
+    ├── index.d.ts
+    └── models.d.ts
 ```

@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
-import { loadSeamlessIframeStylesAndJsChunks } from '../../styles';
+import * as React from 'react';
 import useFunctionQueue from '../hooks/useFunctionQueue';
 
 interface InframeProps {
@@ -37,15 +36,15 @@ interface InframeProps {
  * processes them, and optionally triggers callbacks. It also exposes a method to queue calls to the iframe, ensuring that messages
  * are sent in order and handled correctly by the iframe's content.
  */
-const InframeComponent = forwardRef(
+const InframeComponent = React.forwardRef(
   ({ src, title, inframeProps, onInframeEvent = (e, d) => {} }: InframeProps, ref) => {
-    const [isReady, setIsReady] = useState(false);
-    const [isVisible, setIsVisible] = useState(false);
-    const iframeRef = useRef<HTMLIFrameElement>(null);
-    const messagesProcessedCallback = useRef<(() => void) | null>(null);
+    const [isReady, setIsReady] = React.useState(false);
+    const [isVisible, setIsVisible] = React.useState(false);
+    const iframeRef = React.useRef<HTMLIFrameElement>(null);
+    const messagesProcessedCallback = React.useRef<(() => void) | null>(null);
     const functionQueue = useFunctionQueue();
 
-    useEffect(() => {
+    React.useEffect(() => {
       // Message event handler for iframe communications
       const messageHandler = (event: MessageEvent) => {
         if (
@@ -87,7 +86,7 @@ const InframeComponent = forwardRef(
     };
 
     // Exposes the `queueMethodCall` method to parent components via `ref`
-    useImperativeHandle(
+    React.useImperativeHandle(
       ref,
       () => ({
         queueMethodCall,
@@ -95,11 +94,11 @@ const InframeComponent = forwardRef(
       []
     );
 
-    useEffect(() => {
+    React.useEffect(() => {
       // Handles iframe visibility and properties update
       if (isReady) {
         if (inframeProps) {
-          iframeRef.current.contentWindow.postMessage(
+          iframeRef.current?.contentWindow?.postMessage(
             { type: 'safepay-property-update', properties: inframeProps },
             '*'
           );

@@ -1,70 +1,90 @@
 {
-  "name": "@sfpy/atoms",
-  "version": "0.0.2",
-  "description": "Atomic building blocks to build custom payment interfaces",
-  "main": "dist/index.js",
-  "module": "dist/index.esm.js",
-  "types": "types/index.d.ts",
-  "typings": "types/index.d.ts",
-  "keywords": [
-    "safepay",
-    "payments"
-  ],
-  "author": "Safepay",
-  "scripts": {
-    "clean": "rimraf dist",
-    "serve": "run-s clean build dev",
-    "dev": "serve",
-    "build": "run-s clean compile",
-    "compile": "parcel build --no-cache",
-    "check": "tsc --noEmit",
-    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\""
-  },
-  "components": "dist/index.js",
-  "react": "dist/index.esm.js",
-  "targets": {
-    "components": {
-      "source": "src/index.ts",
-      "context": "browser",
-      "optimize": true,
-      "isLibrary": true,
-      "sourceMap": false
+    "name": "@sfpy/atoms",
+    "version": "0.0.3",
+    "description": "Atomic building blocks to build custom payment interfaces",
+    "typings": "types/index.d.ts",
+    "keywords": [
+        "safepay",
+        "payments"
+    ],
+    "author": "Safepay",
+    "main": "dist/react/atoms/index.js",
+    "module": "dist/react/atoms/index.js",
+    "types": "dist/react/atoms/index.d.ts",
+    "scripts": {
+        "clean": "rimraf dist",
+        "serve": "run-s clean build dev",
+        "dev": "serve",
+        "compile:react:css": "postcss src/styles/index.css -o dist/styles/index.css",
+        "compile:components": "parcel build --no-cache --target components",
+        "compile:react": "tsc -p tsconfig.react.json",
+        "compile": "run-s compile:components compile:react compile:react:css",
+        "build": "run-s clean compile",
+        "check": "tsc --noEmit",
+        "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\"",
+        "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\""
     },
-    "react": {
-      "source": "src/atoms/index.ts",
-      "context": "browser",
-      "outputFormat": "esmodule",
-      "optimize": true,
-      "isLibrary": true,
-      "sourceMap": false
+    "components": "dist/index.js",
+    "react": "dist/react/index.js",
+    "targets": {
+        "components": {
+            "source": "src/index.ts",
+            "context": "browser",
+            "optimize": true,
+            "isLibrary": true,
+            "sourceMap": false,
+            "distDir": "./dist/components"
+        }
+    },
+    "devDependencies": {
+        "@parcel/packager-ts": "^2.14.4",
+        "@parcel/transformer-inline-string": "^2.14.4",
+        "@parcel/transformer-typescript-types": "^2.14.4",
+        "@types/react": "^18.2.48",
+        "@types/react-dom": "^18.2.18",
+        "@typescript-eslint/eslint-plugin": "^8.26.0",
+        "@typescript-eslint/parser": "^8.26.0",
+        "autoprefixer": "^10.4.21",
+        "cssnano": "^7.0.6",
+        "npm-run-all": "^4.1.5",
+        "parcel": "^2.14.4",
+        "postcss": "^8.5.3",
+        "postcss-cli": "^11.0.1",
+        "postcss-import": "^16.1.0",
+        "postcss-nested": "^7.0.2",
+        "prettier": "^3.5.3",
+        "rimraf": "^6.0.1",
+        "serve": "^14.2.4",
+        "typescript": ">=3.0.0",
+        "typescript-plugin-css-modules": "^5.0.2"
+    },
+    "dependencies": {
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "uuid": "^9.0.1"
+    },
+    "prettier": {
+        "printWidth": 120,
+        "singleQuote": true,
+        "bracketSameLine": true,
+        "trailingComma": "es5"
+    },
+    "exports": {
+        ".": {
+            "types": "./dist/react/atoms/index.d.ts",
+            "import": "./dist/react/atoms/index.js",
+            "default": "./dist/react/index.js"
+        },
+        "./CardCapture": {
+            "types": "./dist/react/atoms/CardCaptureIframe/index.d.ts",
+            "import": "./dist/react/atoms/CardCaptureIframe/index.js",
+            "default": "./dist/react/atoms/CardCaptureIframe/index.js"
+        },
+        "./PayerAuthentication": {
+            "types": "./dist/react/atoms/PayerAuthenticationIframe/index.d.ts",
+            "import": "./dist/react/atoms/PayerAuthenticationIframe/index.js",
+            "default": "./dist/react/atoms/PayerAuthenticationIframe/index.js"
+        },
+        "./styles": "./dist/styles/index.css"
     }
-  },
-  "devDependencies": {
-    "@parcel/packager-ts": "2.11.0",
-    "@parcel/transformer-inline-string": "2.13.3",
-    "@parcel/transformer-typescript-types": "2.11.0",
-    "@types/react": "^18.2.48",
-    "@types/react-dom": "^18.2.18",
-    "@typescript-eslint/eslint-plugin": "^8.26.0",
-    "@typescript-eslint/parser": "^8.26.0",
-    "npm-run-all": "^4.1.5",
-    "parcel": "^2.11.0",
-    "prettier": "^3.5.3",
-    "rimraf": "^6.0.1",
-    "serve": "^14.2.4",
-    "typescript": ">=3.0.0",
-    "typescript-plugin-css-modules": "^5.0.2"
-  },
-  "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "uuid": "^9.0.1"
-  },
-  "prettier": {
-    "printWidth": 120,
-    "singleQuote": true,
-    "bracketSameLine": true,
-    "trailingComma": "es5"
-  }
 }
