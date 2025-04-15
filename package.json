@@ -1,6 +1,6 @@
 {
     "name": "@sfpy/atoms",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "description": "Atomic building blocks to build custom payment interfaces",
     "typings": "types/index.d.ts",
     "keywords": [
