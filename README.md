@@ -126,41 +126,50 @@ The Safepay Atoms library includes pre-built CSS styles that you can import into
 To use the styles in your project, import the bundled CSS file:
 
 ```jsx
-// Import t`e styles in your JavaScript/TypeScript project
-import '@sfpy/atoms/styles'`
+// Import the styles in your JavaScript/TypeScript project
+import '@sfpy/atoms/styles'
 ```
 
 ### CardCapture
 
 ```jsx
-import { Suspense } from 'react';
+import { Suspense, useRef } from 'react';
 import { CardCapture } from '@sfpy/atoms';
 
 function PaymentForm() {
+  const cardRef = useRef(null);
+
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div>Loading card capture...</div>}>
       <CardCapture
         environment="sandbox"
         authToken="your-auth-token"
         tracker="your-tracker"
+        validationEvent="onBlur" // Example event
+        imperativeRef={cardRef}
+        // Optional callbacks:
+        // onValidated={() => console.log('Card validated')}
+        // onProceedToAuthentication={(data) => console.log('Proceed to auth', data)}
+        // onError={(error) => console.error('Error', error)}
       />
     </Suspense>
   );
 }
+
 ```
 
 #### Available Props
 
-| Prop                               | Type                  | Description                                    |
-|-----------------------------------|----------------------|------------------------------------------------|
-| environment                        | string               | Environment setting                            |
-| authToken                         | string               | Authentication token                           |
-| tracker                           | string               | Tracking identifier                            |
-| validationEvent                   | string               | Validation trigger event                       |
-| onProceedToAuthentication         | function             | `(accessToken?: string, actionUrl?: string) => void` |
-| onValidated                       | function             | `() => void`                                   |
-| onError                           | function             | `(error: string) => void`                      |
-| imperativeRef                     | React.MutableRefObject| Reference for imperative methods              |
+| Prop                          | Type                         | Description                                             | Required |
+|-------------------------------|-------------------------------|---------------------------------------------------------|:--------:|
+| environment                   | string                       | Environment setting ('sandbox' or 'production')         | ✅ |
+| authToken                     | string                       | Authentication token                                    | ✅ |
+| tracker                       | string                       | Tracking identifier                                     | ✅ |
+| validationEvent               | string                       | Validation trigger event (e.g., `onBlur`, `onChange`)    | ✅ |
+| onProceedToAuthentication     | (data: any) => void           | Callback when ready to proceed to authentication        |          |
+| onValidated                   | () => void                   | Callback on successful validation                       |          |
+| onError                       | (error: string) => void       | Error handling callback                                |          |
+| imperativeRef                 | React.MutableRefObject<any>  | Ref to control the component imperatively               | ✅ |
 
 ### CardCapture Imperative Methods
 
@@ -224,16 +233,25 @@ function PaymentForm() {
 ### PayerAuthentication
 
 ```jsx
-import { Suspense } from 'react';
+import { Suspense, useRef } from 'react';
 import { PayerAuthentication } from '@sfpy/atoms';
 
 function AuthenticationForm() {
+  const authRef = useRef(null);
+
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div>Loading authentication...</div>}>
       <PayerAuthentication
         environment="sandbox"
-        authToken="your-auth-token"
         tracker="your-tracker"
+        authToken="your-auth-token"
+        deviceDataCollectionJWT="your-device-jwt"
+        deviceDataCollectionURL="https://your-collection-url"
+        imperativeRef={authRef}
+        // Optional callbacks you can pass if needed:
+        // onPayerAuthenticationSuccess={(data) => console.log('Success', data)}
+        // onPayerAuthenticationFailure={(error) => console.log('Failure', error)}
+        // onSafepayError={(error) => console.error('Safepay Error', error)}
       />
     </Suspense>
   );
@@ -242,21 +260,23 @@ function AuthenticationForm() {
 
 #### Available Props
 
-| Prop                               | Type                  | Description                                    |
-|-----------------------------------|----------------------|------------------------------------------------|
-| environment                        | string               | Environment setting                            |
-| tracker                           | string               | Tracking identifier                            |
-| authToken                         | string               | Authentication token                           |
-| deviceDataCollectionJWT           | string               | Device data JWT                                |
-| deviceDataCollectionURL           | string               | Device data collection endpoint                |
-| billing                           | object               | Billing information object                     |
-| onPayerAuthenticationFailure      | function            | `(data: any) => void`                         |
-| onPayerAuthenticationSuccess      | function            | `(data: any) => void`                         |
-| onPayerAuthenticationRequired     | function            | `({ tracker: string }) => void`                |
-| onPayerAuthenticationFrictionless | function            | `({ tracker: string }) => void`                |
-| onPayerAuthenticationUnavailable  | function            | `({ tracker: string }) => void`                |
-| onSafepayError                    | function            | `(error: any) => void`                         |
-| imperativeRef                     | React.MutableRefObject| Reference for imperative methods              |
+| Prop                             | Type                            | Description                                       | Required |
+|----------------------------------|---------------------------------|---------------------------------------------------|:--------:|
+| environment                      | string                          | Environment setting ('sandbox' or 'production')   | ✅ |
+| tracker                          | string                          | Tracking identifier                               | ✅ |
+| authToken                        | string                          | Authentication token                              | ✅ |
+| deviceDataCollectionJWT          | string                          | Device data collection JWT                        | ✅ |
+| deviceDataCollectionURL          | string                          | Device data collection endpoint URL               | ✅ |
+| billing                          | Billing                         | Billing information (optional)                    |          |
+| authorizationOptions             | { do_capture?: boolean; do_card_on_file?: boolean; } | Authorization configuration options |          |
+| onPayerAuthenticationFailure     | (data: PayerAuthErrorData) => void | Callback on authentication failure             |          |
+| onPayerAuthenticationSuccess     | (data: PayerAuthSuccessData) => void | Callback on authentication success             |          |
+| onPayerAuthenticationRequired    | (data: PayerAuthData) => void    | Callback when authentication is required         |          |
+| onPayerAuthenticationFrictionless| (data: PayerAuthData) => void    | Callback when authentication is frictionless     |          |
+| onPayerAuthenticationUnavailable | (data: PayerAuthData) => void    | Callback when authentication is unavailable      |          |
+| onSafepayError                   | (data: SafepayError) => void     | General error handling callback                  |          |
+| imperativeRef                    | React.MutableRefObject<any>     | Ref to control the component imperatively         | ✅ |
+
 
 ## Project Structure
 

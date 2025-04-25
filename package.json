@@ -1,25 +1,21 @@
 {
     "name": "@sfpy/atoms",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "description": "Atomic building blocks to build custom payment interfaces",
-    "typings": "types/index.d.ts",
+    "type": "module",
     "keywords": [
         "safepay",
         "payments"
     ],
     "author": "Safepay",
-    "main": "dist/react/atoms/index.js",
-    "module": "dist/react/atoms/index.js",
-    "types": "dist/react/atoms/index.d.ts",
     "scripts": {
         "clean": "rimraf dist",
         "serve": "run-s clean build dev",
         "dev": "serve",
-        "compile:react:css": "postcss src/styles/index.css -o dist/styles/index.css",
-        "compile:components": "parcel build --no-cache --target components",
-        "compile:react": "tsc -p tsconfig.react.json",
-        "compile": "run-s compile:components compile:react compile:react:css",
-        "build": "run-s clean compile",
+        "build": "run-s clean build:components build:react build:styles",
+        "build:components": "parcel build --no-cache --target components",
+        "build:react": "tsup",
+        "build:styles": "postcss src/styles/index.css -o dist/styles/index.css",
         "check": "tsc --noEmit",
         "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\"",
         "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\""
@@ -55,12 +51,11 @@
         "prettier": "^3.5.3",
         "rimraf": "^6.0.1",
         "serve": "^14.2.4",
+        "tsup": "^8.4.0",
         "typescript": ">=3.0.0",
         "typescript-plugin-css-modules": "^5.0.2"
     },
     "dependencies": {
-        "react": "^18.2.0",
-        "react-dom": "^18.2.0",
         "uuid": "^9.0.1"
     },
     "prettier": {
@@ -69,21 +64,17 @@
         "bracketSameLine": true,
         "trailingComma": "es5"
     },
+    "peerDependencies": {
+        "react": ">=18.2.0 <20.0.0",
+        "react-dom": ">=18.2.0 <20.0.0"
+    },
+    "main": "./dist/react/index.js",
+    "module": "./dist/react/index.js",
+    "types": "./dist/react/index.d.ts",
     "exports": {
         ".": {
-            "types": "./dist/react/atoms/index.d.ts",
-            "import": "./dist/react/atoms/index.js",
-            "default": "./dist/react/index.js"
-        },
-        "./CardCapture": {
-            "types": "./dist/react/atoms/CardCaptureIframe/index.d.ts",
-            "import": "./dist/react/atoms/CardCaptureIframe/index.js",
-            "default": "./dist/react/atoms/CardCaptureIframe/index.js"
-        },
-        "./PayerAuthentication": {
-            "types": "./dist/react/atoms/PayerAuthenticationIframe/index.d.ts",
-            "import": "./dist/react/atoms/PayerAuthenticationIframe/index.js",
-            "default": "./dist/react/atoms/PayerAuthenticationIframe/index.js"
+            "import": "./dist/react/index.js",
+            "types": "./dist/react/index.d.ts"
         },
         "./styles": "./dist/styles/index.css"
     }
