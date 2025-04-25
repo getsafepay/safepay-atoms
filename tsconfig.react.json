@@ -1,8 +1,5 @@
 {
     // see https://www.typescriptlang.org/tsconfig to better understand tsconfigs
-    "include": [
-        "src/atoms/index.ts",
-    ],
     "compilerOptions": {
         "module": "esnext",
         "lib": [
@@ -20,7 +17,6 @@
         "jsx": "react",
         "target": "es5",
         "declarationMap": false,
-        "outDir": "./dist/react",
         // stricter type-checking for stronger correctness. Recommended by TS
         "strict": true,
         // linter checks for common issues
