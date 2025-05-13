@@ -1,5 +1,5 @@
 //@ts-ignore
-import * as seamlessIframStyles from 'bundle-text:../css/seamless-iframe.css';
+import * as seamlessIframStyles from '../css/seamless-iframe.css';
 
 function loadSeamlessIframeStyles() {
   try {

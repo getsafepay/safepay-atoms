@@ -13,29 +13,16 @@
         "serve": "run-s clean build dev",
         "dev": "serve",
         "build": "run-s clean build:components build:react build:styles",
-        "build:components": "parcel build --no-cache --target components",
-        "build:react": "tsup",
+        "build:components": "tsup --config tsup.components.config.ts",
+        "build:react": "tsup --config tsup.react.config.ts",
         "build:styles": "postcss src/styles/index.css -o dist/styles/index.css",
         "check": "tsc --noEmit",
         "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\"",
         "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\""
     },
-    "components": "dist/index.js",
+    "components": "dist/components/index.js",
     "react": "dist/react/index.js",
-    "targets": {
-        "components": {
-            "source": "src/index.ts",
-            "context": "browser",
-            "optimize": true,
-            "isLibrary": true,
-            "sourceMap": false,
-            "distDir": "./dist/components"
-        }
-    },
     "devDependencies": {
-        "@parcel/packager-ts": "^2.14.4",
-        "@parcel/transformer-inline-string": "^2.14.4",
-        "@parcel/transformer-typescript-types": "^2.14.4",
         "@types/react": "^18.2.48",
         "@types/react-dom": "^18.2.18",
         "@typescript-eslint/eslint-plugin": "^8.26.0",
@@ -43,7 +30,6 @@
         "autoprefixer": "^10.4.21",
         "cssnano": "^7.0.6",
         "npm-run-all": "^4.1.5",
-        "parcel": "^2.14.4",
         "postcss": "^8.5.3",
         "postcss-cli": "^11.0.1",
         "postcss-import": "^16.1.0",
@@ -56,7 +42,7 @@
         "typescript-plugin-css-modules": "^5.0.2"
     },
     "dependencies": {
-        "uuid": "^9.0.1"
+        "nanoid": "^5.1.5"
     },
     "prettier": {
         "printWidth": 120,

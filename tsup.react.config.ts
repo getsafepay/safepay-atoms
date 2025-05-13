@@ -1,4 +1,4 @@
-// tsup.config.ts
+// tsup.react.config.ts
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
