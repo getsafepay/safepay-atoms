@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useAppendStyles } from '../../styles';
 import { resolveBaseUrl } from '../../utils/funcs/resolveBaseUrl';
 import InframeComponent from './iframe';
 import { PayerAuthenticationProps } from './types';
@@ -18,8 +19,20 @@ const PayerAuthentication = ({
   onPayerAuthenticationUnavailable = () => {},
   onSafepayError = () => {},
   imperativeRef,
-}: PayerAuthenticationProps): JSX.Element  => {
+}: PayerAuthenticationProps): React.ReactElement => {
+  // Custom hook usage for appending styles and managing iframe methods
+  const styleRef = useAppendStyles('PayerAuthentication', false);
   const inframeMethodsRef = useRef<any>(); // Should ideally specify a more detailed type
+
+  // Component state management for UI and validation states
+  const [styles, setStyles] = useState<React.CSSProperties>({});
+
+  useEffect(() => {
+    // Styles computation and application logic
+    if (!styleRef.current) return;
+    const computedStyles = {}; // Placeholder for actual style computation logic
+    setStyles(computedStyles);
+  }, [styleRef]);
 
   // Base URL resolution based on the environment
   const baseURL = resolveBaseUrl(environment);
@@ -33,17 +46,10 @@ const PayerAuthentication = ({
       deviceDataCollectionJWT,
       deviceDataCollectionURL,
       billing,
-      authorizationOptions
-    }),
-    [
-      environment,
-      tracker,
-      authToken,
-      deviceDataCollectionJWT,
-      deviceDataCollectionURL,
       authorizationOptions,
-      billing,
-    ]
+      inputStyle: { ...styles },
+    }),
+    [styles, environment, tracker, authToken, deviceDataCollectionJWT, deviceDataCollectionURL, authorizationOptions, billing]
   );
 
   useEffect(() => {
@@ -84,7 +90,7 @@ const PayerAuthentication = ({
 
   // Component rendering with conditional styles and iframe integration
   return (
-    <div className="safepay-atoms-root">
+    <div className="safepay-atoms-root" ref={styleRef}>
       <div className="payerAuthiframeWrapper">
         <InframeComponent
           src={`${baseURL}/authlink`}

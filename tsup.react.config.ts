@@ -11,4 +11,7 @@ export default defineConfig({
     clean: true,
     sourcemap: false,
     tsconfig: 'tsconfig.react.json',
+    define: {
+        'document': 'undefined'
+    }
 });

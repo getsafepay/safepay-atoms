@@ -1,10 +1,10 @@
-import React, { FC, lazy } from 'react';
+import React from 'react';
 import { createRoot } from 'react-dom/client';
+import { loadAllStylesAndJsChunks } from '../styles';
 import { SafepayAtom, SafepayAtomFunctions } from '../types/atoms';
-import { loadAllStylesAndJsChunks, loadIndexStylesAndJsChunks, useAppendStyles } from '../styles';
 
-const CardAtom = lazy(() => import('./CardAtom'));
-const PayerAuthentication = lazy(() => import('./PayerAuthentication'));
+const CardAtom = React.lazy(() => import('./CardCaptureIframe'));
+const PayerAuthentication = React.lazy(() => import('./PayerAuthenticationIframe'));
 
 // Types for container elements
 type Container = HTMLElement | ShadowRoot;
@@ -66,7 +66,7 @@ function renderReactComponent(
  * atom.remove(); // Remove from DOM
  */
 const initializeSafepayAtom = (
-  Component: FC,
+  Component: React.FC<any>,
   props: { [key: string]: any },
   id: string,
   shadow: boolean = false

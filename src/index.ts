@@ -3,8 +3,7 @@ import { API_INTERNAL_ERROR, BRIDGE_INITIALIZION_ERROR } from './errors';
 
 (async () => {
   try {
-    // Load bridge and ensure atoms are available
-    await import('./bridge');
+    await import('./atoms');
     if (!window.atoms) {
       throw BRIDGE_INITIALIZION_ERROR();
     }

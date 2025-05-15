@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useAppendStyles } from '../../styles';
 import { resolveBaseUrl } from '../../utils/funcs/resolveBaseUrl';
 import InframeComponent from './iframe';
 
-export interface CardCaptureProps {
+interface CardCaptureProps {
   environment: string;
   authToken: string;
   tracker: string;
@@ -56,16 +57,24 @@ const CardCapture = ({
     imperativeRef,
 }: CardCaptureProps): JSX.Element => {
   // Custom hook usage for appending styles and managing iframe methods
-  // const styleRef = useAppendStyles('CardAtom', false);
+  const styleRef = useAppendStyles('CardAtom', false);
   const inframeMethodsRef = useRef<any>(); // Should ideally specify a more detailed type
   const validationCallbackRef = useRef<(isValid: boolean) => void>();
 
   // Component state management for UI and validation states
   const [isFocused, setIsFocused] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
+  const [styles, setStyles] = useState<React.CSSProperties>({});
 
   // Base URL resolution based on the environment
   const baseURL = resolveBaseUrl(environment);
+
+  useEffect(() => {
+    // Styles computation and application logic
+    if (!styleRef.current) return;
+    const computedStyles = {}; // Placeholder for actual style computation logic
+    setStyles(computedStyles);
+  }, [styleRef]);
 
   // Computed props for iframe integration
   const computedProps = useMemo(
@@ -73,9 +82,10 @@ const CardCapture = ({
       environment,
       authToken,
       tracker,
+      inputStyle: { ...styles },
       validationEvent,
     }),
-    [environment, authToken, tracker, validationEvent]
+    [styles, environment, authToken, tracker, validationEvent]
   );
 
   useEffect(() => {
@@ -141,7 +151,7 @@ const CardCapture = ({
 
   // Component rendering with conditional styles and iframe integration
   return (
-    <div className="safepay-atoms-root">
+    <div className="safepay-atoms-root" ref={styleRef}>
       <div className={`iframeWrapper ${isFocused ? 'focus' : ''}`}>
         <InframeComponent
           src={`${baseURL}/cardlink`}
