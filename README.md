@@ -19,14 +19,6 @@ yarn add @sfpy/atoms
 <script src="https://unpkg.com/@sfpy/atoms@latest/dist/index.js"></script>
 ```
 
-## Initialization
-
-Initialize Safepay in your application:
-
-```javascript
-const safepay = Safepay();
-```
-
 ## Web Components
 
 ### CardCaptureAtom
