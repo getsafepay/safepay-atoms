@@ -1,4 +1,4 @@
-// tsup.config.ts
+// tsup.react.config.ts
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
@@ -11,4 +11,7 @@ export default defineConfig({
     clean: true,
     sourcemap: false,
     tsconfig: 'tsconfig.react.json',
+    define: {
+        'document': 'undefined'
+    }
 });

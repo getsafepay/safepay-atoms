@@ -1,5 +1,5 @@
 //@ts-ignore
-import * as payerAuthenticationStyles from 'bundle-text:../css/payer-auth.css';
+import payerAuthenticationStyles from '../css/payer-auth.css';
 
 function loadPayerAuthenticationStyles() {
   try {

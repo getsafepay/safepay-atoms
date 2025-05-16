@@ -1,5 +1,5 @@
 //@ts-ignore
-import * as indexStyles from 'bundle-text:../css/index.css';
+import indexStyles from '../css/index.css';
 
 function loadIndexStyles() {
   try {

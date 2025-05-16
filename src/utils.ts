@@ -1,7 +1,7 @@
-import { v4 as uuidv4 } from 'uuid';
+import { nanoid } from 'nanoid/non-secure';
 
 export function generateUUID(): string {
-  return uuidv4();
+  return nanoid();
 }
 
 export function isString(e: string): boolean {

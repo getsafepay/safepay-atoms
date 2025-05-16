@@ -16,15 +16,7 @@ yarn add @sfpy/atoms
 
 ### Using CDN
 ```html
-<script src="https://unpkg.com/@sfpy/atoms@latest/dist/index.js"></script>
-```
-
-## Initialization
-
-Initialize Safepay in your application:
-
-```javascript
-const safepay = Safepay();
+<script src="https://unpkg.com/@sfpy/atoms@latest/dist/components/index.global.js"></script>
 ```
 
 ## Web Components

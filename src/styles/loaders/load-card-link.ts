@@ -1,5 +1,5 @@
 //@ts-ignore
-import * as cardLinkStyles from 'bundle-text:../css/card-link.css';
+import cardLinkStyles from '../css/card-link.css';
 
 function loadCardLinkStyles() {
   try {

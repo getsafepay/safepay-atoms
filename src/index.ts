@@ -1,34 +1,30 @@
 import { PayerAuthenticationAtom, CardCaptureAtom } from './elements';
-import { API_INTERNAL_ERROR } from './errors';
+import { API_INTERNAL_ERROR, BRIDGE_INITIALIZION_ERROR } from './errors';
 
-const Safepay = (() => {
-  const initializeAtoms = async () => {
-    await import('./bridge');
-    return {
-      atoms: window.atoms,
-    };
-  };
-  const initializeSafepay = async () => {
-    try {
-      const { atoms } = await initializeAtoms();
-      const obj = {
-        atoms,
-        version: 'v0.0.1',
-      };
-
-      // Register custom elements if they are not already registered
-      if (window && window.customElements) {
-        window.customElements.define('safepay-card-atom', CardCaptureAtom);
-        window.customElements.define('safepay-payer-auth-atom', PayerAuthenticationAtom);
-      }
-
-      return obj;
-    } catch (e) {
-      throw API_INTERNAL_ERROR();
+(async () => {
+  try {
+    await import('./atoms');
+    if (!window.atoms) {
+      throw BRIDGE_INITIALIZION_ERROR();
     }
-  };
 
-  return initializeSafepay;
+    // Register custom elements if not already defined
+    if (window?.customElements) {
+      if (!customElements.get('safepay-card-atom')) {
+        customElements.define('safepay-card-atom', CardCaptureAtom);
+      }
+      if (!customElements.get('safepay-payer-auth-atom')) {
+        customElements.define('safepay-payer-auth-atom', PayerAuthenticationAtom);
+      }
+    }
+
+    // Expose Safepay API
+    window.Safepay = {
+      atoms: window.atoms,
+      version: 'v0.0.1',
+    };
+  } catch (e) {
+    console.error(e);
+    throw API_INTERNAL_ERROR();
+  }
 })();
-
-window.Safepay = Safepay;

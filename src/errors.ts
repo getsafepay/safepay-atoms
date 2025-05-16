@@ -44,6 +44,12 @@ export function UNKNOWN_REASON(e: string) {
     details: e,
   };
 }
+export function BRIDGE_INITIALIZION_ERROR(): SafepayError {
+    return {
+      reason: 'BRIDGE_INITIALIZION_ERROR',
+      message: 'Safepay bridge failed to initialize',
+    };
+}
 export function API_INTERNAL_ERROR(): SafepayError {
   return {
     reason: 'API_INTERNAL_ERROR',
