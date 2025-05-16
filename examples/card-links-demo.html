@@ -54,8 +54,8 @@
     <script type="text/javascript">
 
       var ENVIRONMENT = 'sandbox';
-      var TRACKER = 'track_1be77692-3e8b-4d42-beae-767bf3cd1065';
-      var CLIENT_SECRET = 'hRUSYaQ304j6WbJO3ULndy8O-nOO3DLSUPaZ5kQHi5CHECc5hBEgIM5xshCrgQukD3t3Q9Da9Q==';
+      var TRACKER = '';
+      var CLIENT_SECRET = '';
 
       const cardAtom = document.querySelector('safepay-card-atom');
       const payerAuthAtom = document.querySelector('safepay-payer-auth-atom');
@@ -71,6 +71,8 @@
 
       payerAuthAtom.onPayerAuthenticationFailure = function (data) {
         console.log('onPayerAuthenticationFailure', data);
+        modal.classList.remove('show');
+        modal.classList.add('hide');
       };
       payerAuthAtom.onPayerAuthenticationSuccess = function (data) {
         console.log('onPayerAuthenticationSuccess', data);
@@ -79,12 +81,18 @@
       };
       payerAuthAtom.onPayerAuthenticationFrictionless = function (data) {
         console.log('onPayerAuthenticationFrictionless', data);
+        modal.classList.remove('show');
+        modal.classList.add('hide');
       };
       payerAuthAtom.onPayerAuthenticationUnavailable = function (data) {
         console.log('onPayerAuthenticationUnavailable', data);
+        modal.classList.remove('show');
+        modal.classList.add('hide');
       };
       payerAuthAtom.onSafepayError = function (error) {
         console.log('onSafepayError', error.message);
+        modal.classList.remove('show');
+        modal.classList.add('hide');
       };
 
       cardAtom.environment = ENVIRONMENT;
