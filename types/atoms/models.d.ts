@@ -1,8 +1,14 @@
 declare module '@sfpy/atoms' {
+  export enum Environment {
+    Development = 'development',
+    Production = 'production',
+    Sandbox = 'sandbox',
+    Local = 'local',
+  }
   interface CardAtomProps {
     authToken: string;
     tracker: string;
-    environment: 'development' | 'sandbox' | 'production';
+    environment: Environment;
     validationEvent: 'submit' | 'change' | 'keydown' | 'none';
     onError?: (message: string) => void;
     onValidated?: () => void;

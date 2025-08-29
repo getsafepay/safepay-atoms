@@ -2,9 +2,10 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useAppendStyles } from '../../styles';
 import { resolveBaseUrl } from '../../utils/funcs/resolveBaseUrl';
 import InframeComponent from './iframe';
+import { Environment, toEnvironment } from '../../types/environment';
 
 interface CardCaptureProps {
-  environment: string;
+  environment: Environment | string;
   authToken: string;
   tracker: string;
   validationEvent: string;
@@ -22,7 +23,7 @@ interface CardCaptureProps {
  *
  * @component
  * @param {Object} props - The properties passed to the CardCapture component.
- * @param {string} props.environment - The environment in which the card input is operating, e.g., 'sandbox' or 'production'.
+ * @param {Environment} props.environment - The environment for the card input (enum or string).
  * @param {string} props.authToken - An authentication token required for validating and processing the card information securely.
  * @param {(accessToken?: string, actionUrl?: string) => void} [props.onProceedToAuthentication] - An optional callback function triggered when additional authentication challenge is required. Receives optional accessToken and actionUrl parameters.
  * @param {string} [props.validationEvent="submit"] - Specifies when the card validation should occur. Defaults to 'submit'.
@@ -67,7 +68,8 @@ const CardCapture = ({
   const [styles, setStyles] = useState<React.CSSProperties>({});
 
   // Base URL resolution based on the environment
-  const baseURL = resolveBaseUrl(environment);
+  const normalizedEnv = toEnvironment(environment);
+  const baseURL = resolveBaseUrl(normalizedEnv);
 
   useEffect(() => {
     // Styles computation and application logic
@@ -79,13 +81,13 @@ const CardCapture = ({
   // Computed props for iframe integration
   const computedProps = useMemo(
     () => ({
-      environment,
+      environment: normalizedEnv,
       authToken,
       tracker,
       inputStyle: { ...styles },
       validationEvent,
     }),
-    [styles, environment, authToken, tracker, validationEvent]
+    [styles, normalizedEnv, authToken, tracker, validationEvent]
   );
 
   useEffect(() => {

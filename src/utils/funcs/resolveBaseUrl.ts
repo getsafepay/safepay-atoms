@@ -1,13 +1,15 @@
-export const resolveBaseUrl = (env: string) => {
+import { Environment } from '../../types/environment';
+
+export const resolveBaseUrl = (env: Environment) => {
   let r = '';
   switch (env) {
-    case 'sandbox':
+    case Environment.Sandbox:
       r = 'https://sandbox.api.getsafepay.com/drops';
       break;
-    case 'development':
+    case Environment.Development:
       r = 'https://dev.api.getsafepay.com/drops';
       break;
-    case 'local':
+    case Environment.Local:
       r = 'http://127.0.0.1:3000';
       break;
     default:
