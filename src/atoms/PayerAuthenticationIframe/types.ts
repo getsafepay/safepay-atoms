@@ -27,8 +27,10 @@ interface SafepayError {
     }
 }
 
+import { Environment } from '../../types/environment';
+
 export interface PayerAuthenticationProps {
-  environment: string;
+  environment: Environment | string;
   tracker: string;
   authToken: string;
   deviceDataCollectionJWT: string;

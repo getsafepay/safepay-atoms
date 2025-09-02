@@ -3,6 +3,7 @@ import { useAppendStyles } from '../../styles';
 import { resolveBaseUrl } from '../../utils/funcs/resolveBaseUrl';
 import InframeComponent from './iframe';
 import { PayerAuthenticationProps } from './types';
+import { toEnvironment } from '../../types/environment';
 
 const PayerAuthentication = ({
   environment,
@@ -35,12 +36,13 @@ const PayerAuthentication = ({
   }, [styleRef]);
 
   // Base URL resolution based on the environment
-  const baseURL = resolveBaseUrl(environment);
+  const normalizedEnv = toEnvironment(environment);
+  const baseURL = resolveBaseUrl(normalizedEnv);
 
   // Computed props for iframe integration
   const computedProps = useMemo(
     () => ({
-      environment,
+      environment: normalizedEnv,
       tracker,
       authToken,
       deviceDataCollectionJWT,
@@ -49,7 +51,7 @@ const PayerAuthentication = ({
       authorizationOptions,
       inputStyle: { ...styles },
     }),
-    [styles, environment, tracker, authToken, deviceDataCollectionJWT, deviceDataCollectionURL, authorizationOptions, billing]
+    [styles, normalizedEnv, tracker, authToken, deviceDataCollectionJWT, deviceDataCollectionURL, authorizationOptions, billing]
   );
 
   useEffect(() => {

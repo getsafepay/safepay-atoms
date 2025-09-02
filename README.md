@@ -37,7 +37,7 @@ The `<safepay-card-atom>` component provides card capture functionality.
 
 | Attribute                           | Type      | Description                              |
 |-------------------------------------|-----------|------------------------------------------|
-| environment                         | string    | Environment setting ('sandbox' or 'production') |
+| environment                         | `'development' | 'production' | 'sandbox' | 'local'` (string) | Environment setting |
 | authToken                          | string    | Authentication token for the session     |
 | tracker                            | string    | Tracking identifier                      |
 | validationEvent                    | string    | Event that triggers validation          |
@@ -99,7 +99,7 @@ The `<safepay-payer-authentication>` component handles payer authentication flow
 
 | Attribute                           | Type      | Description                              |
 |-------------------------------------|-----------|------------------------------------------|
-| environment                         | string    | Environment setting ('sandbox' or 'production') |
+| environment                         | `'development' | 'production' | 'sandbox' | 'local'` (string) | Environment setting |
 | tracker                            | string    | Tracking identifier                       |
 | authToken                          | string    | Authentication token                     |
 | billing                            | object    | Billing information                      |
@@ -126,7 +126,7 @@ import '@sfpy/atoms/styles'
 
 ```jsx
 import { Suspense, useRef } from 'react';
-import { CardCapture } from '@sfpy/atoms';
+import { CardCapture, Environment } from '@sfpy/atoms';
 
 function PaymentForm() {
   const cardRef = useRef(null);
@@ -134,7 +134,7 @@ function PaymentForm() {
   return (
     <Suspense fallback={<div>Loading card capture...</div>}>
       <CardCapture
-        environment="sandbox"
+        environment={Environment.Sandbox}
         authToken="your-auth-token"
         tracker="your-tracker"
         validationEvent="onBlur" // Example event
@@ -154,7 +154,7 @@ function PaymentForm() {
 
 | Prop                          | Type                         | Description                                             | Required |
 |-------------------------------|-------------------------------|---------------------------------------------------------|:--------:|
-| environment                   | string                       | Environment setting ('sandbox' or 'production')         | ✅ |
+| environment                   | `Environment` or case-insensitive string (`'development'`, `'production'`, `'sandbox'`, `'local'`) | Environment setting | ✅ |
 | authToken                     | string                       | Authentication token                                    | ✅ |
 | tracker                       | string                       | Tracking identifier                                     | ✅ |
 | validationEvent               | string                       | Validation trigger event (e.g., `onBlur`, `onChange`)    | ✅ |
@@ -226,7 +226,7 @@ function PaymentForm() {
 
 ```jsx
 import { Suspense, useRef } from 'react';
-import { PayerAuthentication } from '@sfpy/atoms';
+import { PayerAuthentication, Environment } from '@sfpy/atoms';
 
 function AuthenticationForm() {
   const authRef = useRef(null);
@@ -234,7 +234,7 @@ function AuthenticationForm() {
   return (
     <Suspense fallback={<div>Loading authentication...</div>}>
       <PayerAuthentication
-        environment="sandbox"
+        environment={Environment.Sandbox}
         tracker="your-tracker"
         authToken="your-auth-token"
         deviceDataCollectionJWT="your-device-jwt"
@@ -254,7 +254,7 @@ function AuthenticationForm() {
 
 | Prop                             | Type                            | Description                                       | Required |
 |----------------------------------|---------------------------------|---------------------------------------------------|:--------:|
-| environment                      | string                          | Environment setting ('sandbox' or 'production')   | ✅ |
+| environment                      | `Environment` or case-insensitive string (`'development'`, `'production'`, `'sandbox'`, `'local'`) | Environment setting   | ✅ |
 | tracker                          | string                          | Tracking identifier                               | ✅ |
 | authToken                        | string                          | Authentication token                              | ✅ |
 | deviceDataCollectionJWT          | string                          | Device data collection JWT                        | ✅ |
@@ -268,6 +268,9 @@ function AuthenticationForm() {
 | onPayerAuthenticationUnavailable | (data: PayerAuthData) => void    | Callback when authentication is unavailable      |          |
 | onSafepayError                   | (data: SafepayError) => void     | General error handling callback                  |          |
 | imperativeRef                    | React.MutableRefObject<any>     | Ref to control the component imperatively         | ✅ |
+
+
+Note: In React usage, you can pass either the `Environment` enum (recommended) or a string value such as `"SANDBOX"` or `"sandbox"`. String values are mapped case-insensitively to the corresponding enum value. If the value is invalid, an exception is thrown to surface the misconfiguration.
 
 
 ## Project Structure

@@ -1,6 +1,6 @@
 {
     "name": "@sfpy/atoms",
-    "version": "0.0.6",
+    "version": "0.0.7",
     "description": "Atomic building blocks to build custom payment interfaces",
     "type": "module",
     "keywords": [
