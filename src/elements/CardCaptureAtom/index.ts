@@ -107,6 +107,7 @@ export class CardCaptureAtom extends HTMLElement {
       'onValidated',
       'onProceedToAuthentication',
       'onReady',
+      'onDiscountApplied',
     ];
   }
 
@@ -119,6 +120,7 @@ export class CardCaptureAtom extends HTMLElement {
     'onError',
     'onProceedToAuthentication',
     'onReady',
+    'onDiscountApplied',
     'imperativeRef',
   ];
 }

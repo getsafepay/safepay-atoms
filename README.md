@@ -236,6 +236,12 @@ The `<safepay-payer-authentication>` component handles payer authentication flow
   auth-token="your-auth-token"
   tracker="your-tracker"
 ></safepay-payer-authentication>
+
+<script>
+  // Set DiscountBody as a property (object), not a string
+  const el = document.querySelector('safepay-payer-authentication');
+  el.discountBody = { dry_run: true, promo_discount: { code: 'SAVE10' } };
+</script>
 ```
 
 #### Available Attributes (HTML)
@@ -264,6 +270,7 @@ Set properties directly on the element for functions, objects, and non-string va
 | billing                            | object    | Billing information                      |
 | deviceDataCollectionJWT            | string    | Device data collection JWT              |
 | deviceDataCollectionURL            | string    | Device data collection URL              |
+| discountBody                       | DiscountBody | Optional discount context object sent to Safepay to evaluate/apply discounts during authentication. Set via property (not attribute). |
 | authorizationOptions               | object    | Authorization configuration options       |
 | onPayerAuthenticationFailure       | function  | Authentication failure callback         |
 | onPayerAuthenticationSuccess       | function  | Authentication success callback         |
@@ -419,6 +426,7 @@ function AuthenticationForm() {
         authToken="your-auth-token"
         deviceDataCollectionJWT="your-device-jwt"
         deviceDataCollectionURL="https://your-collection-url"
+        discountBody={{ dry_run: true, promo_discount: { code: 'SAVE10' } }}
         imperativeRef={authRef}
         // Optional callbacks you can pass if needed:
         // onPayerAuthenticationSuccess={(data) => console.log('Success', data)}
@@ -439,6 +447,7 @@ function AuthenticationForm() {
 | authToken                        | string                          | Authentication token                              | ✅ |
 | deviceDataCollectionJWT          | string                          | Device data collection JWT                        | ✅ |
 | deviceDataCollectionURL          | string                          | Device data collection endpoint URL               | ✅ |
+| discountBody                     | DiscountBody                    | Optional discount context object sent to Safepay to evaluate/apply discounts during authentication |          |
 | user                             | string                          | User identifier forwarded with authentication requests |          |
 | billing                          | Billing                         | Billing information (optional)                    |          |
 | authorizationOptions             | { do_capture?: boolean; do_card_on_file?: boolean; } | Authorization configuration options |          |
@@ -450,6 +459,27 @@ function AuthenticationForm() {
 | onSafepayError                   | (data: SafepayError) => void     | General error handling callback                  |          |
 | imperativeRef                    | React.MutableRefObject<any>     | Ref to control the component imperatively         | ✅ |
 
+## Discount Body
+
+When using Payer Authentication, you can include a discount context via `discountBody`. Pass this as an object (do not stringify) in both Web Component (set via property) and React usages.
+
+Type definition:
+
+```ts
+export type DiscountBody =
+  | { dry_run: boolean; flat_discount: { discount_id: string } }
+  | { dry_run: boolean; promo_discount: { code: string } }
+  | { dry_run: boolean; bin_discount: { cardscheme_id: string; bin: string } };
+```
+
+Examples:
+
+- Web Component property: `el.discountBody = { dry_run: true, promo_discount: { code: 'SAVE10' } }`
+- React prop: `discountBody={{ dry_run: true, flat_discount: { discount_id: 'disc_123' } }}`
+- BIN discount (React): `discountBody={{ dry_run: false, bin_discount: { cardscheme_id: 'visa', bin: '411111' } }}`
+
+Notes:
+- dry_run: Use `true` to evaluate and surface discount details without committing application; set `false` to apply when supported by your flow.
 
 Note: In React usage, you can pass either the `Environment` enum (recommended) or a string value such as `"SANDBOX"` or `"sandbox"`. String values are mapped case-insensitively to the corresponding enum value. If the value is invalid, an exception is thrown to surface the misconfiguration.
 
