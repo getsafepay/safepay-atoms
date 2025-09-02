@@ -11,6 +11,7 @@ const PayerAuthentication = ({
   authToken,
   deviceDataCollectionJWT,
   deviceDataCollectionURL,
+  discountBody,
   billing,
   authorizationOptions = {},
   onPayerAuthenticationFailure = () => {},
@@ -47,11 +48,22 @@ const PayerAuthentication = ({
       authToken,
       deviceDataCollectionJWT,
       deviceDataCollectionURL,
+      discountBody,
       billing,
       authorizationOptions,
       inputStyle: { ...styles },
     }),
-    [styles, normalizedEnv, tracker, authToken, deviceDataCollectionJWT, deviceDataCollectionURL, authorizationOptions, billing]
+    [
+      styles,
+      normalizedEnv,
+      tracker,
+      authToken,
+      deviceDataCollectionJWT,
+      deviceDataCollectionURL,
+      discountBody,
+      authorizationOptions,
+      billing,
+    ]
   );
 
   useEffect(() => {
