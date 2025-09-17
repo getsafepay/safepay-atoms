@@ -93,6 +93,12 @@ The `<safepay-payer-authentication>` component handles payer authentication flow
   auth-token="your-auth-token"
   tracker="your-tracker"
 ></safepay-payer-authentication>
+
+<script>
+  // Set DiscountBody as a property (object), not a string
+  const el = document.querySelector('safepay-payer-authentication');
+  el.discountBody = { dry_run: true, promo_discount: { code: 'SAVE10' } };
+</script>
 ```
 
 #### Available Props / Attributes
@@ -105,6 +111,7 @@ The `<safepay-payer-authentication>` component handles payer authentication flow
 | billing                            | object    | Billing information                      |
 | deviceDataCollectionJWT            | string    | Device data collection JWT              |
 | deviceDataCollectionURL            | string    | Device data collection URL              |
+| discountBody                       | DiscountBody | Optional discount context object sent to Safepay to evaluate/apply discounts during authentication. Set via property (not attribute). |
 | onPayerAuthenticationFailure       | function  | Authentication failure callback         |
 | onPayerAuthenticationSuccess       | function  | Authentication success callback         |
 | onSafepayError                     | function  | Error handling callback                 |
@@ -239,6 +246,7 @@ function AuthenticationForm() {
         authToken="your-auth-token"
         deviceDataCollectionJWT="your-device-jwt"
         deviceDataCollectionURL="https://your-collection-url"
+        discountBody={{ dry_run: true, promo_discount: { code: 'SAVE10' } }}
         imperativeRef={authRef}
         // Optional callbacks you can pass if needed:
         // onPayerAuthenticationSuccess={(data) => console.log('Success', data)}
@@ -259,11 +267,34 @@ function AuthenticationForm() {
 | authToken                        | string                          | Authentication token                              | ✅ |
 | deviceDataCollectionJWT          | string                          | Device data collection JWT                        | ✅ |
 | deviceDataCollectionURL          | string                          | Device data collection endpoint URL               | ✅ |
+| discountBody                     | DiscountBody                    | Optional discount context object sent to Safepay to evaluate/apply discounts during authentication |          |
 | billing                          | Billing                         | Billing information (optional)                    |          |
 | authorizationOptions             | { do_capture?: boolean; do_card_on_file?: boolean; } | Authorization configuration options |          |
 | onPayerAuthenticationFailure     | (data: PayerAuthErrorData) => void | Callback on authentication failure             |          |
 | onPayerAuthenticationSuccess     | (data: PayerAuthSuccessData) => void | Callback on authentication success             |          |
 | onPayerAuthenticationRequired    | (data: PayerAuthData) => void    | Callback when authentication is required         |          |
+
+## Discount Body
+
+When using Payer Authentication, you can include a discount context via `discountBody`. Pass this as an object (do not stringify) in both Web Component (set via property) and React usages.
+
+Type definition:
+
+```ts
+export type DiscountBody =
+  | { dry_run: boolean; flat_discount: { discount_id: string } }
+  | { dry_run: boolean; promo_discount: { code: string } }
+  | { dry_run: boolean; bin_discount: { cardscheme_id: string; bin: string } };
+```
+
+Examples:
+
+- Web Component property: `el.discountBody = { dry_run: true, promo_discount: { code: 'SAVE10' } }`
+- React prop: `discountBody={{ dry_run: true, flat_discount: { discount_id: 'disc_123' } }}`
+- BIN discount (React): `discountBody={{ dry_run: false, bin_discount: { cardscheme_id: 'visa', bin: '411111' } }}`
+
+Notes:
+- dry_run: Use `true` to evaluate and surface discount details without committing application; set `false` to apply when supported by your flow.
 | onPayerAuthenticationFrictionless| (data: PayerAuthData) => void    | Callback when authentication is frictionless     |          |
 | onPayerAuthenticationUnavailable | (data: PayerAuthData) => void    | Callback when authentication is unavailable      |          |
 | onSafepayError                   | (data: SafepayError) => void     | General error handling callback                  |          |

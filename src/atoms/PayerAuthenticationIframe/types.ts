@@ -33,6 +33,7 @@ export interface PayerAuthenticationProps {
   environment: Environment | string;
   tracker: string;
   authToken: string;
+  discountBody?: string;
   deviceDataCollectionJWT: string;
   deviceDataCollectionURL: string;
   billing?: Billing;
