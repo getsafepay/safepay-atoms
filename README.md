@@ -40,7 +40,7 @@ The `<safepay-card-atom>` component provides card capture functionality.
 | environment                         | `'development' | 'production' | 'sandbox' | 'local'` (string) | Environment setting |
 | authToken                          | string    | Authentication token for the session     |
 | tracker                            | string    | Tracking identifier                      |
-| validationEvent                    | string    | Event that triggers validation          |
+| validationEvent                    | 'submit' \| 'change' \| 'keydown' \| 'none' (string) | Determines when card inputs are validated (defaults to 'submit') |
 | onError                            | function  | Error callback handler                   |
 | onValidated                        | function  | Validation success callback             |
 | onProceedToAuthentication          | function  | Authentication proceed callback         |
@@ -137,7 +137,7 @@ function PaymentForm() {
         environment={Environment.Sandbox}
         authToken="your-auth-token"
         tracker="your-tracker"
-        validationEvent="onBlur" // Example event
+        validationEvent="change" // Use 'submit' | 'change' | 'keydown' | 'none'
         imperativeRef={cardRef}
         // Optional callbacks:
         // onValidated={() => console.log('Card validated')}
@@ -157,7 +157,7 @@ function PaymentForm() {
 | environment                   | `Environment` or case-insensitive string (`'development'`, `'production'`, `'sandbox'`, `'local'`) | Environment setting | ✅ |
 | authToken                     | string                       | Authentication token                                    | ✅ |
 | tracker                       | string                       | Tracking identifier                                     | ✅ |
-| validationEvent               | string                       | Validation trigger event (e.g., `onBlur`, `onChange`)    | ✅ |
+| validationEvent               | 'submit' \| 'change' \| 'keydown' \| 'none' | Choose when validation runs (defaults to `submit`) | ✅ |
 | onProceedToAuthentication     | (data: any) => void           | Callback when ready to proceed to authentication        |          |
 | onValidated                   | () => void                   | Callback on successful validation                       |          |
 | onError                       | (error: string) => void       | Error handling callback                                |          |
