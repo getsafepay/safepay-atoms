@@ -23,14 +23,16 @@ yarn add @sfpy/atoms
 
 ### CardCaptureAtom
 
-The `<safepay-card-atom>` component provides card capture functionality.
+The `<safepay-card-atom>` component provides card capture functionality. Set its configuration through the element's properties:
 
 ```html
-<safepay-card-atom
-  environment="sandbox"
-  auth-token="your-auth-token"
-  tracker="your-tracker"
-></safepay-card-atom>
+<safepay-card-atom id="card-atom"></safepay-card-atom>
+<script type="module">
+  const cardAtom = document.getElementById('card-atom');
+  cardAtom.environment = 'sandbox';
+  cardAtom.authToken = 'your-auth-token';
+  cardAtom.tracker = 'your-tracker';
+</script>
 ```
 
 #### Available Props / Attributes
@@ -81,6 +83,118 @@ isValid.then((isValid) => {
 });
 // Clear the form
 cardAtom.clear();
+```
+
+#### Vanilla JavaScript Demo
+
+For a full plain HTML/JavaScript integration (no bundler required), see `examples/card-links-demo.html`. The snippet below mirrors that example so you can copy it into your own demo page:
+
+```html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Safepay Card Capture Demo</title>
+    <script src="https://unpkg.com/@sfpy/atoms@latest/dist/components/index.global.js"></script>
+    <style>
+      .card-frame {
+        width: 22.5rem;
+        height: 2.6rem;
+      }
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        display: none;
+        background-color: rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+      }
+      .modal-backdrop.show {
+        display: block;
+      }
+      .popup {
+        position: absolute;
+        top: 12.5%;
+        left: 25%;
+        width: 40%;
+        height: 75%;
+        border: 1px solid black;
+        background-color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Card Capture Atom</h1>
+    <div class="card-frame">
+      <safepay-card-atom></safepay-card-atom>
+    </div>
+    <button type="button" onclick="handleSubmit()">Submit</button>
+    <div id="threeds-modal" class="modal-backdrop">
+      <div class="popup">
+        <safepay-payer-auth-atom></safepay-payer-auth-atom>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      const ENVIRONMENT = 'sandbox';
+      const TRACKER = 'track_your_tracker_id';
+      const CLIENT_SECRET = 'your_auth_token';
+
+      const cardAtom = document.querySelector('safepay-card-atom');
+      const payerAuthAtom = document.querySelector('safepay-payer-auth-atom');
+      const modal = document.getElementById('threeds-modal');
+
+      function closeModal() {
+        modal.classList.remove('show');
+      }
+
+      function openModal() {
+        modal.classList.add('show');
+      }
+
+      Object.assign(payerAuthAtom, {
+        environment: ENVIRONMENT,
+        tracker: TRACKER,
+        authToken: CLIENT_SECRET,
+        authorizationOptions: {
+          do_capture: true,
+          do_card_on_file: true,
+        },
+        onPayerAuthenticationFailure: closeModal,
+        onPayerAuthenticationSuccess: closeModal,
+        onPayerAuthenticationFrictionless: closeModal,
+        onPayerAuthenticationUnavailable: closeModal,
+        onSafepayError: (error) => {
+          console.error('Safepay error', error);
+          closeModal();
+        },
+      });
+
+      Object.assign(cardAtom, {
+        environment: ENVIRONMENT,
+        tracker: TRACKER,
+        authToken: CLIENT_SECRET,
+        validationEvent: 'submit',
+        onError: (error) => console.error(error),
+        onValidated: () => console.log('validated'),
+        onProceedToAuthentication: (data) => {
+          payerAuthAtom.deviceDataCollectionJWT = data.accessToken;
+          payerAuthAtom.deviceDataCollectionURL = data.deviceDataCollectionURL;
+          openModal();
+        },
+      });
+
+      function handleSubmit() {
+        cardAtom.fetchValidity().then((isValid) => {
+          if (isValid) {
+            cardAtom.submit();
+          }
+        });
+      }
+
+      window.handleSubmit = handleSubmit;
+    </script>
+  </body>
+</html>
 ```
 
 ### PayerAuthenticationAtom
