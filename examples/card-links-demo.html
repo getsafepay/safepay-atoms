@@ -53,9 +53,10 @@
 
     <script type="text/javascript">
 
-      var ENVIRONMENT = 'sandbox';
+      var ENVIRONMENT = '';
       var TRACKER = '';
       var CLIENT_SECRET = '';
+      var USER = '';
 
       const cardAtom = document.querySelector('safepay-card-atom');
       const payerAuthAtom = document.querySelector('safepay-payer-auth-atom');
@@ -64,6 +65,7 @@
       payerAuthAtom.environment = ENVIRONMENT;
       payerAuthAtom.authToken = CLIENT_SECRET;
       payerAuthAtom.tracker = TRACKER;
+      payerAuthAtom.user = USER;
       payerAuthAtom.authorizationOptions = {
         do_capture: true,
         do_card_on_file: true,

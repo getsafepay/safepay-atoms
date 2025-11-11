@@ -216,6 +216,7 @@ The `<safepay-payer-authentication>` component handles payer authentication flow
 | environment                         | `'development' | 'production' | 'sandbox' | 'local'` (string) | Environment setting |
 | tracker                            | string    | Tracking identifier                       |
 | authToken                          | string    | Authentication token                     |
+| user                               | string    | User identifier forwarded with authentication requests |
 | billing                            | object    | Billing information                      |
 | deviceDataCollectionJWT            | string    | Device data collection JWT              |
 | deviceDataCollectionURL            | string    | Device data collection URL              |
@@ -373,6 +374,7 @@ function AuthenticationForm() {
 | authToken                        | string                          | Authentication token                              | ✅ |
 | deviceDataCollectionJWT          | string                          | Device data collection JWT                        | ✅ |
 | deviceDataCollectionURL          | string                          | Device data collection endpoint URL               | ✅ |
+| user                             | string                          | User identifier forwarded with authentication requests |          |
 | billing                          | Billing                         | Billing information (optional)                    |          |
 | authorizationOptions             | { do_capture?: boolean; do_card_on_file?: boolean; } | Authorization configuration options |          |
 | onPayerAuthenticationFailure     | (data: PayerAuthErrorData) => void | Callback on authentication failure             |          |
