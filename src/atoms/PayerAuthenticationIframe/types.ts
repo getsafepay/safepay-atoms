@@ -35,6 +35,7 @@ export interface PayerAuthenticationProps {
   authToken: string;
   deviceDataCollectionJWT: string;
   deviceDataCollectionURL: string;
+  user?: string;
   billing?: Billing;
   authorizationOptions?: {
     do_capture?: boolean;
