@@ -388,6 +388,19 @@ function AuthenticationForm() {
 
 Note: In React usage, you can pass either the `Environment` enum (recommended) or a string value such as `"SANDBOX"` or `"sandbox"`. String values are mapped case-insensitively to the corresponding enum value. If the value is invalid, an exception is thrown to surface the misconfiguration.
 
+## Development
+
+This repository uses `pnpm` for dependency management.
+
+Install dependencies:
+```bash
+pnpm install
+```
+
+Build the package:
+```bash
+pnpm run build
+```
 
 ## Project Structure
 
@@ -397,9 +410,9 @@ Note: In React usage, you can pass either the `Environment` enum (recommended) o
 ├── examples
 │   ├── card-links-demo.html
 │   └── device-metrics-demo.html
-├── package-lock.json
+├── pnpm-lock.yaml
 ├── package.json
-├── postcss.config.js
+├── postcss.config.cjs
 ├── src
 │   ├── atoms
 │   │   ├── CardCaptureIframe
