@@ -1,0 +1,39 @@
+name: PR Review and Build
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+jobs:
+  # Review the PR
+  codex-review:
+    uses: getsafepay/.github/.github/workflows/codex-pr-review.yaml@main
+    secrets: inherit
+  # Summarize the PR
+  codex-summarize:
+    uses: getsafepay/.github/.github/workflows/codex-pr-summary.yaml@main
+    secrets: inherit
+    
+  build:
+    name: Build Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
