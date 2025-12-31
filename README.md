@@ -16,7 +16,7 @@ yarn add @sfpy/atoms
 
 ### Using CDN
 ```html
-<script src="https://unpkg.com/@sfpy/atoms@latest/dist/components/index.global.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@sfpy/atoms@latest/dist/components/index.global.js"></script>
 ```
 
 ## Web Components
