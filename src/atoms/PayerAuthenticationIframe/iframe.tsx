@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { generateUUID } from '../../utils/funcs/generateUUID';
 import useFunctionQueue from '../hooks/useFunctionQueue';
 
 interface InframeProps {
@@ -38,11 +39,67 @@ interface InframeProps {
  */
 const InframeComponent = React.forwardRef(
   ({ src, title, inframeProps, onInframeEvent = (e, d) => {} }: InframeProps, ref) => {
+    const ACK_TIMEOUT_MS = 1000;
+    const MAX_RETRIES = 2;
+
+    type PendingMessage = {
+      payload: any;
+      expectAck: boolean;
+      retriesLeft: number;
+    };
+
     const [isReady, setIsReady] = React.useState(false);
     const [isVisible, setIsVisible] = React.useState(false);
     const iframeRef = React.useRef<HTMLIFrameElement>(null);
+    const isReadyRef = React.useRef(false);
+    const pendingMessagesRef = React.useRef<PendingMessage[]>([]);
+    const inflightAcksRef = React.useRef(new Map<string, { timeoutId: number; entry: PendingMessage }>());
+    const flushPendingMessagesRef = React.useRef<() => void>(() => {});
     const messagesProcessedCallback = React.useRef<(() => void) | null>(null);
     const functionQueue = useFunctionQueue();
+
+    const dispatchMessage = React.useCallback((entry: PendingMessage) => {
+      const target = iframeRef.current?.contentWindow;
+      if (!target) {
+        pendingMessagesRef.current.push(entry);
+        return;
+      }
+
+      target.postMessage(entry.payload, '*');
+
+      if (entry.expectAck && entry.payload.messageId) {
+        const timeoutId = window.setTimeout(() => {
+          inflightAcksRef.current.delete(entry.payload.messageId);
+          if (entry.retriesLeft > 0) {
+            pendingMessagesRef.current.push({ ...entry, retriesLeft: entry.retriesLeft - 1 });
+            flushPendingMessagesRef.current();
+          }
+        }, ACK_TIMEOUT_MS);
+        inflightAcksRef.current.set(entry.payload.messageId, { entry, timeoutId });
+      }
+    }, []);
+
+    const flushPendingMessages = React.useCallback(() => {
+      if (!isReadyRef.current || !iframeRef.current?.contentWindow) return;
+
+      const queued = pendingMessagesRef.current;
+      pendingMessagesRef.current = [];
+      queued.forEach((entry) => dispatchMessage(entry));
+    }, [dispatchMessage]);
+
+    flushPendingMessagesRef.current = flushPendingMessages;
+
+    const enqueueMessage = React.useCallback(
+      (message: any, expectAck: boolean = true) => {
+        const messageWithId = expectAck ? { ...message, messageId: generateUUID() } : message;
+        pendingMessagesRef.current.push({ payload: messageWithId, expectAck, retriesLeft: MAX_RETRIES });
+
+        if (isReadyRef.current) {
+          flushPendingMessages();
+        }
+      },
+      [flushPendingMessages]
+    );
 
     React.useEffect(() => {
       // Message event handler for iframe communications
@@ -53,8 +110,24 @@ const InframeComponent = React.forwardRef(
           event.data.type === 'safepay-inframe-event'
         ) {
           const { name, detail } = event.data;
+          if (name === 'safepay-inframe__ack') {
+            const { messageId, status, detail: ackDetail } = detail || {};
+            if (messageId && inflightAcksRef.current.has(messageId)) {
+              const inflight = inflightAcksRef.current.get(messageId);
+              if (inflight?.timeoutId) window.clearTimeout(inflight.timeoutId);
+              inflightAcksRef.current.delete(messageId);
+              if (status === 'error') {
+                console.warn(
+                  `Iframe ack returned error for message ${messageId}: ${ackDetail?.message || 'unknown error'}`
+                );
+              }
+            }
+            return;
+          }
           if (name === 'safepay-inframe__ready') {
+            isReadyRef.current = true;
             setIsReady(true);
+            flushPendingMessages();
           }
           if (name === 'safepay-inframe__messages-processed' && messagesProcessedCallback.current) {
             messagesProcessedCallback.current();
@@ -65,20 +138,35 @@ const InframeComponent = React.forwardRef(
 
       window.addEventListener('message', messageHandler);
       return () => window.removeEventListener('message', messageHandler);
-    }, []);
+    }, [flushPendingMessages, onInframeEvent]);
+
+    React.useEffect(() => {
+      // Reset readiness whenever the iframe source changes
+      isReadyRef.current = false;
+      setIsReady(false);
+      setIsVisible(false);
+      pendingMessagesRef.current = [];
+      inflightAcksRef.current.forEach(({ timeoutId }) => window.clearTimeout(timeoutId));
+      inflightAcksRef.current.clear();
+    }, [src]);
+
+    React.useEffect(
+      () => () => {
+        inflightAcksRef.current.forEach(({ timeoutId }) => window.clearTimeout(timeoutId));
+        inflightAcksRef.current.clear();
+      },
+      []
+    );
 
     // Queues a method call to be sent to the iframe
     const queueMethodCall = (methodName: string, ...args: any[]) => {
       functionQueue(() =>
         ((methodName, ...args) => {
-          postMessage(
-            {
-              type: 'safepay-method-call',
-              method: methodName,
-              args: args,
-            },
-            '*'
-          );
+          enqueueMessage({
+            type: 'safepay-method-call',
+            method: methodName,
+            args: args,
+          });
         })(methodName, ...args)
       );
     };
@@ -96,16 +184,13 @@ const InframeComponent = React.forwardRef(
       // Handles iframe visibility and properties update
       if (isReady) {
         if (inframeProps) {
-          iframeRef.current?.contentWindow?.postMessage(
-            { type: 'safepay-property-update', properties: inframeProps },
-            '*'
-          );
+          enqueueMessage({ type: 'safepay-property-update', properties: inframeProps });
           messagesProcessedCallback.current = () => setIsVisible(true);
         } else {
           setIsVisible(true);
         }
       }
-    }, [inframeProps, isReady]);
+    }, [enqueueMessage, inframeProps, isReady]);
 
     return (
       <iframe
