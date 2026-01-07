@@ -255,6 +255,7 @@ function PaymentForm() {
         validationEvent="change" // Use 'submit' | 'change' | 'keydown' | 'none'
         imperativeRef={cardRef}
         // Optional callbacks:
+        // onReady={() => console.log('Card iframe ready')}
         // onValidated={() => console.log('Card validated')}
         // onProceedToAuthentication={(data) => console.log('Proceed to auth', data)}
         // onError={(error) => console.error('Error', error)}
@@ -273,6 +274,7 @@ function PaymentForm() {
 | authToken                     | string                       | Authentication token                                    | ✅ |
 | tracker                       | string                       | Tracking identifier                                     | ✅ |
 | validationEvent               | 'submit' \| 'change' \| 'keydown' \| 'none' | Choose when validation runs (defaults to `submit`) | ✅ |
+| onReady                       | () => void                   | Callback when the embedded iframe signals it is ready   |          |
 | onProceedToAuthentication     | (data: any) => void           | Callback when ready to proceed to authentication        |          |
 | onValidated                   | () => void                   | Callback on successful validation                       |          |
 | onError                       | (error: string) => void       | Error handling callback                                |          |
