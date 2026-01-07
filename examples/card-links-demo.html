@@ -101,6 +101,9 @@
       cardAtom.authToken = CLIENT_SECRET;
       cardAtom.tracker = TRACKER;
       cardAtom.validationEvent = 'submit';
+      cardAtom.onReady = function () {
+        console.log('card iframe ready');
+      };
       cardAtom.onError = function (err) {
         console.log(err);
       };

@@ -106,6 +106,7 @@ export class CardCaptureAtom extends HTMLElement {
       'onError',
       'onValidated',
       'onProceedToAuthentication',
+      'onReady',
     ];
   }
 
@@ -117,6 +118,7 @@ export class CardCaptureAtom extends HTMLElement {
     'onValidated',
     'onError',
     'onProceedToAuthentication',
+    'onReady',
     'imperativeRef',
   ];
 }

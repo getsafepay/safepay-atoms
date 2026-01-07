@@ -12,6 +12,7 @@ interface CardCaptureProps {
   onProceedToAuthentication?: (data: any) => void;
   onValidated?: () => void;
   onError?: (error: string) => void;
+  onReady?: () => void;
   imperativeRef: React.MutableRefObject<any>; // Replace 'any' with a specific type if possible
 }
 
@@ -55,6 +56,7 @@ const CardCapture = ({
     onValidated = () => {},
     onProceedToAuthentication = () => {},
     onError = (e: string) => {},
+    onReady = () => {},
     imperativeRef,
 }: CardCaptureProps): JSX.Element => {
   // Custom hook usage for appending styles and managing iframe methods
@@ -110,6 +112,9 @@ const CardCapture = ({
   // Event handling for iframe communications and interactions
   const handleInframeEvent = (event: string, data: any) => {
     switch (event) {
+      case 'safepay-inframe__ready':
+        onReady();
+        break;
       // Focus and blur states management
       case 'safepay-inframe__focus':
         setIsFocused(true);

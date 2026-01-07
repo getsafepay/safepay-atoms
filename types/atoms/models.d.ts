@@ -10,9 +10,10 @@ declare module '@sfpy/atoms' {
     tracker: string;
     environment: Environment;
     validationEvent: 'submit' | 'change' | 'keydown' | 'none';
+    onReady?: () => void;
     onError?: (message: string) => void;
     onValidated?: () => void;
-    onProceedToAuthorization?: (data: any) => void;
+    onProceedToAuthentication?: (data: any) => void;
   }
   interface CardAtomMethods {
     submit: () => void;
