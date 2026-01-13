@@ -18,12 +18,14 @@
         "build:react": "tsup --config tsup.react.config.ts",
         "build:styles": "postcss src/styles/index.css -o dist/styles/index.css",
         "check": "tsc --noEmit",
+        "test:e2e": "playwright test",
         "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\"",
         "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\""
     },
     "components": "dist/components/index.js",
     "react": "dist/react/index.js",
     "devDependencies": {
+        "@playwright/test": "^1.57.0",
         "@swc/core": "^1.15.8",
         "@types/react": "^18.2.48",
         "@types/react-dom": "^18.2.18",
