@@ -29,10 +29,10 @@ interface SafepayError {
 
 import { Environment } from '../../types/environment';
 
-export type DiscountBody =
-  | { dry_run: boolean; flat_discount: { discount_id: string } }
-  | { dry_run: boolean; promo_discount: { code: string } }
-  | { dry_run: boolean; bin_discount: { cardscheme_id: string; bin: string } };
+export type DiscountBody = {
+  dry_run: boolean;
+  bin_discount: { cardscheme_id: string; bin: string };
+};
 
 export interface PayerAuthenticationProps {
   environment: Environment | string;
