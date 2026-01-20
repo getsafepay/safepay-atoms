@@ -246,7 +246,10 @@ The `<safepay-payer-authentication>` component handles payer authentication flow
 <script>
   // Set DiscountBody as a property (object), not a string
   const el = document.querySelector('safepay-payer-authentication');
-  el.discountBody = { dry_run: true, promo_discount: { code: 'SAVE10' } };
+  el.discountBody = {
+    dry_run: true,
+    bin_discount: { cardscheme_id: 'visa', bin: '411111' },
+  };
 </script>
 ```
 
@@ -434,7 +437,7 @@ function AuthenticationForm() {
         authToken="your-auth-token"
         deviceDataCollectionJWT="your-device-jwt"
         deviceDataCollectionURL="https://your-collection-url"
-        discountBody={{ dry_run: true, promo_discount: { code: 'SAVE10' } }}
+        discountBody={{ dry_run: true, bin_discount: { cardscheme_id: 'visa', bin: '411111' } }}
         imperativeRef={authRef}
         // Optional callbacks you can pass if needed:
         // onPayerAuthenticationSuccess={(data) => console.log('Success', data)}
@@ -469,24 +472,24 @@ function AuthenticationForm() {
 
 ## Discount Body
 
-When using Payer Authentication, you can include a discount context via `discountBody`. Pass this as an object (do not stringify) in both Web Component (set via property) and React usages.
+When using Payer Authentication, you can include a BIN-based discount context via `discountBody`. Pass this as an object (do not stringify) in both Web Component (set via property) and React usages.
 
 Type definition:
 
 ```ts
-export type DiscountBody =
-  | { dry_run: boolean; flat_discount: { discount_id: string } }
-  | { dry_run: boolean; promo_discount: { code: string } }
-  | { dry_run: boolean; bin_discount: { cardscheme_id: string; bin: string } };
+export type DiscountBody = {
+  dry_run: boolean;
+  bin_discount: { cardscheme_id: string; bin: string };
+};
 ```
 
 Examples:
 
-- Web Component property: `el.discountBody = { dry_run: true, promo_discount: { code: 'SAVE10' } }`
-- React prop: `discountBody={{ dry_run: true, flat_discount: { discount_id: 'disc_123' } }}`
-- BIN discount (React): `discountBody={{ dry_run: false, bin_discount: { cardscheme_id: 'visa', bin: '411111' } }}`
+- Web Component property: `el.discountBody = { dry_run: true, bin_discount: { cardscheme_id: 'visa', bin: '411111' } }`
+- React prop: `discountBody={{ dry_run: false, bin_discount: { cardscheme_id: 'visa', bin: '411111' } }}`
 
 Notes:
+- bin: First 6 digits of the card number (no spaces).
 - dry_run: Use `true` to evaluate and surface discount details without committing application; set `false` to apply when supported by your flow.
 
 Note: In React usage, you can pass either the `Environment` enum (recommended) or a string value such as `"SANDBOX"` or `"sandbox"`. String values are mapped case-insensitively to the corresponding enum value. If the value is invalid, an exception is thrown to surface the misconfiguration.
