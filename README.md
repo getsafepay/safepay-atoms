@@ -35,7 +35,9 @@ The `<safepay-card-atom>` component provides card capture functionality. Set its
 </script>
 ```
 
-#### Available Props / Attributes
+#### Available Attributes (HTML)
+
+Use attributes for string values only. Attributes are always strings and are mapped to properties internally.
 
 | Attribute                           | Type      | Description                              |
 |-------------------------------------|-----------|------------------------------------------|
@@ -43,9 +45,36 @@ The `<safepay-card-atom>` component provides card capture functionality. Set its
 | authToken                          | string    | Authentication token for the session     |
 | tracker                            | string    | Tracking identifier                      |
 | validationEvent                    | 'submit' \| 'change' \| 'keydown' \| 'none' (string) | Determines when card inputs are validated (defaults to 'submit') |
+
+#### Available Properties (JS)
+
+Set properties directly on the element for functions, objects, and non-string values.
+
+| Property                            | Type      | Description                              |
+|-------------------------------------|-----------|------------------------------------------|
+| environment                         | `'development' | 'production' | 'sandbox' | 'local'` (string) | Environment setting |
+| authToken                          | string    | Authentication token for the session     |
+| tracker                            | string    | Tracking identifier                      |
+| validationEvent                    | 'submit' \| 'change' \| 'keydown' \| 'none' (string) | Determines when card inputs are validated (defaults to 'submit') |
+| onReady                             | function  | Callback when the embedded iframe signals it is ready |
 | onError                            | function  | Error callback handler                   |
 | onValidated                        | function  | Validation success callback             |
 | onProceedToAuthentication          | function  | Authentication proceed callback         |
+| imperativeRef                      | object    | Ref object for imperative methods (optional) |
+
+#### Setting Properties vs Attributes
+
+Attributes are string-only. For callbacks and objects, set properties directly:
+
+```html
+<safepay-card-atom id="card-atom" environment="sandbox"></safepay-card-atom>
+<script type="module">
+  const cardAtom = document.getElementById('card-atom');
+  cardAtom.onReady = () => console.log('ready');
+  cardAtom.onValidated = () => console.log('validated');
+  cardAtom.onProceedToAuthentication = (data) => console.log('auth', data);
+</script>
+```
 
 ### CardCaptureAtom Methods
 
@@ -209,9 +238,24 @@ The `<safepay-payer-authentication>` component handles payer authentication flow
 ></safepay-payer-authentication>
 ```
 
-#### Available Props / Attributes
+#### Available Attributes (HTML)
+
+Use attributes for string values only. Attributes are always strings and are mapped to properties internally.
 
 | Attribute                           | Type      | Description                              |
+|-------------------------------------|-----------|------------------------------------------|
+| environment                         | `'development' | 'production' | 'sandbox' | 'local'` (string) | Environment setting |
+| tracker                            | string    | Tracking identifier                       |
+| authToken                          | string    | Authentication token                     |
+| user                               | string    | User identifier forwarded with authentication requests |
+| deviceDataCollectionJWT            | string    | Device data collection JWT              |
+| deviceDataCollectionURL            | string    | Device data collection URL              |
+
+#### Available Properties (JS)
+
+Set properties directly on the element for functions, objects, and non-string values.
+
+| Property                            | Type      | Description                              |
 |-------------------------------------|-----------|------------------------------------------|
 | environment                         | `'development' | 'production' | 'sandbox' | 'local'` (string) | Environment setting |
 | tracker                            | string    | Tracking identifier                       |
@@ -220,9 +264,28 @@ The `<safepay-payer-authentication>` component handles payer authentication flow
 | billing                            | object    | Billing information                      |
 | deviceDataCollectionJWT            | string    | Device data collection JWT              |
 | deviceDataCollectionURL            | string    | Device data collection URL              |
+| authorizationOptions               | object    | Authorization configuration options       |
 | onPayerAuthenticationFailure       | function  | Authentication failure callback         |
 | onPayerAuthenticationSuccess       | function  | Authentication success callback         |
+| onPayerAuthenticationRequired      | function  | Callback when authentication is required |
+| onPayerAuthenticationFrictionless  | function  | Callback when authentication is frictionless |
+| onPayerAuthenticationUnavailable   | function  | Callback when authentication is unavailable |
 | onSafepayError                     | function  | Error handling callback                 |
+| imperativeRef                      | object    | Ref object for imperative methods (optional) |
+
+#### Setting Properties vs Attributes
+
+Attributes are string-only. For callbacks and objects, set properties directly:
+
+```html
+<safepay-payer-authentication id="payer-auth" environment="sandbox"></safepay-payer-authentication>
+<script type="module">
+  const payerAuth = document.getElementById('payer-auth');
+  payerAuth.billing = { /* ... */ };
+  payerAuth.authorizationOptions = { do_capture: true };
+  payerAuth.onPayerAuthenticationSuccess = (data) => console.log('success', data);
+</script>
+```
 
 ## React Components
 
