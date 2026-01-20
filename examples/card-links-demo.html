@@ -110,6 +110,11 @@
       cardAtom.onValidated = function () {
         console.log('validated');
       };
+      cardAtom.onDiscountApplied = function (data) {
+        if (data && data.discountBody) {
+          payerAuthAtom.discountBody = data.discountBody;
+        }
+      };
       cardAtom.onProceedToAuthentication = function (data) {
         payerAuthAtom.deviceDataCollectionJWT = data.accessToken;
         payerAuthAtom.deviceDataCollectionURL = data.deviceDataCollectionURL;

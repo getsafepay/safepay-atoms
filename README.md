@@ -59,6 +59,7 @@ Set properties directly on the element for functions, objects, and non-string va
 | onReady                             | function  | Callback when the embedded iframe signals it is ready |
 | onError                            | function  | Error callback handler                   |
 | onValidated                        | function  | Validation success callback             |
+| onDiscountApplied                  | function  | Discount applied callback (includes `discountBody`) |
 | onProceedToAuthentication          | function  | Authentication proceed callback         |
 | imperativeRef                      | object    | Ref object for imperative methods (optional) |
 
@@ -205,6 +206,11 @@ For a full plain HTML/JavaScript integration (no bundler required), see `example
         validationEvent: 'submit',
         onError: (error) => console.error(error),
         onValidated: () => console.log('validated'),
+        onDiscountApplied: (data) => {
+          if (data && data.discountBody) {
+            payerAuthAtom.discountBody = data.discountBody;
+          }
+        },
         onProceedToAuthentication: (data) => {
           payerAuthAtom.deviceDataCollectionJWT = data.accessToken;
           payerAuthAtom.deviceDataCollectionURL = data.deviceDataCollectionURL;
@@ -327,6 +333,7 @@ function PaymentForm() {
         // Optional callbacks:
         // onReady={() => console.log('Card iframe ready')}
         // onValidated={() => console.log('Card validated')}
+        // onDiscountApplied={(data) => console.log('Discount applied', data)}
         // onProceedToAuthentication={(data) => console.log('Proceed to auth', data)}
         // onError={(error) => console.error('Error', error)}
       />
@@ -347,6 +354,7 @@ function PaymentForm() {
 | onReady                       | () => void                   | Callback when the embedded iframe signals it is ready   |          |
 | onProceedToAuthentication     | (data: any) => void           | Callback when ready to proceed to authentication        |          |
 | onValidated                   | () => void                   | Callback on successful validation                       |          |
+| onDiscountApplied             | (data: any) => void           | Callback when a discount is applied (includes `discountBody`) |          |
 | onError                       | (error: string) => void       | Error handling callback                                |          |
 | imperativeRef                 | React.MutableRefObject<any>  | Ref to control the component imperatively               | ✅ |
 

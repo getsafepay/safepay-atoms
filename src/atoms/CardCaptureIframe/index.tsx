@@ -149,7 +149,7 @@ const CardCapture = ({
         onProceedToAuthentication(data);
         break;
       case 'safepay-inframe__discountApplied':
-        // Expected payload shape: { appliedDiscount, selection: appliedDiscountObj }
+        // Expected payload shape: { appliedDiscount, discountBody }
         onDiscountApplied(data);
         break;
       case 'safepay-error':
