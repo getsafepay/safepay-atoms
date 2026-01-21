@@ -9,6 +9,7 @@ interface CardCaptureProps {
   authToken: string;
   tracker: string;
   validationEvent: string;
+  onDiscountApplied?: (payload: any) => void;
   onProceedToAuthentication?: (data: any) => void;
   onValidated?: () => void;
   onError?: (error: string) => void;
@@ -30,6 +31,7 @@ interface CardCaptureProps {
  * @param {string} [props.validationEvent="submit"] - Specifies when the card validation should occur. Defaults to 'submit'.
  * @param {(error: string) => void} [props.onError] - An optional callback function triggered upon encountering an error during card input processing.
  * @param {() => void} [props.onValidated] - An optional callback function triggered when the card input passes validation checks.
+ * @param {(payload: { appliedDiscount: any; selection: any }) => void} [props.onDiscountApplied] - An optional callback invoked when a discount is applied inside the iframe.
  * @param {() => void} [props.onEnterKeyPress] - An optional callback function triggered when the Enter key is pressed within the card input field.
  * @param {React.MutableRefObject<any>} props.imperativeRef - A ref object used to expose component methods for external control. The type of `any` should be replaced with a more specific type if possible.
  *
@@ -54,6 +56,7 @@ const CardCapture = ({
     tracker,
     validationEvent,
     onValidated = () => {},
+    onDiscountApplied = () => {},
     onProceedToAuthentication = () => {},
     onError = (e: string) => {},
     onReady = () => {},
@@ -144,6 +147,10 @@ const CardCapture = ({
         break;
       case 'safepay-inframe__proceed__authentication':
         onProceedToAuthentication(data);
+        break;
+      case 'safepay-inframe__discountApplied':
+        // Expected payload shape: { appliedDiscount, discountBody }
+        onDiscountApplied(data);
         break;
       case 'safepay-error':
         const { error: safepayError } = data;
