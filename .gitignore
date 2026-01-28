@@ -2,6 +2,7 @@ dist
 dist/react
 node_modules
 .parcel-cache
+test-results
 
 # tarballs
 *.tgz
