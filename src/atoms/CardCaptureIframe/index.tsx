@@ -4,11 +4,12 @@ import { resolveBaseUrl } from '../../utils/funcs/resolveBaseUrl';
 import InframeComponent from './iframe';
 import { Environment, toEnvironment } from '../../types/environment';
 
-interface CardCaptureProps {
+export interface CardCaptureProps {
   environment: Environment | string;
   authToken: string;
   tracker: string;
   validationEvent: string;
+  inputStyle?: React.CSSProperties;
   onDiscountApplied?: (payload: any) => void;
   onProceedToAuthentication?: (data: any) => void;
   onValidated?: () => void;
@@ -55,6 +56,7 @@ const CardCapture = ({
     authToken,
     tracker,
     validationEvent,
+    inputStyle,
     onValidated = () => {},
     onDiscountApplied = () => {},
     onProceedToAuthentication = () => {},
@@ -89,10 +91,10 @@ const CardCapture = ({
       environment: normalizedEnv,
       authToken,
       tracker,
-      inputStyle: { ...styles },
+      inputStyle: { ...styles, ...inputStyle },
       validationEvent,
     }),
-    [styles, normalizedEnv, authToken, tracker, validationEvent]
+    [styles, normalizedEnv, authToken, tracker, inputStyle, validationEvent]
   );
 
   useEffect(() => {

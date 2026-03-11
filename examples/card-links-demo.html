@@ -101,6 +101,11 @@
       cardAtom.authToken = CLIENT_SECRET;
       cardAtom.tracker = TRACKER;
       cardAtom.validationEvent = 'submit';
+      cardAtom.inputStyle = {
+        fontFamily: '"Courier New", ui-monospace, monospace',
+        fontSize: '18px',
+        color: '#111827',
+      };
       cardAtom.onReady = function () {
         console.log('card iframe ready');
       };

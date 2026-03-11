@@ -32,6 +32,11 @@ The `<safepay-card-atom>` component provides card capture functionality. Set its
   cardAtom.environment = 'sandbox';
   cardAtom.authToken = 'your-auth-token';
   cardAtom.tracker = 'your-tracker';
+  cardAtom.inputStyle = {
+    fontFamily: 'Inter, system-ui, sans-serif',
+    fontSize: '16px',
+    color: '#111827',
+  };
 </script>
 ```
 
@@ -56,6 +61,7 @@ Set properties directly on the element for functions, objects, and non-string va
 | authToken                          | string    | Authentication token for the session     |
 | tracker                            | string    | Tracking identifier                      |
 | validationEvent                    | 'submit' \| 'change' \| 'keydown' \| 'none' (string) | Determines when card inputs are validated (defaults to 'submit') |
+| inputStyle                         | object    | Inline styles forwarded to the secure iframe inputs |
 | onReady                             | function  | Callback when the embedded iframe signals it is ready |
 | onError                            | function  | Error callback handler                   |
 | onValidated                        | function  | Validation success callback             |
@@ -76,6 +82,8 @@ Attributes are string-only. For callbacks and objects, set properties directly:
   cardAtom.onProceedToAuthentication = (data) => console.log('auth', data);
 </script>
 ```
+
+> `inputStyle` is exposed as a JavaScript property on the custom element. It is not intended to be passed as an HTML attribute string.
 
 ### CardCaptureAtom Methods
 
@@ -332,6 +340,11 @@ function PaymentForm() {
         authToken="your-auth-token"
         tracker="your-tracker"
         validationEvent="change" // Use 'submit' | 'change' | 'keydown' | 'none'
+        inputStyle={{
+          fontFamily: '"Courier New", ui-monospace, monospace',
+          fontSize: '18px',
+          color: '#111827',
+        }}
         imperativeRef={cardRef}
         // Optional callbacks:
         // onReady={() => console.log('Card iframe ready')}
@@ -354,6 +367,7 @@ function PaymentForm() {
 | authToken                     | string                       | Authentication token                                    | ✅ |
 | tracker                       | string                       | Tracking identifier                                     | ✅ |
 | validationEvent               | 'submit' \| 'change' \| 'keydown' \| 'none' | Choose when validation runs (defaults to `submit`) | ✅ |
+| inputStyle                    | React.CSSProperties          | Inline styles forwarded to the secure iframe inputs     |    |
 | onReady                       | () => void                   | Callback when the embedded iframe signals it is ready   |          |
 | onProceedToAuthentication     | (data: any) => void           | Callback when ready to proceed to authentication        |          |
 | onValidated                   | () => void                   | Callback on successful validation                       |          |
