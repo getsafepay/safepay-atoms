@@ -123,7 +123,7 @@ isValid.then((isValid) => {
 cardAtom.clear();
 ```
 
-#### Vanilla JavaScript Demo
+#### Using Web Components
 
 For a full plain HTML/JavaScript integration (no bundler required), see `examples/card-links-demo.html`. The snippet below mirrors that example so you can copy it into your own demo page:
 
@@ -483,6 +483,180 @@ function AuthenticationForm() {
 | onPayerAuthenticationUnavailable | (data: PayerAuthData) => void    | Callback when authentication is unavailable      |          |
 | onSafepayError                   | (data: SafepayError) => void     | General error handling callback                  |          |
 | imperativeRef                    | React.MutableRefObject<any>     | Ref to control the component imperatively         | ✅ |
+
+### Combined Card + Authentication Flow
+
+The example below mirrors the stripped-down integration used in `app/routes/combinedDemoStripped.tsx` from the test app. It shows how to:
+
+- render `CardCapture` and `PayerAuthentication` together
+- pass `inputStyle` into the secure card iframe
+- wait for card validation before submitting
+- open the authentication modal only when Safepay requests it
+- forward `discountBody` from card capture into payer authentication
+
+```jsx
+import { CardCapture, Environment, PayerAuthentication } from '@sfpy/atoms';
+import '@sfpy/atoms/styles';
+import * as React from 'react';
+
+const DEMO_ENVIRONMENT = Environment.Development;
+const DEMO_AUTH_TOKEN = 'your-auth-token';
+const DEMO_TRACKER = 'your-tracker';
+
+const CARD_INPUT_STYLE = {
+  fontFamily: '"Courier New", ui-monospace, monospace',
+  fontSize: '18px',
+  color: '#111827',
+};
+
+const CARD_FRAME_STYLE = {
+  width: '22.5rem',
+  height: '2.6rem',
+};
+
+const MODAL_BACKDROP_STYLE = {
+  position: 'fixed',
+  width: '100%',
+  height: '100%',
+  inset: 0,
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  zIndex: 2,
+  cursor: 'pointer',
+};
+
+const POPUP_STYLE = {
+  position: 'absolute',
+  top: '12.5%',
+  left: '25%',
+  width: '40%',
+  height: '75%',
+  border: '1px solid black',
+  backgroundColor: 'white',
+  zIndex: 2,
+};
+
+const MODAL_CONTENT_STYLE = {
+  width: '100%',
+  height: '100%',
+};
+
+type PayerAuthSession = {
+  accessToken: string;
+  deviceDataCollectionURL: string;
+};
+
+type DiscountBody = {
+  dry_run: boolean;
+  bin_discount: {
+    cardscheme_id: string;
+    bin: string;
+  };
+};
+
+export default function CombinedDemo() {
+  const cardRef = React.useRef(null);
+  const payerAuthRef = React.useRef(null);
+
+  // Keep payer-auth session details only after Safepay asks us to continue into 3DS.
+  const [payerAuthSession, setPayerAuthSession] = React.useState<PayerAuthSession | null>(null);
+
+  // If card capture returns discount context, forward it into payer authentication.
+  const [discountBody, setDiscountBody] = React.useState<DiscountBody | undefined>();
+
+  const closeModal = React.useCallback(() => {
+    setPayerAuthSession(null);
+  }, []);
+
+  const handleSubmit = React.useCallback(async () => {
+    // Trigger validation first so the iframe can surface any field errors.
+    cardRef.current?.validate();
+
+    // Then ask the iframe whether the current input is valid.
+    const isValid = await cardRef.current?.fetchValidity();
+
+    if (isValid) {
+      // Only submit once the secure iframe confirms the input is valid.
+      await cardRef.current?.submit();
+    }
+  }, []);
+
+  return (
+    <main style={{ padding: '24px' }}>
+      <div style={CARD_FRAME_STYLE}>
+        <CardCapture
+          environment={DEMO_ENVIRONMENT}
+          authToken={DEMO_AUTH_TOKEN}
+          tracker={DEMO_TRACKER}
+          validationEvent="submit"
+          inputStyle={CARD_INPUT_STYLE}
+          imperativeRef={cardRef}
+          onReady={() => console.log('card iframe ready')}
+          onError={(error) => console.log(error)}
+          onValidated={() => console.log('validated')}
+          onDiscountApplied={(data) => {
+            if (data?.discountBody) {
+              setDiscountBody(data.discountBody);
+            }
+          }}
+          onProceedToAuthentication={(data) => {
+            // Safepay returns the values needed to initialize payer authentication.
+            setPayerAuthSession({
+              accessToken: data.accessToken,
+              deviceDataCollectionURL: data.deviceDataCollectionURL,
+            });
+          }}
+        />
+      </div>
+
+      <button style={{ marginTop: '16px' }} onClick={handleSubmit}>
+        Submit
+      </button>
+
+      {payerAuthSession ? (
+        <div style={MODAL_BACKDROP_STYLE} onClick={closeModal}>
+          <div style={POPUP_STYLE} onClick={(event) => event.stopPropagation()}>
+            <div style={MODAL_CONTENT_STYLE}>
+              <PayerAuthentication
+                environment={DEMO_ENVIRONMENT}
+                authToken={DEMO_AUTH_TOKEN}
+                tracker={DEMO_TRACKER}
+                imperativeRef={payerAuthRef}
+                deviceDataCollectionJWT={payerAuthSession.accessToken}
+                deviceDataCollectionURL={payerAuthSession.deviceDataCollectionURL}
+                discountBody={discountBody}
+                authorizationOptions={{
+                  do_capture: true,
+                  do_card_on_file: true,
+                }}
+                onPayerAuthenticationFailure={(data) => {
+                  console.log('onPayerAuthenticationFailure', data);
+                  closeModal();
+                }}
+                onPayerAuthenticationSuccess={(data) => {
+                  console.log('onPayerAuthenticationSuccess', data);
+                  closeModal();
+                }}
+                onPayerAuthenticationFrictionless={(data) => {
+                  console.log('onPayerAuthenticationFrictionless', data);
+                  closeModal();
+                }}
+                onPayerAuthenticationUnavailable={(data) => {
+                  console.log('onPayerAuthenticationUnavailable', data);
+                  closeModal();
+                }}
+                onSafepayError={(error) => {
+                  console.log('onSafepayError', error.error.message);
+                  closeModal();
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </main>
+  );
+}
+```
 
 ## Discount Body
 
