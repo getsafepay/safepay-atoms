@@ -9,3 +9,4 @@ test-results
 
 # Apple files
 .DS_Store
+.vscode/

@@ -44,6 +44,7 @@ interface ImperativeRef {
 export class CardCaptureAtom extends HTMLElement {
   private _atom: SafepayAtom;
   public imperativeRef: ImperativeRef;
+  public inputStyle?: Record<string, string | number>;
 
   constructor() {
     super();
@@ -103,6 +104,7 @@ export class CardCaptureAtom extends HTMLElement {
       'authToken',
       'tracker',
       'validationEvent',
+      'inputStyle',
       'onError',
       'onValidated',
       'onProceedToAuthentication',
@@ -116,6 +118,7 @@ export class CardCaptureAtom extends HTMLElement {
     'authToken',
     'tracker',
     'validationEvent',
+    'inputStyle',
     'onValidated',
     'onError',
     'onProceedToAuthentication',

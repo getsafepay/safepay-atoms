@@ -32,6 +32,11 @@ The `<safepay-card-atom>` component provides card capture functionality. Set its
   cardAtom.environment = 'sandbox';
   cardAtom.authToken = 'your-auth-token';
   cardAtom.tracker = 'your-tracker';
+  cardAtom.inputStyle = {
+    fontFamily: 'Inter, system-ui, sans-serif',
+    fontSize: '16px',
+    color: '#111827',
+  };
 </script>
 ```
 
@@ -56,12 +61,13 @@ Set properties directly on the element for functions, objects, and non-string va
 | authToken                          | string    | Authentication token for the session     |
 | tracker                            | string    | Tracking identifier                      |
 | validationEvent                    | 'submit' \| 'change' \| 'keydown' \| 'none' (string) | Determines when card inputs are validated (defaults to 'submit') |
+| inputStyle                         | InputStyle | Inline styles forwarded to the secure iframe inputs |
 | onReady                             | function  | Callback when the embedded iframe signals it is ready |
 | onError                            | function  | Error callback handler                   |
 | onValidated                        | function  | Validation success callback             |
 | onDiscountApplied                  | function  | Discount applied callback (includes `discountBody`) |
 | onProceedToAuthentication          | function  | Authentication proceed callback         |
-| imperativeRef                      | object    | Ref object for imperative methods (optional) |
+| imperativeRef                      | CardCaptureImperativeRef | Ref object for imperative methods (optional) |
 
 #### Setting Properties vs Attributes
 
@@ -76,6 +82,8 @@ Attributes are string-only. For callbacks and objects, set properties directly:
   cardAtom.onProceedToAuthentication = (data) => console.log('auth', data);
 </script>
 ```
+
+> `inputStyle` is exposed as a JavaScript property on the custom element. It is not intended to be passed as an HTML attribute string.
 
 ### CardCaptureAtom Methods
 
@@ -115,7 +123,7 @@ isValid.then((isValid) => {
 cardAtom.clear();
 ```
 
-#### Vanilla JavaScript Demo
+#### Using Web Components
 
 For a full plain HTML/JavaScript integration (no bundler required), see `examples/card-links-demo.html`. The snippet below mirrors that example so you can copy it into your own demo page:
 
@@ -244,8 +252,15 @@ The `<safepay-payer-authentication>` component handles payer authentication flow
 ></safepay-payer-authentication>
 
 <script>
-  // Set DiscountBody as a property (object), not a string
+  // Set object properties directly on the element.
   const el = document.querySelector('safepay-payer-authentication');
+  el.billing = {
+    street_1: '123 Main Street',
+    street_2: 'Suite 500',
+    city: 'Berlin',
+    country: 'DE',
+    postal_code: '10115',
+  };
   el.discountBody = {
     dry_run: true,
     bin_discount: { cardscheme_id: 'visa', bin: '411111' },
@@ -276,18 +291,18 @@ Set properties directly on the element for functions, objects, and non-string va
 | tracker                            | string    | Tracking identifier                       |
 | authToken                          | string    | Authentication token                     |
 | user                               | string    | User identifier forwarded with authentication requests |
-| billing                            | object    | Billing information                      |
+| billing                            | Billing   | Billing information                      |
 | deviceDataCollectionJWT            | string    | Device data collection JWT              |
 | deviceDataCollectionURL            | string    | Device data collection URL              |
 | discountBody                       | DiscountBody | Optional discount context object sent to Safepay to evaluate/apply discounts during authentication. Set via property (not attribute). |
-| authorizationOptions               | object    | Authorization configuration options       |
+| authorizationOptions               | AuthorizationOptions | Authorization configuration options       |
 | onPayerAuthenticationFailure       | function  | Authentication failure callback         |
 | onPayerAuthenticationSuccess       | function  | Authentication success callback         |
 | onPayerAuthenticationRequired      | function  | Callback when authentication is required |
 | onPayerAuthenticationFrictionless  | function  | Callback when authentication is frictionless |
 | onPayerAuthenticationUnavailable   | function  | Callback when authentication is unavailable |
 | onSafepayError                     | function  | Error handling callback                 |
-| imperativeRef                      | object    | Ref object for imperative methods (optional) |
+| imperativeRef                      | PayerAuthenticationImperativeRef | Ref object for imperative methods (optional) |
 
 #### Setting Properties vs Attributes
 
@@ -297,7 +312,13 @@ Attributes are string-only. For callbacks and objects, set properties directly:
 <safepay-payer-authentication id="payer-auth" environment="sandbox"></safepay-payer-authentication>
 <script type="module">
   const payerAuth = document.getElementById('payer-auth');
-  payerAuth.billing = { /* ... */ };
+  payerAuth.billing = {
+    street_1: '123 Main Street',
+    street_2: 'Suite 500',
+    city: 'Berlin',
+    country: 'DE',
+    postal_code: '10115',
+  };
   payerAuth.authorizationOptions = { do_capture: true };
   payerAuth.onPayerAuthenticationSuccess = (data) => console.log('success', data);
 </script>
@@ -332,6 +353,11 @@ function PaymentForm() {
         authToken="your-auth-token"
         tracker="your-tracker"
         validationEvent="change" // Use 'submit' | 'change' | 'keydown' | 'none'
+        inputStyle={{
+          fontFamily: '"Courier New", ui-monospace, monospace',
+          fontSize: '18px',
+          color: '#111827',
+        }}
         imperativeRef={cardRef}
         // Optional callbacks:
         // onReady={() => console.log('Card iframe ready')}
@@ -354,6 +380,7 @@ function PaymentForm() {
 | authToken                     | string                       | Authentication token                                    | ✅ |
 | tracker                       | string                       | Tracking identifier                                     | ✅ |
 | validationEvent               | 'submit' \| 'change' \| 'keydown' \| 'none' | Choose when validation runs (defaults to `submit`) | ✅ |
+| inputStyle                    | React.CSSProperties          | Inline styles forwarded to the secure iframe inputs     |    |
 | onReady                       | () => void                   | Callback when the embedded iframe signals it is ready   |          |
 | onProceedToAuthentication     | (data: any) => void           | Callback when ready to proceed to authentication        |          |
 | onValidated                   | () => void                   | Callback on successful validation                       |          |
@@ -426,6 +453,14 @@ function PaymentForm() {
 import { Suspense, useRef } from 'react';
 import { PayerAuthentication, Environment } from '@sfpy/atoms';
 
+const billing = {
+  street_1: '123 Main Street',
+  street_2: 'Suite 500',
+  city: 'Berlin',
+  country: 'DE',
+  postal_code: '10115',
+};
+
 function AuthenticationForm() {
   const authRef = useRef(null);
 
@@ -437,6 +472,7 @@ function AuthenticationForm() {
         authToken="your-auth-token"
         deviceDataCollectionJWT="your-device-jwt"
         deviceDataCollectionURL="https://your-collection-url"
+        billing={billing}
         discountBody={{ dry_run: true, bin_discount: { cardscheme_id: 'visa', bin: '411111' } }}
         imperativeRef={authRef}
         // Optional callbacks you can pass if needed:
@@ -461,7 +497,7 @@ function AuthenticationForm() {
 | discountBody                     | DiscountBody                    | Optional discount context object sent to Safepay to evaluate/apply discounts during authentication |          |
 | user                             | string                          | User identifier forwarded with authentication requests |          |
 | billing                          | Billing                         | Billing information (optional)                    |          |
-| authorizationOptions             | { do_capture?: boolean; do_card_on_file?: boolean; } | Authorization configuration options |          |
+| authorizationOptions             | AuthorizationOptions            | Authorization configuration options |          |
 | onPayerAuthenticationFailure     | (data: PayerAuthErrorData) => void | Callback on authentication failure             |          |
 | onPayerAuthenticationSuccess     | (data: PayerAuthSuccessData) => void | Callback on authentication success             |          |
 | onPayerAuthenticationRequired    | (data: PayerAuthData) => void    | Callback when authentication is required         |          |
@@ -470,27 +506,308 @@ function AuthenticationForm() {
 | onSafepayError                   | (data: SafepayError) => void     | General error handling callback                  |          |
 | imperativeRef                    | React.MutableRefObject<any>     | Ref to control the component imperatively         | ✅ |
 
-## Discount Body
+### Combined Card + Authentication Flow
 
-When using Payer Authentication, you can include a BIN-based discount context via `discountBody`. Pass this as an object (do not stringify) in both Web Component (set via property) and React usages.
+The example below mirrors the stripped-down integration used in `app/routes/combinedDemoStripped.tsx` from the test app. It shows how to:
 
-Type definition:
+- render `CardCapture` and `PayerAuthentication` together
+- pass `inputStyle` into the secure card iframe
+- wait for card validation before submitting
+- open the authentication modal only when Safepay requests it
+- forward `discountBody` from card capture into payer authentication
+
+```jsx
+import { CardCapture, Environment, PayerAuthentication } from '@sfpy/atoms';
+import '@sfpy/atoms/styles';
+import * as React from 'react';
+
+const DEMO_ENVIRONMENT = Environment.Development;
+const DEMO_AUTH_TOKEN = 'your-auth-token';
+const DEMO_TRACKER = 'your-tracker';
+
+const CARD_INPUT_STYLE = {
+  fontFamily: '"Courier New", ui-monospace, monospace',
+  fontSize: '18px',
+  color: '#111827',
+};
+
+const CARD_FRAME_STYLE = {
+  width: '22.5rem',
+  height: '2.6rem',
+};
+
+const MODAL_BACKDROP_STYLE = {
+  position: 'fixed',
+  width: '100%',
+  height: '100%',
+  inset: 0,
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  zIndex: 2,
+  cursor: 'pointer',
+};
+
+const POPUP_STYLE = {
+  position: 'absolute',
+  top: '12.5%',
+  left: '25%',
+  width: '40%',
+  height: '75%',
+  border: '1px solid black',
+  backgroundColor: 'white',
+  zIndex: 2,
+};
+
+const MODAL_CONTENT_STYLE = {
+  width: '100%',
+  height: '100%',
+};
+
+type PayerAuthSession = {
+  accessToken: string;
+  deviceDataCollectionURL: string;
+};
+
+type DiscountBody = {
+  dry_run: boolean;
+  bin_discount: {
+    cardscheme_id: string;
+    bin: string;
+  };
+};
+
+const BILLING = {
+  street_1: '123 Main Street',
+  street_2: 'Suite 500',
+  city: 'Berlin',
+  country: 'DE',
+  postal_code: '10115',
+};
+
+export default function CombinedDemo() {
+  const cardRef = React.useRef(null);
+  const payerAuthRef = React.useRef(null);
+
+  // Keep payer-auth session details only after Safepay asks us to continue into 3DS.
+  const [payerAuthSession, setPayerAuthSession] = React.useState<PayerAuthSession | null>(null);
+
+  // If card capture returns discount context, forward it into payer authentication.
+  const [discountBody, setDiscountBody] = React.useState<DiscountBody | undefined>();
+
+  const closeModal = React.useCallback(() => {
+    setPayerAuthSession(null);
+  }, []);
+
+  const handleSubmit = React.useCallback(async () => {
+    // Trigger validation first so the iframe can surface any field errors.
+    cardRef.current?.validate();
+
+    // Then ask the iframe whether the current input is valid.
+    const isValid = await cardRef.current?.fetchValidity();
+
+    if (isValid) {
+      // Only submit once the secure iframe confirms the input is valid.
+      await cardRef.current?.submit();
+    }
+  }, []);
+
+  return (
+    <main style={{ padding: '24px' }}>
+      <div style={CARD_FRAME_STYLE}>
+        <CardCapture
+          environment={DEMO_ENVIRONMENT}
+          authToken={DEMO_AUTH_TOKEN}
+          tracker={DEMO_TRACKER}
+          validationEvent="submit"
+          inputStyle={CARD_INPUT_STYLE}
+          imperativeRef={cardRef}
+          onReady={() => console.log('card iframe ready')}
+          onError={(error) => console.log(error)}
+          onValidated={() => console.log('validated')}
+          onDiscountApplied={(data) => {
+            if (data?.discountBody) {
+              setDiscountBody(data.discountBody);
+            }
+          }}
+          onProceedToAuthentication={(data) => {
+            // Safepay returns the values needed to initialize payer authentication.
+            setPayerAuthSession({
+              accessToken: data.accessToken,
+              deviceDataCollectionURL: data.deviceDataCollectionURL,
+            });
+          }}
+        />
+      </div>
+
+      <button style={{ marginTop: '16px' }} onClick={handleSubmit}>
+        Submit
+      </button>
+
+      {payerAuthSession ? (
+        <div style={MODAL_BACKDROP_STYLE} onClick={closeModal}>
+          <div style={POPUP_STYLE} onClick={(event) => event.stopPropagation()}>
+            <div style={MODAL_CONTENT_STYLE}>
+              <PayerAuthentication
+                environment={DEMO_ENVIRONMENT}
+                authToken={DEMO_AUTH_TOKEN}
+                tracker={DEMO_TRACKER}
+                imperativeRef={payerAuthRef}
+                deviceDataCollectionJWT={payerAuthSession.accessToken}
+                deviceDataCollectionURL={payerAuthSession.deviceDataCollectionURL}
+                billing={BILLING}
+                discountBody={discountBody}
+                authorizationOptions={{
+                  do_capture: true,
+                  do_card_on_file: true,
+                }}
+                onPayerAuthenticationFailure={(data) => {
+                  console.log('onPayerAuthenticationFailure', data);
+                  closeModal();
+                }}
+                onPayerAuthenticationSuccess={(data) => {
+                  console.log('onPayerAuthenticationSuccess', data);
+                  closeModal();
+                }}
+                onPayerAuthenticationFrictionless={(data) => {
+                  console.log('onPayerAuthenticationFrictionless', data);
+                  closeModal();
+                }}
+                onPayerAuthenticationUnavailable={(data) => {
+                  console.log('onPayerAuthenticationUnavailable', data);
+                  closeModal();
+                }}
+                onSafepayError={(error) => {
+                  console.log('onSafepayError', error.error.message);
+                  closeModal();
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </main>
+  );
+}
+```
+
+## Object Shapes
+
+The following sections show the shapes for the structured values you pass into the atoms.
+
+### InputStyle
+
+Used by `CardCapture` and `<safepay-card-atom>`.
 
 ```ts
-export type DiscountBody = {
+type InputStyle = Record<string, string | number>;
+```
+
+Example:
+
+```ts
+const inputStyle = {
+  fontFamily: '"Courier New", ui-monospace, monospace',
+  fontSize: '18px',
+  color: '#111827',
+};
+```
+
+### Billing
+
+Used by `PayerAuthentication` and `<safepay-payer-authentication>`.
+
+```ts
+type Billing = {
+  street_1: string;
+  street_2?: string;
+  city: string;
+  country: string;
+  postal_code?: string;
+};
+```
+
+Example:
+
+```ts
+const billing = {
+  street_1: '123 Main Street',
+  street_2: 'Suite 500',
+  city: 'Berlin',
+  country: 'DE',
+  postal_code: '10115',
+};
+```
+
+### AuthorizationOptions
+
+Used by `PayerAuthentication` and `<safepay-payer-authentication>`.
+
+```ts
+type AuthorizationOptions = {
+  do_capture?: boolean;
+  do_card_on_file?: boolean;
+};
+```
+
+Example:
+
+```ts
+const authorizationOptions = {
+  do_capture: true,
+  do_card_on_file: true,
+};
+```
+
+### DiscountBody
+
+Used by `PayerAuthentication` and `<safepay-payer-authentication>`. Pass this as an object (do not stringify it).
+
+```ts
+type DiscountBody = {
   dry_run: boolean;
-  bin_discount: { cardscheme_id: string; bin: string };
+  bin_discount: {
+    cardscheme_id: string;
+    bin: string;
+  };
 };
 ```
 
 Examples:
 
-- Web Component property: `el.discountBody = { dry_run: true, bin_discount: { cardscheme_id: 'visa', bin: '411111' } }`
-- React prop: `discountBody={{ dry_run: false, bin_discount: { cardscheme_id: 'visa', bin: '411111' } }}`
+```ts
+const discountBody = {
+  dry_run: true,
+  bin_discount: {
+    cardscheme_id: 'visa',
+    bin: '411111',
+  },
+};
+```
 
 Notes:
-- bin: First 6 digits of the card number (no spaces).
-- dry_run: Use `true` to evaluate and surface discount details without committing application; set `false` to apply when supported by your flow.
+- `bin` is the first 6 digits of the card number, with no spaces.
+- `dry_run` evaluates the discount without committing application when your flow supports it.
+
+### CardCaptureImperativeRef
+
+```ts
+type CardCaptureImperativeRef = {
+  current: null | {
+    submit: () => void;
+    validate: () => void;
+    fetchValidity: () => Promise<boolean>;
+    clear: () => void;
+  };
+};
+```
+
+### PayerAuthenticationImperativeRef
+
+```ts
+type PayerAuthenticationImperativeRef = {
+  current: null | Record<string, never>;
+};
+```
+
 
 Note: In React usage, you can pass either the `Environment` enum (recommended) or a string value such as `"SANDBOX"` or `"sandbox"`. String values are mapped case-insensitively to the corresponding enum value. If the value is invalid, an exception is thrown to surface the misconfiguration.
 
