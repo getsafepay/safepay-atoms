@@ -57,6 +57,13 @@
       var TRACKER = '';
       var CLIENT_SECRET = '';
       var USER = '';
+      var BILLING = {
+        street_1: '123 Main Street',
+        street_2: 'Suite 500',
+        city: 'Berlin',
+        country: 'DE',
+        postal_code: '10115',
+      };
 
       const cardAtom = document.querySelector('safepay-card-atom');
       const payerAuthAtom = document.querySelector('safepay-payer-auth-atom');
@@ -66,6 +73,7 @@
       payerAuthAtom.authToken = CLIENT_SECRET;
       payerAuthAtom.tracker = TRACKER;
       payerAuthAtom.user = USER;
+      payerAuthAtom.billing = BILLING;
       payerAuthAtom.authorizationOptions = {
         do_capture: true,
         do_card_on_file: true,

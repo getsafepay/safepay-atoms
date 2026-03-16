@@ -61,13 +61,13 @@ Set properties directly on the element for functions, objects, and non-string va
 | authToken                          | string    | Authentication token for the session     |
 | tracker                            | string    | Tracking identifier                      |
 | validationEvent                    | 'submit' \| 'change' \| 'keydown' \| 'none' (string) | Determines when card inputs are validated (defaults to 'submit') |
-| inputStyle                         | object    | Inline styles forwarded to the secure iframe inputs |
+| inputStyle                         | InputStyle | Inline styles forwarded to the secure iframe inputs |
 | onReady                             | function  | Callback when the embedded iframe signals it is ready |
 | onError                            | function  | Error callback handler                   |
 | onValidated                        | function  | Validation success callback             |
 | onDiscountApplied                  | function  | Discount applied callback (includes `discountBody`) |
 | onProceedToAuthentication          | function  | Authentication proceed callback         |
-| imperativeRef                      | object    | Ref object for imperative methods (optional) |
+| imperativeRef                      | CardCaptureImperativeRef | Ref object for imperative methods (optional) |
 
 #### Setting Properties vs Attributes
 
@@ -252,8 +252,15 @@ The `<safepay-payer-authentication>` component handles payer authentication flow
 ></safepay-payer-authentication>
 
 <script>
-  // Set DiscountBody as a property (object), not a string
+  // Set object properties directly on the element.
   const el = document.querySelector('safepay-payer-authentication');
+  el.billing = {
+    street_1: '123 Main Street',
+    street_2: 'Suite 500',
+    city: 'Berlin',
+    country: 'DE',
+    postal_code: '10115',
+  };
   el.discountBody = {
     dry_run: true,
     bin_discount: { cardscheme_id: 'visa', bin: '411111' },
@@ -284,18 +291,18 @@ Set properties directly on the element for functions, objects, and non-string va
 | tracker                            | string    | Tracking identifier                       |
 | authToken                          | string    | Authentication token                     |
 | user                               | string    | User identifier forwarded with authentication requests |
-| billing                            | object    | Billing information                      |
+| billing                            | Billing   | Billing information                      |
 | deviceDataCollectionJWT            | string    | Device data collection JWT              |
 | deviceDataCollectionURL            | string    | Device data collection URL              |
 | discountBody                       | DiscountBody | Optional discount context object sent to Safepay to evaluate/apply discounts during authentication. Set via property (not attribute). |
-| authorizationOptions               | object    | Authorization configuration options       |
+| authorizationOptions               | AuthorizationOptions | Authorization configuration options       |
 | onPayerAuthenticationFailure       | function  | Authentication failure callback         |
 | onPayerAuthenticationSuccess       | function  | Authentication success callback         |
 | onPayerAuthenticationRequired      | function  | Callback when authentication is required |
 | onPayerAuthenticationFrictionless  | function  | Callback when authentication is frictionless |
 | onPayerAuthenticationUnavailable   | function  | Callback when authentication is unavailable |
 | onSafepayError                     | function  | Error handling callback                 |
-| imperativeRef                      | object    | Ref object for imperative methods (optional) |
+| imperativeRef                      | PayerAuthenticationImperativeRef | Ref object for imperative methods (optional) |
 
 #### Setting Properties vs Attributes
 
@@ -305,7 +312,13 @@ Attributes are string-only. For callbacks and objects, set properties directly:
 <safepay-payer-authentication id="payer-auth" environment="sandbox"></safepay-payer-authentication>
 <script type="module">
   const payerAuth = document.getElementById('payer-auth');
-  payerAuth.billing = { /* ... */ };
+  payerAuth.billing = {
+    street_1: '123 Main Street',
+    street_2: 'Suite 500',
+    city: 'Berlin',
+    country: 'DE',
+    postal_code: '10115',
+  };
   payerAuth.authorizationOptions = { do_capture: true };
   payerAuth.onPayerAuthenticationSuccess = (data) => console.log('success', data);
 </script>
@@ -440,6 +453,14 @@ function PaymentForm() {
 import { Suspense, useRef } from 'react';
 import { PayerAuthentication, Environment } from '@sfpy/atoms';
 
+const billing = {
+  street_1: '123 Main Street',
+  street_2: 'Suite 500',
+  city: 'Berlin',
+  country: 'DE',
+  postal_code: '10115',
+};
+
 function AuthenticationForm() {
   const authRef = useRef(null);
 
@@ -451,6 +472,7 @@ function AuthenticationForm() {
         authToken="your-auth-token"
         deviceDataCollectionJWT="your-device-jwt"
         deviceDataCollectionURL="https://your-collection-url"
+        billing={billing}
         discountBody={{ dry_run: true, bin_discount: { cardscheme_id: 'visa', bin: '411111' } }}
         imperativeRef={authRef}
         // Optional callbacks you can pass if needed:
@@ -475,7 +497,7 @@ function AuthenticationForm() {
 | discountBody                     | DiscountBody                    | Optional discount context object sent to Safepay to evaluate/apply discounts during authentication |          |
 | user                             | string                          | User identifier forwarded with authentication requests |          |
 | billing                          | Billing                         | Billing information (optional)                    |          |
-| authorizationOptions             | { do_capture?: boolean; do_card_on_file?: boolean; } | Authorization configuration options |          |
+| authorizationOptions             | AuthorizationOptions            | Authorization configuration options |          |
 | onPayerAuthenticationFailure     | (data: PayerAuthErrorData) => void | Callback on authentication failure             |          |
 | onPayerAuthenticationSuccess     | (data: PayerAuthSuccessData) => void | Callback on authentication success             |          |
 | onPayerAuthenticationRequired    | (data: PayerAuthData) => void    | Callback when authentication is required         |          |
@@ -553,6 +575,14 @@ type DiscountBody = {
   };
 };
 
+const BILLING = {
+  street_1: '123 Main Street',
+  street_2: 'Suite 500',
+  city: 'Berlin',
+  country: 'DE',
+  postal_code: '10115',
+};
+
 export default function CombinedDemo() {
   const cardRef = React.useRef(null);
   const payerAuthRef = React.useRef(null);
@@ -623,6 +653,7 @@ export default function CombinedDemo() {
                 imperativeRef={payerAuthRef}
                 deviceDataCollectionJWT={payerAuthSession.accessToken}
                 deviceDataCollectionURL={payerAuthSession.deviceDataCollectionURL}
+                billing={BILLING}
                 discountBody={discountBody}
                 authorizationOptions={{
                   do_capture: true,
@@ -658,27 +689,125 @@ export default function CombinedDemo() {
 }
 ```
 
-## Discount Body
+## Object Shapes
 
-When using Payer Authentication, you can include a BIN-based discount context via `discountBody`. Pass this as an object (do not stringify) in both Web Component (set via property) and React usages.
+The following sections show the shapes for the structured values you pass into the atoms.
 
-Type definition:
+### InputStyle
+
+Used by `CardCapture` and `<safepay-card-atom>`.
 
 ```ts
-export type DiscountBody = {
+type InputStyle = Record<string, string | number>;
+```
+
+Example:
+
+```ts
+const inputStyle = {
+  fontFamily: '"Courier New", ui-monospace, monospace',
+  fontSize: '18px',
+  color: '#111827',
+};
+```
+
+### Billing
+
+Used by `PayerAuthentication` and `<safepay-payer-authentication>`.
+
+```ts
+type Billing = {
+  street_1: string;
+  street_2?: string;
+  city: string;
+  country: string;
+  postal_code?: string;
+};
+```
+
+Example:
+
+```ts
+const billing = {
+  street_1: '123 Main Street',
+  street_2: 'Suite 500',
+  city: 'Berlin',
+  country: 'DE',
+  postal_code: '10115',
+};
+```
+
+### AuthorizationOptions
+
+Used by `PayerAuthentication` and `<safepay-payer-authentication>`.
+
+```ts
+type AuthorizationOptions = {
+  do_capture?: boolean;
+  do_card_on_file?: boolean;
+};
+```
+
+Example:
+
+```ts
+const authorizationOptions = {
+  do_capture: true,
+  do_card_on_file: true,
+};
+```
+
+### DiscountBody
+
+Used by `PayerAuthentication` and `<safepay-payer-authentication>`. Pass this as an object (do not stringify it).
+
+```ts
+type DiscountBody = {
   dry_run: boolean;
-  bin_discount: { cardscheme_id: string; bin: string };
+  bin_discount: {
+    cardscheme_id: string;
+    bin: string;
+  };
 };
 ```
 
 Examples:
 
-- Web Component property: `el.discountBody = { dry_run: true, bin_discount: { cardscheme_id: 'visa', bin: '411111' } }`
-- React prop: `discountBody={{ dry_run: false, bin_discount: { cardscheme_id: 'visa', bin: '411111' } }}`
+```ts
+const discountBody = {
+  dry_run: true,
+  bin_discount: {
+    cardscheme_id: 'visa',
+    bin: '411111',
+  },
+};
+```
 
 Notes:
-- bin: First 6 digits of the card number (no spaces).
-- dry_run: Use `true` to evaluate and surface discount details without committing application; set `false` to apply when supported by your flow.
+- `bin` is the first 6 digits of the card number, with no spaces.
+- `dry_run` evaluates the discount without committing application when your flow supports it.
+
+### CardCaptureImperativeRef
+
+```ts
+type CardCaptureImperativeRef = {
+  current: null | {
+    submit: () => void;
+    validate: () => void;
+    fetchValidity: () => Promise<boolean>;
+    clear: () => void;
+  };
+};
+```
+
+### PayerAuthenticationImperativeRef
+
+```ts
+type PayerAuthenticationImperativeRef = {
+  current: null | Record<string, never>;
+};
+```
+
 
 Note: In React usage, you can pass either the `Environment` enum (recommended) or a string value such as `"SANDBOX"` or `"sandbox"`. String values are mapped case-insensitively to the corresponding enum value. If the value is invalid, an exception is thrown to surface the misconfiguration.
 
