@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useAppendStyles } from '../../styles';
+import { appendParentOriginToIframeSrc } from '../../utils/funcs/bridgeOrigin';
 import { resolveBaseUrl } from '../../utils/funcs/resolveBaseUrl';
 import InframeComponent from './iframe';
 import { PayerAuthenticationProps } from './types';
@@ -40,6 +41,14 @@ const PayerAuthentication = ({
   // Base URL resolution based on the environment
   const normalizedEnv = toEnvironment(environment);
   const baseURL = resolveBaseUrl(normalizedEnv);
+  const iframeSrc = useMemo(
+    () =>
+      appendParentOriginToIframeSrc(
+        `${baseURL}/authlink`,
+        typeof window === 'undefined' ? undefined : window.location.href
+      ),
+    [baseURL]
+  );
 
   // Computed props for iframe integration
   const computedProps = useMemo(
@@ -110,7 +119,7 @@ const PayerAuthentication = ({
     <div className="safepay-atoms-root" ref={styleRef}>
       <div className="payerAuthiframeWrapper">
         <InframeComponent
-          src={`${baseURL}/authlink`}
+          src={iframeSrc}
           title="Safepay Payer Authentication"
           ref={inframeMethodsRef}
           onInframeEvent={handleInframeEvent}

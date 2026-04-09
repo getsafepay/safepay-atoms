@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useAppendStyles } from '../../styles';
+import { appendParentOriginToIframeSrc } from '../../utils/funcs/bridgeOrigin';
 import { resolveBaseUrl } from '../../utils/funcs/resolveBaseUrl';
 import InframeComponent from './iframe';
 import { Environment, toEnvironment } from '../../types/environment';
@@ -77,6 +78,14 @@ const CardCapture = ({
   // Base URL resolution based on the environment
   const normalizedEnv = toEnvironment(environment);
   const baseURL = resolveBaseUrl(normalizedEnv);
+  const iframeSrc = useMemo(
+    () =>
+      appendParentOriginToIframeSrc(
+        `${baseURL}/cardlink`,
+        typeof window === 'undefined' ? undefined : window.location.href
+      ),
+    [baseURL]
+  );
 
   useEffect(() => {
     // Styles computation and application logic
@@ -170,7 +179,7 @@ const CardCapture = ({
     <div className="safepay-atoms-root" ref={styleRef}>
       <div className={`iframeWrapper ${isFocused ? 'focus' : ''}`}>
         <InframeComponent
-          src={`${baseURL}/cardlink`}
+          src={iframeSrc}
           title="Safepay Credit/Debit Card Input"
           ref={inframeMethodsRef}
           onInframeEvent={handleInframeEvent}
