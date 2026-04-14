@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { generateUUID } from '../../utils/funcs/generateUUID';
+import { resolveExactOrigin } from '../../utils/funcs/bridgeOrigin';
 import useFunctionQueue from '../hooks/useFunctionQueue';
 
 interface InframeProps {
@@ -57,6 +58,10 @@ const InframeComponent = React.forwardRef(
     const flushPendingMessagesRef = React.useRef<() => void>(() => {});
     const messagesProcessedCallback = React.useRef<(() => void) | null>(null);
     const functionQueue = useFunctionQueue();
+    const iframeOrigin = React.useMemo(
+      () => resolveExactOrigin(src, typeof window === 'undefined' ? undefined : window.location.href),
+      [src]
+    );
 
     const dispatchMessage = React.useCallback((entry: PendingMessage) => {
       const target = iframeRef.current?.contentWindow;
@@ -65,7 +70,12 @@ const InframeComponent = React.forwardRef(
         return;
       }
 
-      target.postMessage(entry.payload, '*');
+      if (!iframeOrigin) {
+        console.warn(`Unable to post message to iframe with invalid origin: ${src}`);
+        return;
+      }
+
+      target.postMessage(entry.payload, iframeOrigin);
 
       if (entry.expectAck && entry.payload.messageId) {
         const timeoutId = window.setTimeout(() => {
@@ -77,7 +87,7 @@ const InframeComponent = React.forwardRef(
         }, ACK_TIMEOUT_MS);
         inflightAcksRef.current.set(entry.payload.messageId, { entry, timeoutId });
       }
-    }, []);
+    }, [iframeOrigin, src]);
 
     const flushPendingMessages = React.useCallback(() => {
       if (!isReadyRef.current || !iframeRef.current?.contentWindow) return;
@@ -104,12 +114,17 @@ const InframeComponent = React.forwardRef(
     React.useEffect(() => {
       // Message event handler for iframe communications
       const messageHandler = (event: MessageEvent) => {
+        const data = event.data;
         if (
+          iframeOrigin &&
           iframeRef.current &&
           event.source === iframeRef.current.contentWindow &&
-          event.data.type === 'safepay-inframe-event'
+          event.origin === iframeOrigin &&
+          data &&
+          typeof data === 'object' &&
+          data.type === 'safepay-inframe-event'
         ) {
-          const { name, detail } = event.data;
+          const { name, detail } = data;
           if (name === 'safepay-inframe__ack') {
             const { messageId, status, detail: ackDetail } = detail || {};
             if (messageId && inflightAcksRef.current.has(messageId)) {
@@ -138,7 +153,7 @@ const InframeComponent = React.forwardRef(
 
       window.addEventListener('message', messageHandler);
       return () => window.removeEventListener('message', messageHandler);
-    }, [flushPendingMessages, onInframeEvent]);
+    }, [flushPendingMessages, iframeOrigin, onInframeEvent]);
 
     React.useEffect(() => {
       // Reset readiness whenever the iframe source changes

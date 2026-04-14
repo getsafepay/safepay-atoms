@@ -84,8 +84,23 @@ const createMockDropsPage = (label: string, options?: { autoAck?: boolean }) => 
     <div id="stub-${label}">Mocked ${label}</div>
     <script>
       (function () {
+        const resolveExactOrigin = (value) => {
+          if (!value) return null;
+          try {
+            const origin = new URL(value, window.location.href).origin;
+            return origin === 'null' ? null : origin;
+          } catch {
+            return null;
+          }
+        };
+
+        const parentOrigin =
+          resolveExactOrigin(new URL(window.location.href).searchParams.get('parentOrigin')) ||
+          resolveExactOrigin(document.referrer);
+
         const sendEvent = (name, detail) => {
-          window.parent.postMessage({ type: 'safepay-inframe-event', name, detail }, '*');
+          if (!parentOrigin) return;
+          window.parent.postMessage({ type: 'safepay-inframe-event', name, detail }, parentOrigin);
         };
 
         window.__messageLog = {
@@ -93,6 +108,7 @@ const createMockDropsPage = (label: string, options?: { autoAck?: boolean }) => 
           counts: {},
           lastProps: null,
           lastPropMessageId: null,
+          parentOrigin,
           autoAck: ${options?.autoAck ?? true},
         };
 
@@ -100,6 +116,7 @@ const createMockDropsPage = (label: string, options?: { autoAck?: boolean }) => 
 
         window.addEventListener('message', (event) => {
           const data = event.data || {};
+          if (!parentOrigin || event.origin !== parentOrigin) return;
           if (!data.type) return;
 
           const id = data.messageId || 'no-id';
@@ -160,8 +177,8 @@ test.describe('Safepay Atoms messaging to drops', () => {
       });
     };
 
-    await page.route('**/drops/cardlink', fulfillMock);
-    await page.route('**/drops/authlink', fulfillMock);
+    await page.route('**/cardlink*', fulfillMock);
+    await page.route('**/authlink*', fulfillMock);
 
     await renderHost(page);
 
@@ -189,12 +206,22 @@ test.describe('Safepay Atoms messaging to drops', () => {
 
     const cardProps = await cardFrame.evaluate(() => {
       const log = (window as any).__messageLog;
-      return { lastProps: log.lastProps, lastPropMessageId: log.lastPropMessageId, counts: log.counts };
+      return {
+        lastProps: log.lastProps,
+        lastPropMessageId: log.lastPropMessageId,
+        counts: log.counts,
+        parentOrigin: log.parentOrigin,
+      };
     });
 
     const authProps = await authFrame.evaluate(() => {
       const log = (window as any).__messageLog;
-      return { lastProps: log.lastProps, lastPropMessageId: log.lastPropMessageId, counts: log.counts };
+      return {
+        lastProps: log.lastProps,
+        lastPropMessageId: log.lastPropMessageId,
+        counts: log.counts,
+        parentOrigin: log.parentOrigin,
+      };
     });
 
     expect(cardProps.lastProps).toMatchObject({
@@ -210,6 +237,8 @@ test.describe('Safepay Atoms messaging to drops', () => {
       authToken,
       user,
     });
+    expect(cardProps.parentOrigin).toBe('http://localhost:4173');
+    expect(authProps.parentOrigin).toBe('http://localhost:4173');
 
     await page.waitForTimeout(1200);
 
@@ -244,8 +273,8 @@ test.describe('Safepay Atoms messaging to drops', () => {
       });
     };
 
-    await page.route('**/drops/cardlink', fulfillMock);
-    await page.route('**/drops/authlink', fulfillMock);
+    await page.route('**/cardlink*', fulfillMock);
+    await page.route('**/authlink*', fulfillMock);
 
     await renderHost(page);
 
@@ -289,14 +318,14 @@ test.describe('Safepay Atoms messaging to drops', () => {
   test('handles drops events and toggles modal on proceed/success', async ({ page }) => {
     test.skip(useRealDrops, 'Runs only with mocked drops');
 
-    await page.route('**/drops/cardlink', async (route) =>
+    await page.route('**/cardlink*', async (route) =>
       route.fulfill({
         status: 200,
         contentType: 'text/html',
         body: createMockDropsPage('cardlink'),
       })
     );
-    await page.route('**/drops/authlink', async (route) =>
+    await page.route('**/authlink*', async (route) =>
       route.fulfill({
         status: 200,
         contentType: 'text/html',
@@ -316,6 +345,10 @@ test.describe('Safepay Atoms messaging to drops', () => {
     await authFrame.waitForFunction(() => Boolean((window as any).__messageLog?.lastPropMessageId));
 
     await cardFrame.evaluate(() => {
+      const parentOrigin = new URL(
+        new URL(window.location.href).searchParams.get('parentOrigin') || document.referrer
+      ).origin;
+
       window.parent.postMessage(
         {
           type: 'safepay-inframe-event',
@@ -325,7 +358,7 @@ test.describe('Safepay Atoms messaging to drops', () => {
             deviceDataCollectionURL: 'https://example.test/ddc',
           },
         },
-        '*'
+        parentOrigin
       );
     });
 
@@ -349,17 +382,95 @@ test.describe('Safepay Atoms messaging to drops', () => {
     if (!authFrameLatest) throw new Error('authlink frame not found after proceed event');
 
     await authFrameLatest.evaluate(() => {
+      const parentOrigin = new URL(
+        new URL(window.location.href).searchParams.get('parentOrigin') || document.referrer
+      ).origin;
+
       window.parent.postMessage(
         {
           type: 'safepay-inframe-event',
           name: 'safepay-inframe__cardinal-3ds__success',
           detail: { status: 'ok' },
         },
-        '*'
+        parentOrigin
       );
     });
 
     await expect(page.locator('#threeds-modal')).toHaveClass(/hide/);
+  });
+
+  test('rejects inframe events from unexpected origins', async ({ page }) => {
+    test.skip(useRealDrops, 'Runs only with mocked drops');
+
+    await page.route('**/cardlink*', async (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'text/html',
+        body: createMockDropsPage('cardlink'),
+      })
+    );
+    await page.route('**/authlink*', async (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'text/html',
+        body: createMockDropsPage('authlink'),
+      })
+    );
+
+    await renderHost(page);
+
+    await page.waitForSelector('iframe[src*="/drops/cardlink"]', { state: 'attached' });
+    await page.waitForSelector('iframe[src*="/drops/authlink"]', { state: 'attached' });
+
+    const cardFrame = await waitForFrameUrl(page, '/drops/cardlink');
+    const authFrame = await waitForFrameUrl(page, '/drops/authlink');
+
+    await cardFrame.waitForFunction(() => Boolean((window as any).__messageLog?.lastPropMessageId));
+    await authFrame.waitForFunction(() => Boolean((window as any).__messageLog?.lastPropMessageId));
+
+    await page.evaluate(() => {
+      const attacker = document.createElement('iframe');
+      attacker.srcdoc = `
+        <!doctype html>
+        <html>
+          <body>
+            <script>
+              window.parent.__maliciousFrameSent = true;
+              window.parent.postMessage(
+                {
+                  type: 'safepay-inframe-event',
+                  name: 'safepay-inframe__proceed__authentication',
+                  detail: {
+                    accessToken: 'evil_token',
+                    deviceDataCollectionURL: 'https://evil.test/ddc',
+                  },
+                },
+                window.parent.location.origin
+              );
+            <\/script>
+          </body>
+        </html>
+      `;
+      document.body.appendChild(attacker);
+    });
+
+    await page.waitForFunction(() => (window as any).__maliciousFrameSent === true);
+    await page.waitForTimeout(250);
+
+    await expect(page.locator('#threeds-modal')).toHaveClass(/hide/);
+
+    const payerAuthData = await page.evaluate(() => {
+      const payerAuthAtom = document.querySelector('safepay-payer-auth-atom') as any;
+      return {
+        deviceDataCollectionJWT: payerAuthAtom.deviceDataCollectionJWT ?? null,
+        deviceDataCollectionURL: payerAuthAtom.deviceDataCollectionURL ?? null,
+      };
+    });
+
+    expect(payerAuthData).toEqual({
+      deviceDataCollectionJWT: null,
+      deviceDataCollectionURL: null,
+    });
   });
 
   test('opt-in: happy path typing against live drops', async ({ page }) => {
