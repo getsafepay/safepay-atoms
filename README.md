@@ -46,7 +46,7 @@ Use attributes for string values only. Attributes are always strings and are map
 
 | Attribute                           | Type      | Description                              |
 |-------------------------------------|-----------|------------------------------------------|
-| environment                         | `'development' | 'production' | 'sandbox' | 'local'` (string) | Environment setting |
+| environment                         | `'development' \| 'production' \| 'sandbox' \| 'local'` (string) | Environment setting |
 | authToken                          | string    | Authentication token for the session     |
 | tracker                            | string    | Tracking identifier                      |
 | validationEvent                    | 'submit' \| 'change' \| 'keydown' \| 'none' (string) | Determines when card inputs are validated (defaults to 'submit') |
@@ -57,7 +57,7 @@ Set properties directly on the element for functions, objects, and non-string va
 
 | Property                            | Type      | Description                              |
 |-------------------------------------|-----------|------------------------------------------|
-| environment                         | `'development' | 'production' | 'sandbox' | 'local'` (string) | Environment setting |
+| environment                         | `'development' \| 'production' \| 'sandbox' \| 'local'` (string) | Environment setting |
 | authToken                          | string    | Authentication token for the session     |
 | tracker                            | string    | Tracking identifier                      |
 | validationEvent                    | 'submit' \| 'change' \| 'keydown' \| 'none' (string) | Determines when card inputs are validated (defaults to 'submit') |
@@ -274,7 +274,7 @@ Use attributes for string values only. Attributes are always strings and are map
 
 | Attribute                           | Type      | Description                              |
 |-------------------------------------|-----------|------------------------------------------|
-| environment                         | `'development' | 'production' | 'sandbox' | 'local'` (string) | Environment setting |
+| environment                         | `'development' \| 'production' \| 'sandbox' \| 'local'` (string) | Environment setting |
 | tracker                            | string    | Tracking identifier                       |
 | authToken                          | string    | Authentication token                     |
 | user                               | string    | User identifier forwarded with authentication requests |
@@ -287,7 +287,7 @@ Set properties directly on the element for functions, objects, and non-string va
 
 | Property                            | Type      | Description                              |
 |-------------------------------------|-----------|------------------------------------------|
-| environment                         | `'development' | 'production' | 'sandbox' | 'local'` (string) | Environment setting |
+| environment                         | `'development' \| 'production' \| 'sandbox' \| 'local'` (string) | Environment setting |
 | tracker                            | string    | Tracking identifier                       |
 | authToken                          | string    | Authentication token                     |
 | user                               | string    | User identifier forwarded with authentication requests |
@@ -296,13 +296,34 @@ Set properties directly on the element for functions, objects, and non-string va
 | deviceDataCollectionURL            | string    | Device data collection URL              |
 | discountBody                       | DiscountBody | Optional discount context object sent to Safepay to evaluate/apply discounts during authentication. Set via property (not attribute). |
 | authorizationOptions               | AuthorizationOptions | Authorization configuration options       |
-| onPayerAuthenticationFailure       | function  | Authentication failure callback         |
-| onPayerAuthenticationSuccess       | function  | Authentication success callback         |
-| onPayerAuthenticationRequired      | function  | Callback when authentication is required |
-| onPayerAuthenticationFrictionless  | function  | Callback when authentication is frictionless |
-| onPayerAuthenticationUnavailable   | function  | Callback when authentication is unavailable |
-| onSafepayError                     | function  | Error handling callback                 |
+| onPayerAuthenticationFailure       | function  | Recommended. Called after a challenge-based 3DS flow fails. The user may already have seen the challenge UI. |
+| onPayerAuthenticationSuccess       | function  | Recommended. Called after a challenge-based 3DS flow succeeds. This does not run for frictionless auth. |
+| onPayerAuthenticationRequired      | function  | Optional. Called when enrollment determines that a step-up 3DS challenge is required. Informational only; the challenge UI may start rendering immediately after this event. |
+| onPayerAuthenticationFrictionless  | function  | Recommended. Called when authentication completes without a 3DS challenge and authorization succeeds. This is the success callback for the frictionless path. |
+| onPayerAuthenticationUnavailable   | function  | Recommended. Called when the payer-auth flow cannot continue before a successful challenge flow is reached, such as enrollment/setup failures or other pre-challenge terminal errors. |
+| onSafepayError                     | function  | Recommended. Called for general Safepay iframe/application errors outside the normal authentication lifecycle. |
 | imperativeRef                      | PayerAuthenticationImperativeRef | Ref object for imperative methods (optional) |
+
+#### Callback Semantics
+
+The payer authentication callbacks represent different stages of the flow. They are not interchangeable:
+
+- `onPayerAuthenticationRequired` means Safepay has finished enrollment and determined that a 3DS challenge is needed. Use it for analytics or UI state if you want to know that a challenge is about to happen. It is not a completion callback, and the internal challenge iframe may begin rendering right away.
+- `onPayerAuthenticationFrictionless` means authentication succeeded without showing a challenge to the user. This is the terminal success callback for the frictionless path.
+- `onPayerAuthenticationSuccess` means the challenge-based 3DS flow completed successfully after the user entered the challenge flow. It does not run for frictionless auth.
+- `onPayerAuthenticationFailure` means the challenge-based 3DS flow failed after the user had already entered the challenge flow.
+- `onPayerAuthenticationUnavailable` means the flow failed before Safepay could complete a successful challenge flow. In practice, this covers enrollment/setup failures and other pre-challenge terminal states.
+- `onSafepayError` is the catch-all error callback for general iframe/application errors that do not fit the normal authentication lifecycle.
+
+In most integrations, the recommended callback set is:
+
+- `onPayerAuthenticationFrictionless`
+- `onPayerAuthenticationSuccess`
+- `onPayerAuthenticationFailure`
+- `onPayerAuthenticationUnavailable`
+- `onSafepayError`
+
+These cover the terminal success and failure states you usually need to close modals, update UI, or continue checkout. `onPayerAuthenticationRequired` is usually optional and best treated as an informational/analytics hook.
 
 #### Setting Properties vs Attributes
 
@@ -352,7 +373,7 @@ function PaymentForm() {
         environment={Environment.Sandbox}
         authToken="your-auth-token"
         tracker="your-tracker"
-        validationEvent="change" // Use 'submit' | 'change' | 'keydown' | 'none'
+        validationEvent="change" // Use `submit` | `change` | `keydown` | `none`
         inputStyle={{
           fontFamily: '"Courier New", ui-monospace, monospace',
           fontSize: '18px',
@@ -498,12 +519,12 @@ function AuthenticationForm() {
 | user                             | string                          | User identifier forwarded with authentication requests |          |
 | billing                          | Billing                         | Billing information (optional)                    |          |
 | authorizationOptions             | AuthorizationOptions            | Authorization configuration options |          |
-| onPayerAuthenticationFailure     | (data: PayerAuthErrorData) => void | Callback on authentication failure             |          |
-| onPayerAuthenticationSuccess     | (data: PayerAuthSuccessData) => void | Callback on authentication success             |          |
-| onPayerAuthenticationRequired    | (data: PayerAuthData) => void    | Callback when authentication is required         |          |
-| onPayerAuthenticationFrictionless| (data: PayerAuthData) => void    | Callback when authentication is frictionless     |          |
-| onPayerAuthenticationUnavailable | (data: PayerAuthData) => void    | Callback when authentication is unavailable      |          |
-| onSafepayError                   | (data: SafepayError) => void     | General error handling callback                  |          |
+| onPayerAuthenticationFailure     | (data: PayerAuthErrorData) => void | Recommended. Called after a challenge-based 3DS flow fails. The user may already have seen the challenge UI. |          |
+| onPayerAuthenticationSuccess     | (data: PayerAuthSuccessData) => void | Recommended. Called after a challenge-based 3DS flow succeeds. This does not run for frictionless auth. |          |
+| onPayerAuthenticationRequired    | (data: PayerAuthData) => void    | Optional. Called when enrollment determines that a step-up 3DS challenge is required. Informational only; the challenge UI may start rendering immediately after this event. |          |
+| onPayerAuthenticationFrictionless| (data: PayerAuthData) => void    | Recommended. Called when authentication completes without a challenge and authorization succeeds. This is the success callback for the frictionless path. |          |
+| onPayerAuthenticationUnavailable | (data: PayerAuthData) => void    | Recommended. Called when the payer-auth flow cannot continue before a successful challenge flow is reached, such as enrollment/setup failures or other pre-challenge terminal errors. |          |
+| onSafepayError                   | (data: SafepayError) => void     | Recommended. Called for general Safepay iframe/application errors outside the normal authentication lifecycle. |          |
 | imperativeRef                    | React.MutableRefObject<any>     | Ref to control the component imperatively         | ✅ |
 
 ### Combined Card + Authentication Flow
