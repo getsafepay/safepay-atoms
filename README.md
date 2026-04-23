@@ -258,6 +258,7 @@ The `<safepay-payer-authentication>` component handles payer authentication flow
     street_1: '123 Main Street',
     street_2: 'Suite 500',
     city: 'Berlin',
+    state: 'BE',
     country: 'DE',
     postal_code: '10115',
   };
@@ -316,6 +317,7 @@ Attributes are string-only. For callbacks and objects, set properties directly:
     street_1: '123 Main Street',
     street_2: 'Suite 500',
     city: 'Berlin',
+    state: 'BE',
     country: 'DE',
     postal_code: '10115',
   };
@@ -457,6 +459,7 @@ const billing = {
   street_1: '123 Main Street',
   street_2: 'Suite 500',
   city: 'Berlin',
+  state: 'BE',
   country: 'DE',
   postal_code: '10115',
 };
@@ -579,6 +582,7 @@ const BILLING = {
   street_1: '123 Main Street',
   street_2: 'Suite 500',
   city: 'Berlin',
+  state: 'BE',
   country: 'DE',
   postal_code: '10115',
 };
@@ -714,12 +718,14 @@ const inputStyle = {
 ### Billing
 
 Used by `PayerAuthentication` and `<safepay-payer-authentication>`.
+`street_2`, `state`, and `postal_code` are optional.
 
 ```ts
 type Billing = {
   street_1: string;
   street_2?: string;
   city: string;
+  state?: string;
   country: string;
   postal_code?: string;
 };
@@ -732,6 +738,7 @@ const billing = {
   street_1: '123 Main Street',
   street_2: 'Suite 500',
   city: 'Berlin',
+  state: 'BE',
   country: 'DE',
   postal_code: '10115',
 };
