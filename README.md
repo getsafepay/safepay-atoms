@@ -718,6 +718,7 @@ const inputStyle = {
 ### Billing
 
 Used by `PayerAuthentication` and `<safepay-payer-authentication>`.
+`street_2`, `state`, and `postal_code` are optional.
 
 ```ts
 type Billing = {
