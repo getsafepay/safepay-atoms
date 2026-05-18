@@ -62,6 +62,7 @@ Set properties directly on the element for functions, objects, and non-string va
 | tracker                            | string    | Tracking identifier                      |
 | validationEvent                    | 'submit' \| 'change' \| 'keydown' \| 'none' (string) | Determines when card inputs are validated (defaults to 'submit') |
 | inputStyle                         | InputStyle | Inline styles forwarded to the secure iframe inputs |
+| promoCode                          | string    | Optional promo code to auto-apply on load. Applied once discount offers are fetched from the API. |
 | onReady                             | function  | Callback when the embedded iframe signals it is ready |
 | onError                            | function  | Error callback handler                   |
 | onValidated                        | function  | Validation success callback             |
@@ -383,6 +384,7 @@ function PaymentForm() {
 | tracker                       | string                       | Tracking identifier                                     | ✅ |
 | validationEvent               | 'submit' \| 'change' \| 'keydown' \| 'none' | Choose when validation runs (defaults to `submit`) | ✅ |
 | inputStyle                    | React.CSSProperties          | Inline styles forwarded to the secure iframe inputs     |    |
+| promoCode                     | string                       | Optional promo code to auto-apply on load. Applied once discount offers are fetched from the API. |          |
 | onReady                       | () => void                   | Callback when the embedded iframe signals it is ready   |          |
 | onProceedToAuthentication     | (data: any) => void           | Callback when ready to proceed to authentication        |          |
 | onValidated                   | () => void                   | Callback on successful validation                       |          |
@@ -572,10 +574,8 @@ type PayerAuthSession = {
 
 type DiscountBody = {
   dry_run: boolean;
-  bin_discount: {
-    cardscheme_id: string;
-    bin: string;
-  };
+  bin_discount?: { cardscheme_id: string; bin: string };
+  promo_discount?: { code: string };
 };
 
 const BILLING = {
@@ -624,6 +624,7 @@ export default function CombinedDemo() {
           validationEvent="submit"
           inputStyle={CARD_INPUT_STYLE}
           imperativeRef={cardRef}
+          // promoCode="SAVE10"  — optional: auto-applies this promo code once offers load
           onReady={() => console.log('card iframe ready')}
           onError={(error) => console.log(error)}
           onValidated={() => console.log('validated')}
@@ -771,9 +772,12 @@ Used by `PayerAuthentication` and `<safepay-payer-authentication>`. Pass this as
 ```ts
 type DiscountBody = {
   dry_run: boolean;
-  bin_discount: {
+  bin_discount?: {
     cardscheme_id: string;
     bin: string;
+  };
+  promo_discount?: {
+    code: string;
   };
 };
 ```
@@ -781,11 +785,20 @@ type DiscountBody = {
 Examples:
 
 ```ts
-const discountBody = {
+// BIN-based discount (applied automatically when the user enters their card number)
+const binDiscountBody = {
   dry_run: true,
   bin_discount: {
     cardscheme_id: 'visa',
     bin: '411111',
+  },
+};
+
+// Promo code discount (applied automatically when a promoCode is passed to CardCapture)
+const promoDiscountBody = {
+  dry_run: true,
+  promo_discount: {
+    code: 'SAVE10',
   },
 };
 ```
@@ -793,6 +806,7 @@ const discountBody = {
 Notes:
 - `bin` is the first 6 digits of the card number, with no spaces.
 - `dry_run` evaluates the discount without committing application when your flow supports it.
+- `bin_discount` and `promo_discount` are mutually exclusive in a single request.
 
 ### CardCaptureImperativeRef
 
