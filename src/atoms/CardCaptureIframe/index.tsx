@@ -12,6 +12,7 @@ export interface CardCaptureProps {
   validationEvent: string;
   inputStyle?: React.CSSProperties;
   promoCode?: string;
+  forcePromoCode?: boolean;
   onDiscountApplied?: (payload: any) => void;
   onProceedToAuthentication?: (data: any) => void;
   onValidated?: () => void;
@@ -60,6 +61,7 @@ const CardCapture = ({
     validationEvent,
     inputStyle,
     promoCode,
+    forcePromoCode,
     onValidated = () => {},
     onDiscountApplied = () => {},
     onProceedToAuthentication = () => {},
@@ -105,8 +107,9 @@ const CardCapture = ({
       inputStyle: { ...styles, ...inputStyle },
       validationEvent,
       promoCode,
+      forcePromoCode,
     }),
-    [styles, normalizedEnv, authToken, tracker, inputStyle, validationEvent, promoCode]
+    [styles, normalizedEnv, authToken, tracker, inputStyle, validationEvent, promoCode, forcePromoCode]
   );
 
   useEffect(() => {

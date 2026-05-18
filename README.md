@@ -63,6 +63,7 @@ Set properties directly on the element for functions, objects, and non-string va
 | validationEvent                    | 'submit' \| 'change' \| 'keydown' \| 'none' (string) | Determines when card inputs are validated (defaults to 'submit') |
 | inputStyle                         | InputStyle | Inline styles forwarded to the secure iframe inputs |
 | promoCode                          | string    | Optional promo code to auto-apply on load. Applied once discount offers are fetched from the API. |
+| forcePromoCode                     | boolean   | When `true` and a `promoCode` is set, BIN-based card scheme discounts are ignored and the promo code is always used. |
 | onReady                             | function  | Callback when the embedded iframe signals it is ready |
 | onError                            | function  | Error callback handler                   |
 | onValidated                        | function  | Validation success callback             |
@@ -385,6 +386,7 @@ function PaymentForm() {
 | validationEvent               | 'submit' \| 'change' \| 'keydown' \| 'none' | Choose when validation runs (defaults to `submit`) | ✅ |
 | inputStyle                    | React.CSSProperties          | Inline styles forwarded to the secure iframe inputs     |    |
 | promoCode                     | string                       | Optional promo code to auto-apply on load. Applied once discount offers are fetched from the API. |          |
+| forcePromoCode                | boolean                      | When `true` and a `promoCode` is set, BIN-based card scheme discounts are ignored and the promo code is always used. |          |
 | onReady                       | () => void                   | Callback when the embedded iframe signals it is ready   |          |
 | onProceedToAuthentication     | (data: any) => void           | Callback when ready to proceed to authentication        |          |
 | onValidated                   | () => void                   | Callback on successful validation                       |          |
