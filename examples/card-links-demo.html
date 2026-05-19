@@ -59,7 +59,8 @@
     var ENVIRONMENT = 'sandbox';
     var TRACKER = 'your_tracker_token';
     var CLIENT_SECRET = 'your_auth_token';
-    var PROMO_CODE = ''; // optional: set to a promo code string to auto-apply it on load
+    var PROMO_CODE = '';       // optional: set to a promo code string to auto-apply it on load
+    var FORCE_PROMO_CODE = false; // optional: when true, ignores BIN discounts and always applies the promo code
     var USER = '';
     var BILLING = {
       street_1: '123 Main Street',
@@ -115,6 +116,7 @@
     cardAtom.tracker = TRACKER;
     cardAtom.validationEvent = 'submit';
     if (PROMO_CODE) { cardAtom.promoCode = PROMO_CODE; }
+    if (FORCE_PROMO_CODE) { cardAtom.forcePromoCode = true; }
     cardAtom.inputStyle = {
       fontFamily: '"Courier New", ui-monospace, monospace',
       fontSize: '18px',
