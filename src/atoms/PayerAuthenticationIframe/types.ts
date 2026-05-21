@@ -16,6 +16,7 @@ interface Billing {
   street_1: string;
   street_2?: string;
   city: string;
+  state?: string;
   country: string;
   postal_code?: string;
 }

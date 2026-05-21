@@ -1,148 +1,157 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Safepay Card Capture Demo</title>
-    <script src="/dist/components/index.global.js"></script>
-  </head>
-  <style type="text/css">
-    .card-frame {
-      width: 22.5rem;
-      height: 2.6rem;
-    }
-    .modal-backdrop {
-      position: fixed;
-      width: 100%;
-      height: 100%;
-      inset: 0px;
-      background-color: rgba(0, 0, 0, 0.5);
-      z-index: 2;
-      cursor: pointer;
-    }
 
-    .show {
-      display: block;
-    }
+<head>
+  <meta charset="utf-8" />
+  <title>Safepay Card Capture Demo</title>
+  <script src="/dist/components/index.global.js"></script>
+</head>
+<style type="text/css">
+  .card-frame {
+    width: 22.5rem;
+    height: 2.6rem;
+  }
 
-    .hide {
-      display: none;
-    }
+  .modal-backdrop {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    inset: 0px;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 2;
+    cursor: pointer;
+  }
 
-    .popup {
-      position: absolute;
-      top: 12.5%;
-      left: 25%;
-      width: 40%;
-      height: 75%;
-      border: 1px solid black;
-      background-color: white;
-      z-index: 2;
-    }
-  </style>
-  <body>
-    <h1>Card Capture Atom</h1>
-    <div class="card-frame">
-      <safepay-card-atom></safepay-card-atom>
+  .show {
+    display: block;
+  }
+
+  .hide {
+    display: none;
+  }
+
+  .popup {
+    position: absolute;
+    top: 12.5%;
+    left: 25%;
+    width: 40%;
+    height: 75%;
+    border: 1px solid black;
+    background-color: white;
+    z-index: 2;
+  }
+</style>
+
+<body>
+  <h1>Card Capture Atom</h1>
+  <div class="card-frame">
+    <safepay-card-atom></safepay-card-atom>
+  </div>
+  <button onclick="handleSubmit()">Submit</button>
+  <div id="threeds-modal" class="modal-backdrop hide">
+    <div class="popup">
+      <safepay-payer-auth-atom></safepay-payer-auth-atom>
     </div>
-    <button onclick="handleSubmit()">Submit</button>
-    <div id="threeds-modal" class="modal-backdrop hide">
-      <div class="popup">
-        <safepay-payer-auth-atom></safepay-payer-auth-atom>
-      </div>
-    </div>
+  </div>
 
-    <script type="text/javascript">
+  <script type="text/javascript">
 
-      var ENVIRONMENT = '';
-      var TRACKER = '';
-      var CLIENT_SECRET = '';
-      var USER = '';
-      var BILLING = {
-        street_1: '123 Main Street',
-        street_2: 'Suite 500',
-        city: 'Berlin',
-        country: 'DE',
-        postal_code: '10115',
-      };
+    var ENVIRONMENT = 'sandbox';
+    var TRACKER = 'your_tracker_token';
+    var CLIENT_SECRET = 'your_auth_token';
+    var PROMO_CODE = '';       // optional: set to a promo code string to auto-apply it on load
+    var FORCE_PROMO_CODE = false; // optional: when true, ignores BIN discounts and always applies the promo code
+    var USER = '';
+    var BILLING = {
+      street_1: '123 Main Street',
+      street_2: 'Suite 500',
+      city: 'Berlin',
+      country: 'DE',
+      state: 'BE',
+      postal_code: '10115',
+    };
 
-      const cardAtom = document.querySelector('safepay-card-atom');
-      const payerAuthAtom = document.querySelector('safepay-payer-auth-atom');
-      const modal = document.getElementById('threeds-modal');
+    const cardAtom = document.querySelector('safepay-card-atom');
+    const payerAuthAtom = document.querySelector('safepay-payer-auth-atom');
+    const modal = document.getElementById('threeds-modal');
 
-      payerAuthAtom.environment = ENVIRONMENT;
-      payerAuthAtom.authToken = CLIENT_SECRET;
-      payerAuthAtom.tracker = TRACKER;
-      payerAuthAtom.user = USER;
-      payerAuthAtom.billing = BILLING;
-      payerAuthAtom.authorizationOptions = {
-        do_capture: true,
-        do_card_on_file: true,
-      };
+    payerAuthAtom.environment = ENVIRONMENT;
+    payerAuthAtom.authToken = CLIENT_SECRET;
+    payerAuthAtom.tracker = TRACKER;
+    payerAuthAtom.user = USER;
+    payerAuthAtom.billing = BILLING;
+    payerAuthAtom.authorizationOptions = {
+      do_capture: true,
+      do_card_on_file: true,
+    };
 
-      payerAuthAtom.onPayerAuthenticationFailure = function (data) {
-        console.log('onPayerAuthenticationFailure', data);
-        modal.classList.remove('show');
-        modal.classList.add('hide');
-      };
-      payerAuthAtom.onPayerAuthenticationSuccess = function (data) {
-        console.log('onPayerAuthenticationSuccess', data);
-        modal.classList.remove('show');
-        modal.classList.add('hide');
-      };
-      payerAuthAtom.onPayerAuthenticationFrictionless = function (data) {
-        console.log('onPayerAuthenticationFrictionless', data);
-        modal.classList.remove('show');
-        modal.classList.add('hide');
-      };
-      payerAuthAtom.onPayerAuthenticationUnavailable = function (data) {
-        console.log('onPayerAuthenticationUnavailable', data);
-        modal.classList.remove('show');
-        modal.classList.add('hide');
-      };
-      payerAuthAtom.onSafepayError = function (error) {
-        console.log('onSafepayError', error.message);
-        modal.classList.remove('show');
-        modal.classList.add('hide');
-      };
+    payerAuthAtom.onPayerAuthenticationFailure = function (data) {
+      console.log('onPayerAuthenticationFailure', data);
+      modal.classList.remove('show');
+      modal.classList.add('hide');
+    };
+    payerAuthAtom.onPayerAuthenticationSuccess = function (data) {
+      console.log('onPayerAuthenticationSuccess', data);
+      modal.classList.remove('show');
+      modal.classList.add('hide');
+    };
+    payerAuthAtom.onPayerAuthenticationFrictionless = function (data) {
+      console.log('onPayerAuthenticationFrictionless', data);
+      modal.classList.remove('show');
+      modal.classList.add('hide');
+    };
+    payerAuthAtom.onPayerAuthenticationUnavailable = function (data) {
+      console.log('onPayerAuthenticationUnavailable', data);
+      modal.classList.remove('show');
+      modal.classList.add('hide');
+    };
+    payerAuthAtom.onSafepayError = function (error) {
+      console.log('onSafepayError', error.message);
+      modal.classList.remove('show');
+      modal.classList.add('hide');
+    };
 
-      cardAtom.environment = ENVIRONMENT;
-      cardAtom.authToken = CLIENT_SECRET;
-      cardAtom.tracker = TRACKER;
-      cardAtom.validationEvent = 'submit';
-      cardAtom.inputStyle = {
-        fontFamily: '"Courier New", ui-monospace, monospace',
-        fontSize: '18px',
-        color: '#111827',
-      };
-      cardAtom.onReady = function () {
-        console.log('card iframe ready');
-      };
-      cardAtom.onError = function (err) {
-        console.log(err);
-      };
-      cardAtom.onValidated = function () {
-        console.log('validated');
-      };
-      cardAtom.onDiscountApplied = function (data) {
-        if (data && data.discountBody) {
-          payerAuthAtom.discountBody = data.discountBody;
-        }
-      };
-      cardAtom.onProceedToAuthentication = function (data) {
-        payerAuthAtom.deviceDataCollectionJWT = data.accessToken;
-        payerAuthAtom.deviceDataCollectionURL = data.deviceDataCollectionURL;
-
-        modal.classList.remove('hide');
-        modal.classList.add('show');
-      };
-
-      function handleSubmit(e) {
-        const validityPromise = cardAtom.fetchValidity();
-        validityPromise.then((isValid) => {
-          console.log(isValid);
-          cardAtom.submit();
-        });
+    cardAtom.environment = ENVIRONMENT;
+    cardAtom.authToken = CLIENT_SECRET;
+    cardAtom.tracker = TRACKER;
+    cardAtom.validationEvent = 'submit';
+    if (PROMO_CODE) { cardAtom.promoCode = PROMO_CODE; }
+    if (FORCE_PROMO_CODE) { cardAtom.forcePromoCode = true; }
+    cardAtom.inputStyle = {
+      fontFamily: '"Courier New", ui-monospace, monospace',
+      fontSize: '18px',
+      color: '#111827',
+    };
+    cardAtom.onReady = function () {
+      console.log('card iframe ready');
+    };
+    cardAtom.onError = function (err) {
+      console.log(err);
+    };
+    cardAtom.onValidated = function () {
+      console.log('validated');
+    };
+    cardAtom.onDiscountApplied = function (data) {
+      if (data && data.discountBody) {
+        payerAuthAtom.discountBody = data.discountBody;
       }
-    </script>
-  </body>
+    };
+    cardAtom.onProceedToAuthentication = function (data) {
+      payerAuthAtom.deviceDataCollectionJWT = data.accessToken;
+      payerAuthAtom.deviceDataCollectionURL = data.deviceDataCollectionURL;
+
+      modal.classList.remove('hide');
+      modal.classList.add('show');
+    };
+
+    function handleSubmit(e) {
+      const validityPromise = cardAtom.fetchValidity();
+      validityPromise.then((isValid) => {
+        console.log(isValid);
+        cardAtom.submit();
+      });
+    }
+  </script>
+</body>
+
 </html>
