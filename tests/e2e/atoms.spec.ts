@@ -1,14 +1,9 @@
 import { expect, test, Page, Frame } from '@playwright/test';
+import { createLiveSession, createTracker, LiveSession } from './live-session';
+import { REGRESSION_CARDS } from './test-cards';
 
 const useRealDrops = process.env.USE_REAL_DROPS === '1';
 const dropsEnv = (process.env.DROPS_ENV || 'sandbox').toLowerCase();
-const dropsBaseByEnv: Record<string, string> = {
-  sandbox: 'https://sandbox.api.getsafepay.com/drops',
-  development: 'https://dev.api.getsafepay.com/drops',
-  production: 'https://getsafepay.com/drops',
-  local: 'http://127.0.0.1:3000',
-};
-const dropsBase = process.env.DROPS_BASE || dropsBaseByEnv[dropsEnv] || dropsBaseByEnv.sandbox;
 
 const waitForFrameUrl = async (page: Page, substring: string): Promise<Frame> => {
   const existing = page.frames().find((frame) => frame.url().includes(substring) && frame.url() !== 'about:blank');
@@ -56,13 +51,27 @@ const renderHost = async (page: Page) => {
             payerAuthAtom.deviceDataCollectionURL = data.deviceDataCollectionURL;
             modal.classList.remove('hide');
             modal.classList.add('show');
+            window.__atomsCallbacks.proceedToAuthentication = data;
           };
 
-          payerAuthAtom.onPayerAuthenticationSuccess = function () {
+          payerAuthAtom.onPayerAuthenticationSuccess = function (data) {
             modal.classList.remove('show');
             modal.classList.add('hide');
+            window.__atomsCallbacks.success = data;
+          };
+          payerAuthAtom.onPayerAuthenticationFailure = function (data) {
+            modal.classList.remove('show');
+            modal.classList.add('hide');
+            window.__atomsCallbacks.failure = data;
+          };
+          payerAuthAtom.onPayerAuthenticationFrictionless = function (data) {
+            window.__atomsCallbacks.frictionless = data;
+          };
+          payerAuthAtom.onPayerAuthenticationUnavailable = function (data) {
+            window.__atomsCallbacks.unavailable = data;
           };
 
+          window.__atomsCallbacks = { proceedToAuthentication: null, success: null, failure: null, frictionless: null, unavailable: null };
           window.__atomsHost = { cardAtom, payerAuthAtom, modal };
           window.__atomsHostReady = true;
         };
@@ -473,96 +482,92 @@ test.describe('Safepay Atoms messaging to drops', () => {
     });
   });
 
-  test('opt-in: happy path typing against live drops', async ({ page }) => {
-    test.skip(!useRealDrops, 'Opt-in: set USE_REAL_DROPS=1 with a reachable drops instance');
+});
 
-    await renderHost(page);
+test.describe(`live regression against ${dropsEnv} drops`, () => {
+  test.skip(!useRealDrops, 'Opt-in: set USE_REAL_DROPS=1 and X_SFPY_MERCHANT_SECRET to run against a live backend');
 
-    const tracker = process.env.DROPS_TRACKER || 'tracker_live';
-    const authToken = process.env.DROPS_AUTH_TOKEN || 'secret_live';
-    const user = process.env.DROPS_USER || '';
-    const env = dropsEnv;
+  let session: LiveSession;
 
-    await page.evaluate(
-      ({ tracker, authToken, user, env }) => {
-        const { cardAtom, payerAuthAtom } = (window as any).__atomsHost;
-
-        cardAtom.environment = env;
-        cardAtom.authToken = authToken;
-        cardAtom.tracker = tracker;
-
-        payerAuthAtom.environment = env;
-        payerAuthAtom.authToken = authToken;
-        payerAuthAtom.tracker = tracker;
-        payerAuthAtom.user = user;
-      },
-      { tracker, authToken, user, env }
-    );
-
-    const cardFrame = await waitForFrameUrl(page, 'cardlink');
-    await cardFrame.waitForLoadState('domcontentloaded');
-
-    await cardFrame.getByPlaceholder(/Card number/i).fill('4242424242424242');
-    await cardFrame.getByPlaceholder(/^MM$/i).fill('12');
-    await cardFrame.getByPlaceholder(/^YY$/i).fill('34');
-    await cardFrame.getByPlaceholder(/CVV/i).fill('123');
-
-    await cardFrame.waitForTimeout(500);
+  test.beforeAll(async () => {
+    session = await createLiveSession();
   });
 
-  test('opt-in: records live drops requests', async ({ page }) => {
-    test.skip(!useRealDrops, 'Opt-in: set USE_REAL_DROPS=1 to run against live drops');
+  for (const card of REGRESSION_CARDS) {
+    test(`${card.scenario}: ${card.description}`, async ({ page }) => {
+      if (card.flow === 'step-up') test.setTimeout(90_000);
 
-    const tracker = process.env.DROPS_TRACKER || 'tracker_live';
-    const authToken = process.env.DROPS_AUTH_TOKEN || 'secret_live';
-    const user = process.env.DROPS_USER || '';
+      const tracker = await createTracker(session);
 
-    const requests: { url: string; method: string }[] = [];
-    page.context().on('request', (req) => {
-      const url = req.url();
-      if (url.includes('/cardlink') || url.includes('/authlink')) {
-        requests.push({ url, method: req.method() });
+      await renderHost(page);
+
+      await page.evaluate(
+        ({ authToken, tracker, user, env }) => {
+          const { cardAtom, payerAuthAtom } = (window as any).__atomsHost;
+
+          cardAtom.environment = env;
+          cardAtom.authToken = authToken;
+          cardAtom.tracker = tracker;
+
+          payerAuthAtom.environment = env;
+          payerAuthAtom.authToken = authToken;
+          payerAuthAtom.tracker = tracker;
+          payerAuthAtom.user = user;
+        },
+        { authToken: session.authToken, tracker, user: session.user, env: session.env }
+      );
+
+      const cardFrame = await waitForFrameUrl(page, 'cardlink');
+      await cardFrame.waitForLoadState('domcontentloaded');
+
+      await cardFrame.getByPlaceholder(/Card number/i).fill(card.number);
+      await cardFrame.getByPlaceholder(/^MM$/i).fill(card.expiry.mm);
+      await cardFrame.getByPlaceholder(/^YY$/i).fill(card.expiry.yy);
+      await cardFrame.getByPlaceholder(/CVV/i).fill(card.cvv);
+
+      await page.evaluate(() => (window as any).__atomsHost.cardAtom.submit());
+
+      if (card.flow === 'frictionless') {
+        if (card.outcome === 'proceed') {
+          await page.waitForFunction(
+            () => Boolean((window as any).__atomsCallbacks.frictionless),
+            { timeout: 20_000 }
+          );
+        } else {
+          // drops fires enrollment__failed → atoms routes to onPayerAuthenticationUnavailable
+          await page.waitForFunction(
+            () => Boolean((window as any).__atomsCallbacks.unavailable),
+            { timeout: 20_000 }
+          );
+        }
+      } else {
+        await page.waitForFunction(
+          () => Boolean((window as any).__atomsCallbacks.proceedToAuthentication),
+          { timeout: 20_000 }
+        );
+        await expect(page.locator('#threeds-modal')).toHaveClass(/show/);
+
+        // The authlink iframe navigates to Cardinal's step-up page, which renders
+        // a nested ACS iframe containing the challenge form.
+        const challengeFrame = page
+          .frameLocator('iframe').nth(1)  // payer auth iframe (now at Cardinal's URL)
+          .frameLocator('iframe');         // ACS challenge iframe inside Cardinal
+
+        await challengeFrame.getByPlaceholder('Enter Code Here').fill('1234');
+        await challengeFrame.getByRole('button', { name: 'SUBMIT' }).click();
+
+        if (card.outcome === 'proceed') {
+          await page.waitForFunction(
+            () => Boolean((window as any).__atomsCallbacks.success),
+            { timeout: 30_000 }
+          );
+        } else {
+          await page.waitForFunction(
+            () => Boolean((window as any).__atomsCallbacks.failure),
+            { timeout: 30_000 }
+          );
+        }
       }
     });
-
-    await renderHost(page);
-
-    const atomsAvailable = await page.evaluate(() => Boolean((window as any).atoms));
-    if (!atomsAvailable) {
-      throw new Error('window.atoms is not available; components script may not have loaded');
-    }
-
-    await page.evaluate(
-      ({ tracker, authToken, user, env }) => {
-        const { cardAtom, payerAuthAtom } = (window as any).__atomsHost;
-
-        cardAtom.setAttribute('environment', env);
-        cardAtom.setAttribute('auth-token', authToken);
-        cardAtom.setAttribute('tracker', tracker);
-        cardAtom.environment = env;
-        cardAtom.authToken = authToken;
-        cardAtom.tracker = tracker;
-
-        payerAuthAtom.setAttribute('environment', env);
-        payerAuthAtom.setAttribute('auth-token', authToken);
-        payerAuthAtom.setAttribute('tracker', tracker);
-        payerAuthAtom.setAttribute('user', user);
-        payerAuthAtom.environment = env;
-        payerAuthAtom.authToken = authToken;
-        payerAuthAtom.tracker = tracker;
-        payerAuthAtom.user = user;
-      },
-      { tracker, authToken, user, env: dropsEnv }
-    );
-
-    await expect.poll(() => requests.filter((r) => r.url.includes('cardlink')).length, {
-      timeout: 10000,
-    }).toBeGreaterThan(0);
-    await expect.poll(() => requests.filter((r) => r.url.includes('authlink')).length, {
-      timeout: 10000,
-    }).toBeGreaterThan(0);
-
-    const frameUrls = page.frames().map((f) => f.url());
-    test.info().annotations.push({ type: 'frames', description: frameUrls.join(', ') });
-  });
+  }
 });

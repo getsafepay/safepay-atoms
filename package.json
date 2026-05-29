@@ -26,6 +26,9 @@
     "react": "dist/react/index.js",
     "devDependencies": {
         "@playwright/test": "^1.57.0",
+        "@sfpy/node-core": "^0.3.5",
+        "axios": "^1.15.0",
+        "@types/node": "^20.0.0",
         "@swc/core": "^1.15.8",
         "@types/react": "^18.2.48",
         "@types/react-dom": "^18.2.18",
