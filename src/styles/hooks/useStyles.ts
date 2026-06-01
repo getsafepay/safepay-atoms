@@ -53,6 +53,8 @@ export const useAppendStyles = (chunkName: ChunkName, isShadow: boolean) => {
    * @returns {ChunkName[]} An array of related chunk names.
    */
   const getRelatedStyleChunks = (name: ChunkName): ChunkName[] => {
+    if (!window.atoms?.styleChunks) return [];
+
     const chunks = [...(window.atoms?.jsChunkImports?.[name] || []), name].filter(
       (chunk) => !!window.atoms?.styleChunks?.[chunk]
     );
