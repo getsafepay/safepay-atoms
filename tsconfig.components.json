@@ -6,7 +6,6 @@
             "dom",
             "esnext"
         ],
-        "baseUrl": "./src/",
         "importHelpers": true,
         // output .d.ts declaration files for consumers
         "declaration": true,
@@ -25,8 +24,7 @@
         // noUnused* overlap with @typescript-eslint/no-unused-vars, can disable if duplicative
         "noUnusedLocals": false,
         "noUnusedParameters": false,
-        // use Node's module resolution algorithm, instead of the legacy TS one
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
         // transpile JSX to React.createElement
         // interop between ESM and CJS modules. Recommended by TS
         "esModuleInterop": true,

@@ -5,9 +5,7 @@ export default defineConfig({
     format: ['iife'],
     globalName: 'Safepay',
     outDir: 'dist/components',
-    dts: {
-        entry: 'src/index.ts',
-    },
+    dts: false,
     tsconfig: 'tsconfig.components.json',
     splitting: false,
     minify: true,

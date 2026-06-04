@@ -86,6 +86,7 @@ const renderHost = async (page: Page) => {
   );
 };
 
+
 const createMockDropsPage = (label: string, options?: { autoAck?: boolean }) => `
 <!doctype html>
 <html>
@@ -484,6 +485,7 @@ test.describe('Safepay Atoms messaging to drops', () => {
 
 });
 
+
 test.describe(`live regression against ${dropsEnv} drops`, () => {
   test.skip(!useRealDrops, 'Opt-in: set USE_REAL_DROPS=1 and X_SFPY_MERCHANT_SECRET to run against a live backend');
 
@@ -495,7 +497,7 @@ test.describe(`live regression against ${dropsEnv} drops`, () => {
 
   for (const card of REGRESSION_CARDS) {
     test(`${card.scenario}: ${card.description}`, async ({ page }) => {
-      if (card.flow === 'step-up') test.setTimeout(90_000);
+      if (card.flow === 'step-up') test.setTimeout(120_000);
 
       const tracker = await createTracker(session);
 
@@ -553,6 +555,7 @@ test.describe(`live regression against ${dropsEnv} drops`, () => {
           .frameLocator('iframe').nth(1)  // payer auth iframe (now at Cardinal's URL)
           .frameLocator('iframe');         // ACS challenge iframe inside Cardinal
 
+        await challengeFrame.getByPlaceholder('Enter Code Here').waitFor({ state: 'visible', timeout: 60_000 });
         await challengeFrame.getByPlaceholder('Enter Code Here').fill('1234');
         await challengeFrame.getByRole('button', { name: 'SUBMIT' }).click();
 

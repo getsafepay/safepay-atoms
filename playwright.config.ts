@@ -3,9 +3,17 @@ import { defineConfig, devices } from '@playwright/test';
 const projects = [
   {
     name: 'atoms',
-    testMatch: /atoms\.spec\.ts/,
+    testMatch: /\/atoms\.spec\.ts$/,
     use: {
       baseURL: 'http://localhost:4173',
+      ...devices['Desktop Chrome'],
+    },
+  },
+  {
+    name: 'react',
+    testMatch: /react-atoms\.spec\.ts/,
+    use: {
+      baseURL: 'http://localhost:4174',
       ...devices['Desktop Chrome'],
     },
   },
@@ -30,11 +38,19 @@ export default defineConfig({
     trace: 'on-first-retry',
     baseURL: 'http://localhost:4173',
   },
-  webServer: {
-    command: 'pnpm run build && pnpm exec serve . --listen 4173 --no-request-logging --no-clipboard',
-    url: 'http://localhost:4173/examples/card-links-demo.html',
-    reuseExistingServer: false,
-    timeout: 120_000,
-  },
+  webServer: [
+    {
+      command: 'pnpm run build && pnpm exec serve . --listen 4173 --no-request-logging --no-clipboard',
+      url: 'http://localhost:4173/examples/card-links-demo.html',
+      reuseExistingServer: false,
+      timeout: 120_000,
+    },
+    {
+      command: 'pnpm exec vite --config vite.react-host.config.ts',
+      url: 'http://localhost:4174',
+      reuseExistingServer: !process.env.CI,
+      timeout: 30_000,
+    },
+  ],
   projects,
 });
