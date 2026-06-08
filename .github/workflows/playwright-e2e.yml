@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  e2e:
+  e2e-web-components:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -31,7 +31,62 @@ jobs:
       - name: Run Playwright tests (atoms project)
         run: pnpm exec playwright test --project=atoms
 
-  e2e-live:
+  e2e-react:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.11.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps
+
+      - name: Run Playwright tests (react project)
+        run: pnpm exec playwright test --project=react
+
+  e2e-react-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.11.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps
+
+      - name: Run live regression tests (react project)
+        run: pnpm exec playwright test --project=react
+        env:
+          USE_REAL_DROPS: ${{ vars.USE_REAL_DROPS }}
+          DROPS_ENV: ${{ vars.DROPS_ENV }}
+          X_SFPY_MERCHANT_SECRET: ${{ secrets.X_SFPY_MERCHANT_SECRET }}
+          SFPY_MERCHANT_API_KEY: ${{ secrets.SFPY_MERCHANT_API_KEY }}
+
+  e2e-web-components-live:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
