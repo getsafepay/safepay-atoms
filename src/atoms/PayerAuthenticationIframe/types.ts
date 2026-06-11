@@ -1,6 +1,7 @@
 interface PayerAuthData {
   tracker: string;
   request_id?: string;
+  errorMessage?: string;
 }
 
 interface PayerAuthErrorData extends PayerAuthData {
