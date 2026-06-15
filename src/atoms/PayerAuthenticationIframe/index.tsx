@@ -97,7 +97,7 @@ const PayerAuthentication = ({
         onPayerAuthenticationFrictionless(data);
         break;
       case 'safepay-inframe__enrollment__failed':
-        onPayerAuthenticationUnavailable({ tracker });
+        onPayerAuthenticationUnavailable({ tracker, ...data });
         break;
       case 'safepay-inframe__cardinal-3ds__failure':
         onPayerAuthenticationFailure(data);
