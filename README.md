@@ -66,7 +66,7 @@ Set properties directly on the element for functions, objects, and non-string va
 | forcePromoCode                     | boolean   | When `true` and a `promoCode` is set, BIN-based card scheme discounts are ignored and the promo code is always used. |
 | onReady                             | function  | Callback when the embedded iframe signals it is ready |
 | onError                            | function  | Error callback handler                   |
-| onValidated                        | function  | Validation success callback             |
+| onValidated                        | `(data: { bin: string; lastFour: string; cardType?: string }) => void` | Called when the card passes client-side validation. Receives the first 6 digits (`bin`), last 4 digits (`lastFour`), and the detected card type (`cardType`, e.g. `"visa"`). |
 | onDiscountApplied                  | function  | Discount applied callback (includes `discountBody`) |
 | onProceedToAuthentication          | function  | Authentication proceed callback         |
 | imperativeRef                      | CardCaptureImperativeRef | Ref object for imperative methods (optional) |
@@ -80,7 +80,7 @@ Attributes are string-only. For callbacks and objects, set properties directly:
 <script type="module">
   const cardAtom = document.getElementById('card-atom');
   cardAtom.onReady = () => console.log('ready');
-  cardAtom.onValidated = () => console.log('validated');
+  cardAtom.onValidated = ({ bin, lastFour, cardType }) => console.log('validated', bin, lastFour, cardType);
   cardAtom.onProceedToAuthentication = (data) => console.log('auth', data);
 </script>
 ```
@@ -386,7 +386,7 @@ function PaymentForm() {
         imperativeRef={cardRef}
         // Optional callbacks:
         // onReady={() => console.log('Card iframe ready')}
-        // onValidated={() => console.log('Card validated')}
+        // onValidated={(data) => console.log('Card validated', data.bin, data.lastFour, data.cardType)}
         // onDiscountApplied={(data) => console.log('Discount applied', data)}
         // onProceedToAuthentication={(data) => console.log('Proceed to auth', data)}
         // onError={(error) => console.error('Error', error)}
@@ -410,7 +410,7 @@ function PaymentForm() {
 | forcePromoCode                | boolean                      | When `true` and a `promoCode` is set, BIN-based card scheme discounts are ignored and the promo code is always used. |          |
 | onReady                       | () => void                   | Callback when the embedded iframe signals it is ready   |          |
 | onProceedToAuthentication     | (data: any) => void           | Callback when ready to proceed to authentication        |          |
-| onValidated                   | () => void                   | Callback on successful validation                       |          |
+| onValidated                   | `(data: CardValidatedData) => void` | Called when the card passes client-side validation. Receives `{ bin, lastFour, cardType? }`. |          |
 | onDiscountApplied             | (data: any) => void           | Callback when a discount is applied (includes `discountBody`) |          |
 | onError                       | (error: string) => void       | Error handling callback                                |          |
 | imperativeRef                 | React.MutableRefObject<any>  | Ref to control the component imperatively               | ✅ |
@@ -650,7 +650,7 @@ export default function CombinedDemo() {
           // promoCode="SAVE10"  — optional: auto-applies this promo code once offers load
           onReady={() => console.log('card iframe ready')}
           onError={(error) => console.log(error)}
-          onValidated={() => console.log('validated')}
+          onValidated={(data) => console.log('validated', data.bin, data.lastFour, data.cardType)}
           onDiscountApplied={(data) => {
             if (data?.discountBody) {
               setDiscountBody(data.discountBody);

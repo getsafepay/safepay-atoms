@@ -5,6 +5,12 @@ import { resolveBaseUrl } from '../../utils/funcs/resolveBaseUrl';
 import InframeComponent from './iframe';
 import { Environment, toEnvironment } from '../../types/environment';
 
+export type CardValidatedData = {
+  bin: string;
+  lastFour: string;
+  cardType?: string;
+};
+
 export interface CardCaptureProps {
   environment: Environment | string;
   authToken: string;
@@ -15,7 +21,7 @@ export interface CardCaptureProps {
   forcePromoCode?: boolean;
   onDiscountApplied?: (payload: any) => void;
   onProceedToAuthentication?: (data: any) => void;
-  onValidated?: () => void;
+  onValidated?: (data: CardValidatedData) => void;
   onError?: (error: string) => void;
   onReady?: () => void;
   imperativeRef: React.MutableRefObject<any>; // Replace 'any' with a specific type if possible
@@ -62,7 +68,7 @@ const CardCapture = ({
     inputStyle,
     promoCode,
     forcePromoCode,
-    onValidated = () => {},
+    onValidated = (_data: CardValidatedData) => {},
     onDiscountApplied = () => {},
     onProceedToAuthentication = () => {},
     onError = (e: string) => {},
@@ -154,7 +160,7 @@ const CardCapture = ({
       //   break;
       case 'safepay-inframe__validated':
         setErrorMessage(undefined);
-        onValidated();
+        onValidated(data as CardValidatedData);
         break;
       case 'safepay-inframe__fetch-validity':
         if (validationCallbackRef.current) {

@@ -62,11 +62,11 @@ describe('CardCapture', () => {
     expect(onError).toHaveBeenCalledWith('bad card');
   });
 
-  it('calls onValidated when the validated event fires', () => {
+  it('calls onValidated with card data when the validated event fires', () => {
     const onValidated = vi.fn();
     render(<CardCapture {...defaultProps} onValidated={onValidated} />);
-    act(() => { capturedOnInframeEvent?.('safepay-inframe__validated', {}); });
-    expect(onValidated).toHaveBeenCalledOnce();
+    act(() => { capturedOnInframeEvent?.('safepay-inframe__validated', { bin: '411111', lastFour: '1111', cardType: 'visa' }); });
+    expect(onValidated).toHaveBeenCalledWith({ bin: '411111', lastFour: '1111', cardType: 'visa' });
   });
 
   it('populates imperativeRef with submit, validate, fetchValidity and clear', () => {

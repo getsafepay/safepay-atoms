@@ -57,7 +57,7 @@
   <script type="text/javascript">
 
     var ENVIRONMENT = 'sandbox';
-    var TRACKER = 'your_tracker_token';
+    var TRACKER = 'your_tracker_id';
     var CLIENT_SECRET = 'your_auth_token';
     var PROMO_CODE = '';       // optional: set to a promo code string to auto-apply it on load
     var FORCE_PROMO_CODE = false; // optional: when true, ignores BIN discounts and always applies the promo code
@@ -88,27 +88,22 @@
     payerAuthAtom.onPayerAuthenticationFailure = function (data) {
       console.log('onPayerAuthenticationFailure', data);
       modal.classList.remove('show');
-      modal.classList.add('hide');
     };
     payerAuthAtom.onPayerAuthenticationSuccess = function (data) {
       console.log('onPayerAuthenticationSuccess', data);
       modal.classList.remove('show');
-      modal.classList.add('hide');
     };
     payerAuthAtom.onPayerAuthenticationFrictionless = function (data) {
       console.log('onPayerAuthenticationFrictionless', data);
       modal.classList.remove('show');
-      modal.classList.add('hide');
     };
     payerAuthAtom.onPayerAuthenticationUnavailable = function (data) {
       console.log('onPayerAuthenticationUnavailable', data);
       modal.classList.remove('show');
-      modal.classList.add('hide');
     };
     payerAuthAtom.onSafepayError = function (error) {
       console.log('onSafepayError', error.message);
       modal.classList.remove('show');
-      modal.classList.add('hide');
     };
 
     cardAtom.environment = ENVIRONMENT;
@@ -128,8 +123,8 @@
     cardAtom.onError = function (err) {
       console.log(err);
     };
-    cardAtom.onValidated = function () {
-      console.log('validated');
+    cardAtom.onValidated = function (data) {
+      console.log('validated', data.bin, data.lastFour, data.cardType);
     };
     cardAtom.onDiscountApplied = function (data) {
       if (data && data.discountBody) {
