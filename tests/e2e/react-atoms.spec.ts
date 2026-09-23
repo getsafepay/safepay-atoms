@@ -231,6 +231,7 @@ test.describe(`live regression against ${dropsEnv} drops (React components)`, ()
 
         const challengeFrame = page
           .frameLocator('iframe').nth(1)
+          .frameLocator('#threeds_challenge_iframe')
           .frameLocator('iframe');
 
         await challengeFrame.getByPlaceholder('Enter Code Here').waitFor({ state: 'visible', timeout: 60_000 });
