@@ -7,7 +7,7 @@ interface ImperativeRef {
   current: null | {
     submit: () => void;
     validate: () => void;
-    fetchValidity: () => boolean;
+    fetchValidity: () => Promise<boolean>;
     clear: () => void;
   };
 }
@@ -27,7 +27,7 @@ interface ImperativeRef {
  *
  * @method submit - Submits the card information if it has been entered.
  * @method validate - Validates the card information entered by the user.
- * @method fetchValidity - Returns a boolean indicating whether the entered card information is valid.
+ * @method fetchValidity - Returns a Promise that resolves to a boolean indicating whether the entered card information is valid.
  * @method clear - Clears the card information input fields.
  *
  * @example
@@ -90,7 +90,7 @@ export class CardCaptureAtom extends HTMLElement {
     this.imperativeRef.current?.validate?.();
   }
 
-  fetchValidity(): boolean | undefined {
+  fetchValidity(): Promise<boolean> | undefined {
     return this.imperativeRef.current?.fetchValidity?.();
   }
 

@@ -100,7 +100,7 @@ const cardAtom = document.querySelector('safepay-card-atom');
 |----------------|---------------------------------------------|-----------|---------------------------------------------|
 | `submit()`     | Triggers the submission of the card data    | `void`    | `cardAtom.submit()`                        |
 | `validate()`   | Performs validation of the current card input| `void`    | `cardAtom.validate()`                      |
-| `fetchValidity()`| Checks if the current card input is valid | `boolean` | `const isValid = cardAtom.fetchValidity()` |
+| `fetchValidity()`| Checks if the current card input is valid | `Promise<boolean>` | `const isValid = await cardAtom.fetchValidity()` |
 | `clear()`      | Clears all input fields                     | `void`    | `cardAtom.clear()`                         |
 
 #### Example Usage
@@ -115,11 +115,10 @@ cardAtom.submit();
 // Validate the input
 cardAtom.validate();
 
-// Check if input is valid
-const isValid = cardAtom.fetchValidity();
-isValid.then((isValid) => {
+// Check if input is valid (fetchValidity returns a Promise)
+cardAtom.fetchValidity().then((isValid) => {
   console.log(isValid);
-  cardAtom.submit();
+  if (isValid) cardAtom.submit();
 });
 // Clear the form
 cardAtom.clear();
