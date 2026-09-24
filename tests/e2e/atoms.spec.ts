@@ -549,11 +549,12 @@ test.describe(`live regression against ${dropsEnv} drops`, () => {
         );
         await expect(page.locator('#threeds-modal')).toHaveClass(/show/);
 
-        // The authlink iframe navigates to Cardinal's step-up page, which renders
-        // a nested ACS iframe containing the challenge form.
+        // Drops contains the step-up challenge in a nested iframe that loads
+        // Cardinal's step-up page, which renders the ACS iframe with the form.
         const challengeFrame = page
-          .frameLocator('iframe').nth(1)  // payer auth iframe (now at Cardinal's URL)
-          .frameLocator('iframe');         // ACS challenge iframe inside Cardinal
+          .frameLocator('iframe').nth(1)                  // payer auth iframe
+          .frameLocator('#threeds_challenge_iframe')      // Cardinal step-up page
+          .frameLocator('iframe');                        // ACS challenge iframe inside Cardinal
 
         await challengeFrame.getByPlaceholder('Enter Code Here').waitFor({ state: 'visible', timeout: 60_000 });
         await challengeFrame.getByPlaceholder('Enter Code Here').fill('1234');
