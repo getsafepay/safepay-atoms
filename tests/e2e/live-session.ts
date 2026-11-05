@@ -11,6 +11,7 @@ export interface LiveSession {
   user: string;
   env: string;
   _merchantApiKey: string;
+  _secretKey: string;
   _host: string;
 }
 
@@ -39,12 +40,14 @@ export async function createLiveSession(): Promise<LiveSession> {
   });
   const user: string = customerRes.data.token;
 
-  return { authToken, user, env, _merchantApiKey: merchantApiKey, _host: host };
+  return { authToken, user, env, _merchantApiKey: merchantApiKey, _secretKey: secretKey, _host: host };
 }
 
 export async function createTracker(session: LiveSession): Promise<string> {
-  const jwtClient = new Safepay(session.authToken, { authType: 'jwt', host: session._host });
-  const trackerRes = await jwtClient.payments.session.setup({
+  // Trackers are created server-side with the merchant secret, as a merchant
+  // integration would; merchant_api_key must belong to the same merchant.
+  const secretClient = new Safepay(session._secretKey, { authType: 'secret', host: session._host });
+  const trackerRes = await secretClient.payments.session.setup({
     merchant_api_key: session._merchantApiKey,
     intent: 'CYBERSOURCE',
     mode: 'payment',
