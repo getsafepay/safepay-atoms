@@ -1,7 +1,6 @@
 import { SafepayAtom } from '../../types/atoms';
 import { generateUUID } from '../../utils';
 import { defineReactiveProperties } from '../../utils/funcs/defineReactiveProperties';
-import { toCamelCase } from '../../utils/funcs/toCamelCase';
 
 interface ImperativeRef {
   current: null | {};
@@ -39,30 +38,30 @@ export class PayerAuthenticationAtom extends HTMLElement {
   attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
     if (oldValue === newValue) return;
 
-    let propName = toCamelCase(name);
-
-    if (propName in this) {
+    const propName = PayerAuthenticationAtom.attributeProps[name];
+    if (propName) {
       this[propName] = newValue;
     }
   }
 
-  static observedAttributes: string[] = [
-    'environment',
-    'tracker',
-    'authToken',
-    'user',
-    'billing',
-    'discountBody',
-    'deviceDataCollectionJWT',
-    'deviceDataCollectionURL',
-    'authorizationOptions',
-    'onPayerAuthenticationFailure',
-    'onPayerAuthenticationSuccess',
-    'onPayerAuthenticationFrictionless',
-    'onPayerAuthenticationRequired',
-    'onPayerAuthenticationUnavailable',
-    'onSafepayError'
-  ];
+  /**
+   * HTML attributes and the properties they set. Browsers lowercase attribute
+   * names, so these must be kebab-case: a camelCase name such as `authToken`
+   * would never match. Only string values belong here; callbacks and objects
+   * (inputStyle, billing, discountBody, ...) must be set as properties.
+   */
+  static attributeProps: Record<string, string> = {
+    environment: 'environment',
+    tracker: 'tracker',
+    'auth-token': 'authToken',
+    user: 'user',
+    'device-data-collection-jwt': 'deviceDataCollectionJWT',
+    'device-data-collection-url': 'deviceDataCollectionURL',
+  };
+
+  static get observedAttributes(): string[] {
+    return Object.keys(PayerAuthenticationAtom.attributeProps);
+  }
 
   static componentProps: string[] = [
     'environment',

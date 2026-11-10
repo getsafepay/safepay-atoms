@@ -486,6 +486,93 @@ test.describe('Safepay Atoms messaging to drops', () => {
 });
 
 
+test.describe('Safepay Atoms HTML attributes', () => {
+  // Browsers lowercase attribute names, so attributes must be observed in
+  // kebab-case. This configures both elements purely through HTML attributes
+  // (no JS properties) and checks every value reaches its property.
+  test('configures both elements from kebab-case HTML attributes', async ({ page }) => {
+    await page.goto('http://localhost:4173');
+    await page.setContent(`
+<!doctype html>
+<html>
+  <head>
+    <script src="http://localhost:4173/dist/components/index.global.js"></script>
+  </head>
+  <body>
+    <safepay-card-atom
+      environment="sandbox"
+      auth-token="tok_card"
+      tracker="trk_card"
+      validation-event="change"
+      promo-code="SAVE10"
+    ></safepay-card-atom>
+    <safepay-payer-auth-atom
+      environment="sandbox"
+      auth-token="tok_auth"
+      tracker="trk_auth"
+      user="usr_1"
+      device-data-collection-jwt="ddc_jwt"
+      device-data-collection-url="https://ddc.example.com/collect"
+    ></safepay-payer-auth-atom>
+  </body>
+</html>`);
+
+    await page.waitForFunction(() =>
+      Boolean(customElements.get('safepay-card-atom') && customElements.get('safepay-payer-auth-atom'))
+    );
+
+    const readProps = () =>
+      page.evaluate(() => {
+        const card = document.querySelector('safepay-card-atom') as any;
+        const auth = document.querySelector('safepay-payer-auth-atom') as any;
+        return {
+          card: {
+            environment: card.environment,
+            authToken: card.authToken,
+            tracker: card.tracker,
+            validationEvent: card.validationEvent,
+            promoCode: card.promoCode,
+          },
+          auth: {
+            environment: auth.environment,
+            authToken: auth.authToken,
+            tracker: auth.tracker,
+            user: auth.user,
+            deviceDataCollectionJWT: auth.deviceDataCollectionJWT,
+            deviceDataCollectionURL: auth.deviceDataCollectionURL,
+          },
+        };
+      });
+
+    expect(await readProps()).toEqual({
+      card: {
+        environment: 'sandbox',
+        authToken: 'tok_card',
+        tracker: 'trk_card',
+        validationEvent: 'change',
+        promoCode: 'SAVE10',
+      },
+      auth: {
+        environment: 'sandbox',
+        authToken: 'tok_auth',
+        tracker: 'trk_auth',
+        user: 'usr_1',
+        deviceDataCollectionJWT: 'ddc_jwt',
+        deviceDataCollectionURL: 'https://ddc.example.com/collect',
+      },
+    });
+
+    // Changing an attribute after the element is connected updates the property.
+    await page.evaluate(() => {
+      document.querySelector('safepay-card-atom')!.setAttribute('promo-code', 'SAVE20');
+      document.querySelector('safepay-payer-auth-atom')!.setAttribute('auth-token', 'tok_auth_2');
+    });
+    const updated = await readProps();
+    expect(updated.card.promoCode).toBe('SAVE20');
+    expect(updated.auth.authToken).toBe('tok_auth_2');
+  });
+});
+
 test.describe(`live regression against ${dropsEnv} drops`, () => {
   test.skip(!useRealDrops, 'Opt-in: set USE_REAL_DROPS=1 and X_SFPY_MERCHANT_SECRET to run against a live backend');
 

@@ -1,7 +1,6 @@
 import { SafepayAtom } from '../../types/atoms';
 import { generateUUID } from '../../utils';
 import { defineReactiveProperties } from '../../utils/funcs/defineReactiveProperties';
-import { toCamelCase } from '../../utils/funcs/toCamelCase';
 
 interface ImperativeRef {
   current: null | {
@@ -75,9 +74,8 @@ export class CardCaptureAtom extends HTMLElement {
   attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
     if (oldValue === newValue) return;
 
-    let propName = toCamelCase(name);
-
-    if (propName in this) {
+    const propName = CardCaptureAtom.attributeProps[name];
+    if (propName) {
       this[propName] = newValue;
     }
   }
@@ -98,20 +96,22 @@ export class CardCaptureAtom extends HTMLElement {
     this.imperativeRef.current?.clear?.();
   }
 
+  /**
+   * HTML attributes and the properties they set. Browsers lowercase attribute
+   * names, so these must be kebab-case: a camelCase name such as `authToken`
+   * would never match. Only string values belong here; callbacks and objects
+   * (inputStyle, billing, discountBody, ...) must be set as properties.
+   */
+  static attributeProps: Record<string, string> = {
+    environment: 'environment',
+    'auth-token': 'authToken',
+    tracker: 'tracker',
+    'validation-event': 'validationEvent',
+    'promo-code': 'promoCode',
+  };
+
   static get observedAttributes(): string[] {
-    return [
-      'environment',
-      'authToken',
-      'tracker',
-      'validationEvent',
-      'inputStyle',
-      'promoCode',
-      'onError',
-      'onValidated',
-      'onProceedToAuthentication',
-      'onReady',
-      'onDiscountApplied',
-    ];
+    return Object.keys(CardCaptureAtom.attributeProps);
   }
 
   static componentProps: string[] = [
