@@ -6,6 +6,9 @@ import InframeComponent from './iframe';
 import { PayerAuthenticationProps } from './types';
 import { toEnvironment } from '../../types/environment';
 
+/** Default wait for a 3DS challenge outcome: 10 minutes. */
+export const DEFAULT_AUTHENTICATION_TIMEOUT_MS = 10 * 60 * 1000;
+
 const PayerAuthentication = ({
   environment,
   tracker,
@@ -22,6 +25,9 @@ const PayerAuthentication = ({
   onPayerAuthenticationFrictionless = () => {},
   onPayerAuthenticationUnavailable = () => {},
   onSafepayError = () => {},
+  onPaymentDeclined = () => {},
+  onPayerAuthenticationTimeout = () => {},
+  authenticationTimeoutMs = DEFAULT_AUTHENTICATION_TIMEOUT_MS,
   imperativeRef,
 }: PayerAuthenticationProps): React.ReactElement => {
   // Custom hook usage for appending styles and managing iframe methods
@@ -87,25 +93,63 @@ const PayerAuthentication = ({
     }
   }, [imperativeRef]);
 
+  // Challenge timeout: started when a 3DS challenge is required, cleared by any
+  // outcome. Covers shoppers abandoning the challenge and connections dropping
+  // mid-challenge, where no outcome event would otherwise ever arrive.
+  const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const onTimeoutRef = useRef(onPayerAuthenticationTimeout);
+  onTimeoutRef.current = onPayerAuthenticationTimeout;
+
+  const clearChallengeTimeout = () => {
+    if (timeoutIdRef.current !== undefined) {
+      clearTimeout(timeoutIdRef.current);
+      timeoutIdRef.current = undefined;
+    }
+  };
+
+  const startChallengeTimeout = () => {
+    clearChallengeTimeout();
+    if (!(authenticationTimeoutMs > 0)) return;
+    const timeoutMs = authenticationTimeoutMs;
+    timeoutIdRef.current = setTimeout(() => {
+      timeoutIdRef.current = undefined;
+      onTimeoutRef.current({ tracker, timeoutMs });
+    }, timeoutMs);
+  };
+
+  // A new tracker is a new attempt; unmounting ends this one.
+  useEffect(() => clearChallengeTimeout, [tracker]);
+
   // Event handling for iframe communications and interactions
   const handleInframeEvent = (event: string, data: any) => {
     switch (event) {
       case 'safepay-inframe__enrollment__required':
+        startChallengeTimeout();
         onPayerAuthenticationRequired({ tracker });
         break;
       case 'safepay-inframe__enrollment__frictionless':
+        clearChallengeTimeout();
         onPayerAuthenticationFrictionless(data);
         break;
+      case 'safepay-inframe__payment__declined':
+        // Sent before the failure event below for the same decline.
+        clearChallengeTimeout();
+        onPaymentDeclined({ tracker, ...data });
+        break;
       case 'safepay-inframe__enrollment__failed':
+        clearChallengeTimeout();
         onPayerAuthenticationUnavailable({ tracker, ...data });
         break;
       case 'safepay-inframe__cardinal-3ds__failure':
+        clearChallengeTimeout();
         onPayerAuthenticationFailure(data);
         break;
       case 'safepay-inframe__cardinal-3ds__success':
+        clearChallengeTimeout();
         onPayerAuthenticationSuccess(data);
         break;
       case 'safepay-error':
+        clearChallengeTimeout();
         onSafepayError(data);
         break;
       default:

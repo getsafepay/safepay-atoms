@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import React, { createRef } from 'react';
 import { render, act, screen } from '@testing-library/react';
 import { Environment } from '../../types/environment';
-import PayerAuthentication from './index';
+import PayerAuthentication, { DEFAULT_AUTHENTICATION_TIMEOUT_MS } from './index';
 
 vi.mock('./iframe', () => ({ default: vi.fn() }));
 
@@ -78,5 +78,118 @@ describe('PayerAuthentication', () => {
     const detail = { error: { message: 'Something went wrong', status: 500 } };
     act(() => { capturedOnInframeEvent?.('safepay-error', detail); });
     expect(onSafepayError).toHaveBeenCalledWith(detail);
+  });
+
+  describe('payment declined', () => {
+    const declined = {
+      errorMessage: 'Insufficient funds',
+      responseCode: '51',
+      merchantAdvice: { code: '01', codeRaw: 'M001' },
+    };
+
+    it('calls onPaymentDeclined with the tracker and decline details', () => {
+      const onPaymentDeclined = vi.fn();
+      render(<PayerAuthentication {...defaultProps} tracker="trk_d" onPaymentDeclined={onPaymentDeclined} />);
+      act(() => { capturedOnInframeEvent?.('safepay-inframe__payment__declined', declined); });
+      expect(onPaymentDeclined).toHaveBeenCalledWith({ tracker: 'trk_d', ...declined });
+    });
+
+    it('still calls onPayerAuthenticationUnavailable for a frictionless decline (backwards compatible)', () => {
+      const calls: string[] = [];
+      render(
+        <PayerAuthentication
+          {...defaultProps}
+          onPaymentDeclined={() => calls.push('declined')}
+          onPayerAuthenticationUnavailable={() => calls.push('unavailable')}
+        />
+      );
+      act(() => {
+        capturedOnInframeEvent?.('safepay-inframe__payment__declined', declined);
+        capturedOnInframeEvent?.('safepay-inframe__enrollment__failed', { errorMessage: 'Insufficient funds' });
+      });
+      expect(calls).toEqual(['declined', 'unavailable']);
+    });
+  });
+
+  describe('authentication timeout', () => {
+    beforeEach(() => { vi.useFakeTimers(); });
+    afterEach(() => { vi.useRealTimers(); });
+
+    const requireChallenge = () =>
+      act(() => { capturedOnInframeEvent?.('safepay-inframe__enrollment__required', {}); });
+
+    it('fires once after 10 minutes by default when a challenge gets no outcome', () => {
+      const onPayerAuthenticationTimeout = vi.fn();
+      render(<PayerAuthentication {...defaultProps} tracker="trk_t" onPayerAuthenticationTimeout={onPayerAuthenticationTimeout} />);
+      requireChallenge();
+
+      act(() => { vi.advanceTimersByTime(DEFAULT_AUTHENTICATION_TIMEOUT_MS - 1); });
+      expect(onPayerAuthenticationTimeout).not.toHaveBeenCalled();
+
+      act(() => { vi.advanceTimersByTime(1); });
+      expect(onPayerAuthenticationTimeout).toHaveBeenCalledTimes(1);
+      expect(onPayerAuthenticationTimeout).toHaveBeenCalledWith({
+        tracker: 'trk_t',
+        timeoutMs: DEFAULT_AUTHENTICATION_TIMEOUT_MS,
+      });
+
+      act(() => { vi.advanceTimersByTime(DEFAULT_AUTHENTICATION_TIMEOUT_MS); });
+      expect(onPayerAuthenticationTimeout).toHaveBeenCalledTimes(1);
+    });
+
+    it('honours a custom authenticationTimeoutMs', () => {
+      const onPayerAuthenticationTimeout = vi.fn();
+      render(<PayerAuthentication {...defaultProps} authenticationTimeoutMs={5000} onPayerAuthenticationTimeout={onPayerAuthenticationTimeout} />);
+      requireChallenge();
+      act(() => { vi.advanceTimersByTime(5000); });
+      expect(onPayerAuthenticationTimeout).toHaveBeenCalledWith({ tracker: 'test-tracker', timeoutMs: 5000 });
+    });
+
+    it.each([
+      'safepay-inframe__cardinal-3ds__success',
+      'safepay-inframe__cardinal-3ds__failure',
+      'safepay-inframe__payment__declined',
+      'safepay-inframe__enrollment__failed',
+      'safepay-error',
+    ])('does not fire once %s arrives', (outcome) => {
+      const onPayerAuthenticationTimeout = vi.fn();
+      render(<PayerAuthentication {...defaultProps} authenticationTimeoutMs={5000} onPayerAuthenticationTimeout={onPayerAuthenticationTimeout} />);
+      requireChallenge();
+      act(() => { capturedOnInframeEvent?.(outcome, {}); });
+      act(() => { vi.advanceTimersByTime(10_000); });
+      expect(onPayerAuthenticationTimeout).not.toHaveBeenCalled();
+    });
+
+    it('does not start for frictionless authentication', () => {
+      const onPayerAuthenticationTimeout = vi.fn();
+      render(<PayerAuthentication {...defaultProps} authenticationTimeoutMs={5000} onPayerAuthenticationTimeout={onPayerAuthenticationTimeout} />);
+      act(() => { capturedOnInframeEvent?.('safepay-inframe__enrollment__frictionless', {}); });
+      act(() => { vi.advanceTimersByTime(10_000); });
+      expect(onPayerAuthenticationTimeout).not.toHaveBeenCalled();
+    });
+
+    it('is disabled when authenticationTimeoutMs is 0', () => {
+      const onPayerAuthenticationTimeout = vi.fn();
+      render(<PayerAuthentication {...defaultProps} authenticationTimeoutMs={0} onPayerAuthenticationTimeout={onPayerAuthenticationTimeout} />);
+      requireChallenge();
+      act(() => { vi.advanceTimersByTime(DEFAULT_AUTHENTICATION_TIMEOUT_MS * 2); });
+      expect(onPayerAuthenticationTimeout).not.toHaveBeenCalled();
+    });
+
+    it('is cleared on unmount and when the tracker changes', () => {
+      const onPayerAuthenticationTimeout = vi.fn();
+      const { rerender, unmount } = render(
+        <PayerAuthentication {...defaultProps} tracker="trk_1" authenticationTimeoutMs={5000} onPayerAuthenticationTimeout={onPayerAuthenticationTimeout} />
+      );
+      requireChallenge();
+      rerender(<PayerAuthentication {...defaultProps} tracker="trk_2" authenticationTimeoutMs={5000} onPayerAuthenticationTimeout={onPayerAuthenticationTimeout} />);
+      act(() => { vi.advanceTimersByTime(10_000); });
+      expect(onPayerAuthenticationTimeout).not.toHaveBeenCalled();
+
+      requireChallenge();
+      unmount();
+      act(() => { vi.advanceTimersByTime(10_000); });
+      expect(onPayerAuthenticationTimeout).not.toHaveBeenCalled();
+    });
   });
 });
