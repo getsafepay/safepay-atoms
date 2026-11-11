@@ -1,6 +1,6 @@
 {
     "name": "@sfpy/atoms",
-    "version": "0.3.11",
+    "version": "0.3.13",
     "packageManager": "pnpm@10.11.1",
     "description": "Atomic building blocks to build custom payment interfaces",
     "type": "module",
@@ -9,6 +9,7 @@
         "payments"
     ],
     "author": "Safepay",
+    "license": "MIT",
     "scripts": {
         "clean": "rimraf dist",
         "serve": "run-s clean build dev",
