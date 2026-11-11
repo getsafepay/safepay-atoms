@@ -9,6 +9,7 @@
         "payments"
     ],
     "author": "Safepay",
+    "license": "MIT",
     "scripts": {
         "clean": "rimraf dist",
         "serve": "run-s clean build dev",
