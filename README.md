@@ -42,14 +42,15 @@ The `<safepay-card-atom>` component provides card capture functionality. Set its
 
 #### Available Attributes (HTML)
 
-Use attributes for string values only. Attributes are always strings and are mapped to properties internally.
+Use attributes for string values only. Attribute names are kebab-case (`auth-token`, not `authToken`), because browsers lowercase attribute names. Each attribute sets the matching property. Objects and callbacks can't be attributes; set them as properties.
 
-| Attribute                           | Type      | Description                              |
-|-------------------------------------|-----------|------------------------------------------|
-| environment                         | `'development' \| 'production' \| 'sandbox' \| 'local'` (string) | Environment setting |
-| authToken                          | string    | Authentication token for the session     |
-| tracker                            | string    | Tracking identifier                      |
-| validationEvent                    | 'submit' \| 'change' \| 'keydown' \| 'none' (string) | Determines when card inputs are validated (defaults to 'submit') |
+| Attribute                           | Property  | Type      | Description                              |
+|-------------------------------------|-----------|-----------|------------------------------------------|
+| environment                         | environment | `'development' \| 'production' \| 'sandbox' \| 'local'` (string) | Environment setting |
+| auth-token                          | authToken | string    | Authentication token for the session     |
+| tracker                             | tracker   | string    | Tracking identifier                      |
+| validation-event                    | validationEvent | 'submit' \| 'change' \| 'keydown' \| 'none' (string) | Determines when card inputs are validated (defaults to 'submit') |
+| promo-code                          | promoCode | string    | Optional promo code to auto-apply on load |
 
 #### Available Properties (JS)
 
@@ -243,18 +244,18 @@ For a full plain HTML/JavaScript integration (no bundler required), see `example
 
 ### PayerAuthenticationAtom
 
-The `<safepay-payer-authentication>` component handles payer authentication flows.
+The `<safepay-payer-auth-atom>` component handles payer authentication flows.
 
 ```html
-<safepay-payer-authentication
+<safepay-payer-auth-atom
   environment="sandbox"
   auth-token="your-auth-token"
   tracker="your-tracker"
-></safepay-payer-authentication>
+></safepay-payer-auth-atom>
 
 <script>
   // Set object properties directly on the element.
-  const el = document.querySelector('safepay-payer-authentication');
+  const el = document.querySelector('safepay-payer-auth-atom');
   el.billing = {
     street_1: '123 Main Street',
     street_2: 'Suite 500',
@@ -272,16 +273,16 @@ The `<safepay-payer-authentication>` component handles payer authentication flow
 
 #### Available Attributes (HTML)
 
-Use attributes for string values only. Attributes are always strings and are mapped to properties internally.
+Use attributes for string values only. Attribute names are kebab-case (`auth-token`, not `authToken`), because browsers lowercase attribute names. Each attribute sets the matching property. Objects (`billing`, `discountBody`, `authorizationOptions`) and callbacks can't be attributes; set them as properties.
 
-| Attribute                           | Type      | Description                              |
-|-------------------------------------|-----------|------------------------------------------|
-| environment                         | `'development' \| 'production' \| 'sandbox' \| 'local'` (string) | Environment setting |
-| tracker                            | string    | Tracking identifier                       |
-| authToken                          | string    | Authentication token                     |
-| user                               | string    | User identifier forwarded with authentication requests |
-| deviceDataCollectionJWT            | string    | Device data collection JWT              |
-| deviceDataCollectionURL            | string    | Device data collection URL              |
+| Attribute                           | Property  | Type      | Description                              |
+|-------------------------------------|-----------|-----------|------------------------------------------|
+| environment                         | environment | `'development' \| 'production' \| 'sandbox' \| 'local'` (string) | Environment setting |
+| tracker                             | tracker   | string    | Tracking identifier                       |
+| auth-token                          | authToken | string    | Authentication token                     |
+| user                                | user      | string    | User identifier forwarded with authentication requests |
+| device-data-collection-jwt          | deviceDataCollectionJWT | string    | Device data collection JWT              |
+| device-data-collection-url          | deviceDataCollectionURL | string    | Device data collection URL              |
 
 #### Available Properties (JS)
 
@@ -332,7 +333,7 @@ These cover the terminal success and failure states you usually need to close mo
 Attributes are string-only. For callbacks and objects, set properties directly:
 
 ```html
-<safepay-payer-authentication id="payer-auth" environment="sandbox"></safepay-payer-authentication>
+<safepay-payer-auth-atom id="payer-auth" environment="sandbox"></safepay-payer-auth-atom>
 <script type="module">
   const payerAuth = document.getElementById('payer-auth');
   payerAuth.billing = {
@@ -841,7 +842,7 @@ const inputStyle = {
 
 ### Billing
 
-Used by `PayerAuthentication` and `<safepay-payer-authentication>`.
+Used by `PayerAuthentication` and `<safepay-payer-auth-atom>`.
 `street_2`, `state`, and `postal_code` are optional.
 
 ```ts
@@ -870,7 +871,7 @@ const billing = {
 
 ### AuthorizationOptions
 
-Used by `PayerAuthentication` and `<safepay-payer-authentication>`.
+Used by `PayerAuthentication` and `<safepay-payer-auth-atom>`.
 
 ```ts
 type AuthorizationOptions = {
@@ -890,7 +891,7 @@ const authorizationOptions = {
 
 ### DiscountBody
 
-Used by `PayerAuthentication` and `<safepay-payer-authentication>`. Pass this as an object (do not stringify it).
+Used by `PayerAuthentication` and `<safepay-payer-auth-atom>`. Pass this as an object (do not stringify it).
 
 You normally don't build this yourself. Card capture provides it in `onDiscountApplied`, and you forward it unchanged. See [Discounts](#discounts).
 
