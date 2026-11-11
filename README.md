@@ -63,12 +63,12 @@ Set properties directly on the element for functions, objects, and non-string va
 | tracker                            | string    | Tracking identifier                      |
 | validationEvent                    | 'submit' \| 'change' \| 'keydown' \| 'none' (string) | Determines when card inputs are validated (defaults to 'submit') |
 | inputStyle                         | InputStyle | Inline styles forwarded to the secure iframe inputs |
-| promoCode                          | string    | Optional promo code to auto-apply on load. Applied once discount offers are fetched from the API. |
-| forcePromoCode                     | boolean   | When `true` and a `promoCode` is set, BIN-based card scheme discounts are ignored and the promo code is always used. |
+| promoCode                          | string    | Optional promo code to auto-apply on load (case-insensitive). See [Discounts](#discounts). |
+| forcePromoCode                     | boolean   | When `true` and `promoCode` is set, card scheme (BIN) discounts are skipped, so the promo code is always the discount used. See [Forcing a promo code](#forcing-a-promo-code-forcepromocode). |
 | onReady                             | function  | Callback when the embedded iframe signals it is ready |
 | onError                            | function  | Error callback handler                   |
 | onValidated                        | `(data: { bin: string; lastFour: string; cardType?: string }) => void` | Called when the card passes client-side validation. Receives the first 6 digits (`bin`), last 4 digits (`lastFour`), and the detected card type (`cardType`, e.g. `"visa"`). |
-| onDiscountApplied                  | function  | Discount applied callback (includes `discountBody`) |
+| onDiscountApplied                  | `(data: { appliedDiscount, discountBody }) => void` | Called each time a discount is previewed. Forward `discountBody` to payer authentication. See [Discounts](#discounts). |
 | onProceedToAuthentication          | function  | Authentication proceed callback         |
 | imperativeRef                      | CardCaptureImperativeRef | Ref object for imperative methods (optional) |
 
@@ -406,12 +406,12 @@ function PaymentForm() {
 | tracker                       | string                       | Tracking identifier                                     | ✅ |
 | validationEvent               | 'submit' \| 'change' \| 'keydown' \| 'none' | Choose when validation runs (defaults to `submit`) | ✅ |
 | inputStyle                    | React.CSSProperties          | Inline styles forwarded to the secure iframe inputs     |    |
-| promoCode                     | string                       | Optional promo code to auto-apply on load. Applied once discount offers are fetched from the API. |          |
-| forcePromoCode                | boolean                      | When `true` and a `promoCode` is set, BIN-based card scheme discounts are ignored and the promo code is always used. |          |
+| promoCode                     | string                       | Optional promo code to auto-apply on load (case-insensitive). See [Discounts](#discounts). |          |
+| forcePromoCode                | boolean                      | When `true` and `promoCode` is set, card scheme (BIN) discounts are skipped, so the promo code is always the discount used. See [Forcing a promo code](#forcing-a-promo-code-forcepromocode). |          |
 | onReady                       | () => void                   | Callback when the embedded iframe signals it is ready   |          |
 | onProceedToAuthentication     | (data: any) => void           | Callback when ready to proceed to authentication        |          |
 | onValidated                   | `(data: CardValidatedData) => void` | Called when the card passes client-side validation. Receives `{ bin, lastFour, cardType? }`. |          |
-| onDiscountApplied             | (data: any) => void           | Callback when a discount is applied (includes `discountBody`) |          |
+| onDiscountApplied             | `(data: { appliedDiscount, discountBody }) => void` | Called each time a discount is previewed. Forward `discountBody` to `PayerAuthentication`. See [Discounts](#discounts). |          |
 | onError                       | (error: string) => void       | Error handling callback                                |          |
 | imperativeRef                 | React.MutableRefObject<any>  | Ref to control the component imperatively               | ✅ |
 
@@ -717,6 +717,107 @@ export default function CombinedDemo() {
 }
 ```
 
+## Discounts
+
+Card capture can apply two kinds of discount to a payment:
+
+| Kind | Configured as | How it's triggered |
+|------|---------------|--------------------|
+| **Card scheme (BIN) discount** | An offer tied to a list of card BINs (the first 6 digits of a card number) | Automatically, when the shopper has typed at least 6 digits of a card number |
+| **Promo code discount** | An offer with a code, such as `SAVE10` | Automatically on load, when you pass `promoCode` to card capture |
+
+You don't calculate or apply anything yourself. Card capture works out which discount applies, previews it with Safepay, and tells you about it through `onDiscountApplied`. You then forward the discount to payer authentication, which applies it to the payment.
+
+### How it works
+
+1. **Offers are loaded.** When card capture loads, it fetches the discount offers available for the tracker's amount and currency. This list includes card scheme offers and promo codes.
+2. **A discount is previewed.** When a promo code or card BIN matches an offer, card capture asks Safepay to evaluate it as a dry run (`dry_run: true`). Nothing is charged or committed at this point.
+3. **You're notified.** Card capture calls `onDiscountApplied` with:
+   - `appliedDiscount`: Safepay's response for the previewed discount, including the discounted amounts.
+   - `discountBody`: the `DiscountBody` that identifies the discount.
+4. **You forward it.** Pass `discountBody` to payer authentication (the `discountBody` prop or property). Without this step, no discount is applied to the payment.
+5. **The discount is applied.** When authentication starts, Safepay applies the discount to the payment. Payer authentication always sends it with `dry_run: false`, whatever `dry_run` value the `discountBody` has.
+
+```js
+cardAtom.onDiscountApplied = function (data) {
+  if (data && data.discountBody) {
+    payerAuthAtom.discountBody = data.discountBody;
+  }
+};
+```
+
+For React, see the `discountBody` state in [Combined Card + Authentication Flow](#combined-card--authentication-flow).
+
+### Which discount wins
+
+Only one discount can apply to a payment. When more than one could apply, card capture decides as follows.
+
+**Several card scheme offers match the same BIN.** The offer whose rule has the highest `value` is used. The comparison uses the raw `value` and doesn't account for the rule type. A 10% offer has a value of `10`, and a fixed offer of 500 has a value of `500`, so the fixed offer wins even when 10% would be worth more. Avoid configuring percentage and fixed-amount offers on the same BINs.
+
+**A promo code and a card scheme discount both match** (without `forcePromoCode`):
+- The promo code is applied first, as soon as the offers load.
+- When the shopper types a card number with a matching BIN, the card scheme discount **replaces** the promo code. This happens even if the promo code was worth more.
+- `onDiscountApplied` is called again with the card scheme `discountBody`. Always forward the most recent one.
+
+**A promo code would replace a discount that's worth more.** This applies when `promoCode` changes after a card scheme discount has been applied. The two are compared by their actual value, taking the percentage or fixed amount and any maximum discount into account. If the new promo code is worth less, it isn't applied, and the current discount stays.
+
+**`forcePromoCode` is set.** See the next section.
+
+### Forcing a promo code (`forcePromoCode`)
+
+Set `forcePromoCode: true` together with `promoCode` when the promo code must always be the discount used, for example in a campaign-specific checkout.
+
+With both set:
+- Card scheme (BIN) discounts are skipped entirely. They aren't previewed, and they can't replace the promo code.
+- The promo code is applied on load as usual.
+
+`forcePromoCode` has no effect without `promoCode`.
+
+Set both as properties on the element in JavaScript, or as props in React. `forcePromoCode` is a boolean, so set it as a property, not an HTML attribute.
+
+```js
+cardAtom.promoCode = 'SAVE10';
+cardAtom.forcePromoCode = true;
+```
+
+```jsx
+<CardCapture promoCode="SAVE10" forcePromoCode /* ...other props */ />
+```
+
+### Promo code behaviour
+
+- **Matching is case-insensitive:** `save10` matches an offer with the code `SAVE10`.
+- **Changing `promoCode`** after load applies the new code, subject to the value check described in [Which discount wins](#which-discount-wins).
+- **No error callback for promo codes.** If the code doesn't match an offer, or is rejected because a better discount is already applied, `onError` isn't called. The only sign is a `[discount]` warning in the browser console from inside the card iframe. Treat a missing `onDiscountApplied` call as "no discount applied", and validate promo codes on your side before showing them to shoppers as accepted.
+
+### Card scheme discount behaviour
+
+- **Evaluated on every card number change.** The BIN is checked whenever the card number changes and has at least 6 digits.
+- **No event when a discount is removed.** If the shopper changes to a card whose BIN matches no offer, card capture drops the previewed discount, but `onDiscountApplied` isn't called. A `discountBody` you stored earlier can then still refer to the previous card's BIN. Before forwarding a card scheme `discountBody`, check that its `bin_discount.bin` matches the `bin` from the latest `onValidated` call.
+
+```js
+var latestBin;
+var pendingDiscountBody;
+
+cardAtom.onValidated = function (data) {
+  latestBin = data.bin;
+};
+cardAtom.onDiscountApplied = function (data) {
+  pendingDiscountBody = data && data.discountBody;
+};
+
+function startAuthentication() {
+  var body = pendingDiscountBody;
+  var isStaleBin = body && body.bin_discount && body.bin_discount.bin !== latestBin;
+  payerAuthAtom.discountBody = isStaleBin ? undefined : body;
+  // ...then set the device data collection values to start authentication
+}
+```
+
+### Checking which discount was applied
+
+Treat `onDiscountApplied` as a preview for your UI, such as showing the discounted total. The discount is only committed when authentication starts, and the payment can still fail or be declined after that. Confirm the final amount and discount server-side from the payment or tracker, or from the webhook.
+
 ## Object Shapes
 
 The following sections show the shapes for the structured values you pass into the atoms.
@@ -792,6 +893,8 @@ const authorizationOptions = {
 
 Used by `PayerAuthentication` and `<safepay-payer-auth-atom>`. Pass this as an object (do not stringify it).
 
+You normally don't build this yourself. Card capture provides it in `onDiscountApplied`, and you forward it unchanged. See [Discounts](#discounts).
+
 ```ts
 type DiscountBody = {
   dry_run: boolean;
@@ -808,11 +911,11 @@ type DiscountBody = {
 Examples:
 
 ```ts
-// BIN-based discount (applied automatically when the user enters their card number)
+// Card scheme (BIN) discount, provided when the shopper's card BIN matches an offer
 const binDiscountBody = {
   dry_run: true,
   bin_discount: {
-    cardscheme_id: 'visa',
+    cardscheme_id: 'cs_offer_token', // the matched card scheme offer's token, not a card brand
     bin: '411111',
   },
 };
@@ -828,7 +931,8 @@ const promoDiscountBody = {
 
 Notes:
 - `bin` is the first 6 digits of the card number, with no spaces.
-- `dry_run` evaluates the discount without committing application when your flow supports it.
+- `cardscheme_id` is the token of the matched card scheme offer, not a card brand such as `visa`.
+- `dry_run` is `true` in bodies from `onDiscountApplied`, because card capture only previews discounts. Payer authentication always sends the body with `dry_run: false`, so the discount is committed when authentication starts.
 - `bin_discount` and `promo_discount` are mutually exclusive in a single request.
 
 ### CardCaptureImperativeRef
