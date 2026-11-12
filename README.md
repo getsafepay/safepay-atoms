@@ -203,6 +203,12 @@ For a full plain HTML/JavaScript integration (no bundler required), see `example
         onPayerAuthenticationSuccess: closeModal,
         onPayerAuthenticationFrictionless: closeModal,
         onPayerAuthenticationUnavailable: closeModal,
+        // Declines arrive here only (not in Failure/Unavailable) because it's set.
+        onPaymentDeclined: (data) => {
+          console.log('Declined', data.responseCode, data.merchantAdvice);
+          closeModal(); // e.g. ask the shopper to try a different card
+        },
+        onPayerAuthenticationTimeout: closeModal,
         onSafepayError: (error) => {
           console.error('Safepay error', error);
           closeModal();
@@ -316,11 +322,11 @@ The payer authentication callbacks represent different stages of the flow. They 
 
 - `onPayerAuthenticationRequired` means Safepay has finished enrollment and determined that a 3DS challenge is needed. Use it for analytics or UI state if you want to know that a challenge is about to happen. It is not a completion callback, and the internal challenge iframe may begin rendering right away.
 - `onPayerAuthenticationFrictionless` means authentication succeeded without showing a challenge to the user. This is the terminal success callback for the frictionless path.
-- `onPayerAuthenticationSuccess` means the challenge-based 3DS flow completed successfully after the user entered the challenge flow. It does not run for frictionless auth.
-- `onPayerAuthenticationFailure` means the challenge-based 3DS flow failed after the user had already entered the challenge flow.
-- `onPayerAuthenticationUnavailable` means the flow failed before Safepay could complete a successful challenge flow. In practice, this covers enrollment/setup failures and other pre-challenge terminal states.
+- `onPayerAuthenticationSuccess` means the challenge-based 3DS flow completed successfully after the user entered the challenge flow, and the payment was authorized. It does not run for frictionless auth. If the shopper passes the challenge but the issuer declines the payment, this is not called; see [Declines](#declines).
+- `onPayerAuthenticationFailure` means the challenge-based 3DS flow failed after the user had already entered the challenge flow. Without `onPaymentDeclined`, it is also called when the issuer declines the payment after a challenge.
+- `onPayerAuthenticationUnavailable` means the flow failed before Safepay could complete a successful challenge flow. In practice, this covers enrollment/setup failures and other pre-challenge terminal states. Without `onPaymentDeclined`, it is also called when the issuer declines a frictionless payment.
 - `onSafepayError` is the catch-all error callback for general iframe/application errors that do not fit the normal authentication lifecycle.
-- `onPaymentDeclined` means the card issuer declined the payment, for example for insufficient funds. Authentication worked, but the bank refused the charge. See [Declines](#declines).
+- `onPaymentDeclined` means the card issuer declined the payment, for example for insufficient funds. Authentication worked, but the bank refused the charge. When provided, it replaces the failure callback for that decline. See [Declines](#declines).
 - `onPayerAuthenticationTimeout` means a 3DS challenge started, but no outcome arrived in time. The shopper abandoned it, or their connection dropped. See [Timeouts and abandoned challenges](#timeouts-and-abandoned-challenges).
 
 In most integrations, the recommended callback set is:
@@ -351,7 +357,11 @@ type PaymentDeclinedData = {
 
 Use it to tell a decline apart from an authentication or integration problem. For example, ask the shopper to use a different card rather than showing a generic error. Don't parse `errorMessage` for this; its wording isn't stable.
 
-A decline also still calls the callback it used before: `onPayerAuthenticationUnavailable` for a frictionless payment, or `onPayerAuthenticationFailure` after a 3DS challenge. `onPaymentDeclined` is always called first. If you handle `onPaymentDeclined`, ignore the failure callback that follows for the same decline. The old behaviour is deprecated and will be removed in a future minor version.
+If you provide `onPaymentDeclined`, a decline calls only `onPaymentDeclined`. The failure callbacks are not called for that decline, so you don't need to deduplicate. They are still called for every other failure.
+
+If you don't provide `onPaymentDeclined`, a decline is reported the way it was before `onPaymentDeclined` existed: through `onPayerAuthenticationUnavailable` for a frictionless payment, or `onPayerAuthenticationFailure` after a 3DS challenge. Existing integrations keep working without changes.
+
+So if you add `onPaymentDeclined`, handle declines fully there, including closing the payment modal and letting the shopper try again. Don't use it only for logging.
 
 `onPaymentDeclined` is for your UI only. Confirm the payment's final status server-side before fulfilling or cancelling an order. See [Confirming the payment outcome](#confirming-the-payment-outcome).
 
@@ -748,6 +758,15 @@ export default function CombinedDemo() {
                 }}
                 onPayerAuthenticationUnavailable={(data) => {
                   console.log('onPayerAuthenticationUnavailable', data);
+                  closeModal();
+                }}
+                // Declines arrive here only (not in Failure/Unavailable) because it's set.
+                onPaymentDeclined={(data) => {
+                  console.log('onPaymentDeclined', data.responseCode, data.merchantAdvice);
+                  closeModal(); // e.g. ask the shopper to try a different card
+                }}
+                onPayerAuthenticationTimeout={(data) => {
+                  console.log('onPayerAuthenticationTimeout', data);
                   closeModal();
                 }}
                 onSafepayError={(error) => {

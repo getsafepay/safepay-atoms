@@ -94,20 +94,94 @@ describe('PayerAuthentication', () => {
       expect(onPaymentDeclined).toHaveBeenCalledWith({ tracker: 'trk_d', ...declined });
     });
 
-    it('still calls onPayerAuthenticationUnavailable for a frictionless decline (backwards compatible)', () => {
+    const recordAll = (calls: string[]) => ({
+      onPayerAuthenticationUnavailable: () => calls.push('unavailable'),
+      onPayerAuthenticationFailure: () => calls.push('failure'),
+    });
+
+    it('calls only onPaymentDeclined for a frictionless decline when it is provided', () => {
       const calls: string[] = [];
-      render(
-        <PayerAuthentication
-          {...defaultProps}
-          onPaymentDeclined={() => calls.push('declined')}
-          onPayerAuthenticationUnavailable={() => calls.push('unavailable')}
-        />
-      );
+      render(<PayerAuthentication {...defaultProps} {...recordAll(calls)} onPaymentDeclined={() => calls.push('declined')} />);
       act(() => {
         capturedOnInframeEvent?.('safepay-inframe__payment__declined', declined);
         capturedOnInframeEvent?.('safepay-inframe__enrollment__failed', { errorMessage: 'Insufficient funds' });
       });
+      expect(calls).toEqual(['declined']);
+    });
+
+    it('calls only onPaymentDeclined for a decline after a challenge when it is provided', () => {
+      const calls: string[] = [];
+      render(<PayerAuthentication {...defaultProps} {...recordAll(calls)} onPaymentDeclined={() => calls.push('declined')} />);
+      act(() => {
+        capturedOnInframeEvent?.('safepay-inframe__payment__declined', declined);
+        capturedOnInframeEvent?.('safepay-inframe__cardinal-3ds__failure', { error: 'Insufficient funds', response_code: '51' });
+      });
+      expect(calls).toEqual(['declined']);
+    });
+
+    it('reports a frictionless decline through onPayerAuthenticationUnavailable when onPaymentDeclined is not provided', () => {
+      const onPayerAuthenticationUnavailable = vi.fn();
+      render(<PayerAuthentication {...defaultProps} tracker="trk_d" onPayerAuthenticationUnavailable={onPayerAuthenticationUnavailable} />);
+      act(() => {
+        capturedOnInframeEvent?.('safepay-inframe__payment__declined', declined);
+        capturedOnInframeEvent?.('safepay-inframe__enrollment__failed', { errorMessage: 'Insufficient funds' });
+      });
+      expect(onPayerAuthenticationUnavailable).toHaveBeenCalledTimes(1);
+      expect(onPayerAuthenticationUnavailable).toHaveBeenCalledWith({ tracker: 'trk_d', errorMessage: 'Insufficient funds' });
+    });
+
+    it('reports a decline after a challenge through onPayerAuthenticationFailure when onPaymentDeclined is not provided', () => {
+      const onPayerAuthenticationFailure = vi.fn();
+      render(<PayerAuthentication {...defaultProps} onPayerAuthenticationFailure={onPayerAuthenticationFailure} />);
+      const failure = { error: 'Insufficient funds', response_code: '51' };
+      act(() => {
+        capturedOnInframeEvent?.('safepay-inframe__payment__declined', declined);
+        capturedOnInframeEvent?.('safepay-inframe__cardinal-3ds__failure', failure);
+      });
+      expect(onPayerAuthenticationFailure).toHaveBeenCalledTimes(1);
+      expect(onPayerAuthenticationFailure).toHaveBeenCalledWith(failure);
+    });
+
+    it('still reports failures that are not declines when onPaymentDeclined is provided', () => {
+      const calls: string[] = [];
+      render(<PayerAuthentication {...defaultProps} {...recordAll(calls)} onPaymentDeclined={() => calls.push('declined')} />);
+      act(() => {
+        capturedOnInframeEvent?.('safepay-inframe__cardinal-3ds__failure', { error: 'authentication failed' });
+        capturedOnInframeEvent?.('safepay-inframe__enrollment__failed', { errorMessage: 'unable to authenticate' });
+      });
+      expect(calls).toEqual(['failure', 'unavailable']);
+    });
+
+    it('only suppresses the failure event that belongs to the reported decline', () => {
+      const calls: string[] = [];
+      render(<PayerAuthentication {...defaultProps} {...recordAll(calls)} onPaymentDeclined={() => calls.push('declined')} />);
+      act(() => {
+        capturedOnInframeEvent?.('safepay-inframe__payment__declined', declined);
+        capturedOnInframeEvent?.('safepay-inframe__enrollment__failed', {});
+        capturedOnInframeEvent?.('safepay-inframe__enrollment__failed', {});
+      });
       expect(calls).toEqual(['declined', 'unavailable']);
+    });
+
+    it('does not carry a reported decline over to a new tracker', () => {
+      const calls: string[] = [];
+      const props = { ...defaultProps, ...recordAll(calls), onPaymentDeclined: () => calls.push('declined') };
+      const { rerender } = render(<PayerAuthentication {...props} tracker="trk_1" />);
+      act(() => { capturedOnInframeEvent?.('safepay-inframe__payment__declined', declined); });
+      rerender(<PayerAuthentication {...props} tracker="trk_2" />);
+      act(() => { capturedOnInframeEvent?.('safepay-inframe__enrollment__failed', {}); });
+      expect(calls).toEqual(['declined', 'unavailable']);
+    });
+
+    it('uses onPaymentDeclined when it is provided after mount', () => {
+      const calls: string[] = [];
+      const { rerender } = render(<PayerAuthentication {...defaultProps} {...recordAll(calls)} />);
+      rerender(<PayerAuthentication {...defaultProps} {...recordAll(calls)} onPaymentDeclined={() => calls.push('declined')} />);
+      act(() => {
+        capturedOnInframeEvent?.('safepay-inframe__payment__declined', declined);
+        capturedOnInframeEvent?.('safepay-inframe__enrollment__failed', {});
+      });
+      expect(calls).toEqual(['declined']);
     });
   });
 

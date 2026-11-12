@@ -25,7 +25,8 @@ const PayerAuthentication = ({
   onPayerAuthenticationFrictionless = () => {},
   onPayerAuthenticationUnavailable = () => {},
   onSafepayError = () => {},
-  onPaymentDeclined = () => {},
+  // No default: whether the merchant provided it decides how declines are reported.
+  onPaymentDeclined,
   onPayerAuthenticationTimeout = () => {},
   authenticationTimeoutMs = DEFAULT_AUTHENTICATION_TIMEOUT_MS,
   imperativeRef,
@@ -117,8 +118,26 @@ const PayerAuthentication = ({
     }, timeoutMs);
   };
 
+  // Drops sends `payment__declined` immediately before the failure event
+  // (`enrollment__failed` or `cardinal-3ds__failure`) for the same decline.
+  // When the merchant handles `onPaymentDeclined`, that failure event is
+  // suppressed so a decline is reported once. Otherwise the decline is reported
+  // through the failure callback, as before `onPaymentDeclined` existed.
+  // A ref, because both events can arrive before React re-renders.
+  const declineReportedRef = useRef(false);
+
   // A new tracker is a new attempt; unmounting ends this one.
-  useEffect(() => clearChallengeTimeout, [tracker]);
+  useEffect(() => {
+    declineReportedRef.current = false;
+    return clearChallengeTimeout;
+  }, [tracker]);
+
+  /** True if the failure event that follows a reported decline should be skipped. */
+  const consumeReportedDecline = () => {
+    const reported = declineReportedRef.current;
+    declineReportedRef.current = false;
+    return reported;
+  };
 
   // Event handling for iframe communications and interactions
   const handleInframeEvent = (event: string, data: any) => {
@@ -132,16 +151,20 @@ const PayerAuthentication = ({
         onPayerAuthenticationFrictionless(data);
         break;
       case 'safepay-inframe__payment__declined':
-        // Sent before the failure event below for the same decline.
         clearChallengeTimeout();
-        onPaymentDeclined({ tracker, ...data });
+        if (typeof onPaymentDeclined === 'function') {
+          declineReportedRef.current = true;
+          onPaymentDeclined({ tracker, ...data });
+        }
         break;
       case 'safepay-inframe__enrollment__failed':
         clearChallengeTimeout();
+        if (consumeReportedDecline()) break;
         onPayerAuthenticationUnavailable({ tracker, ...data });
         break;
       case 'safepay-inframe__cardinal-3ds__failure':
         clearChallengeTimeout();
+        if (consumeReportedDecline()) break;
         onPayerAuthenticationFailure(data);
         break;
       case 'safepay-inframe__cardinal-3ds__success':

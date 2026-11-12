@@ -79,10 +79,10 @@ export interface PayerAuthenticationProps {
   onPayerAuthenticationUnavailable?: (data: PayerAuthData) => void;
   onSafepayError?: (data: SafepayError) => void;
   /**
-   * Called when the issuer declined the payment. Declines still also call
-   * `onPayerAuthenticationUnavailable` (frictionless) or
-   * `onPayerAuthenticationFailure` (after a 3DS challenge) for backwards
-   * compatibility; that will be removed in a future minor version.
+   * Called when the issuer declined the payment. When provided, it is called
+   * instead of `onPayerAuthenticationUnavailable` (frictionless) or
+   * `onPayerAuthenticationFailure` (after a 3DS challenge) for that decline.
+   * When not provided, declines are reported through those callbacks as before.
    */
   onPaymentDeclined?: (data: PaymentDeclinedData) => void;
   /**
