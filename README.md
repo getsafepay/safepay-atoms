@@ -203,6 +203,12 @@ For a full plain HTML/JavaScript integration (no bundler required), see `example
         onPayerAuthenticationSuccess: closeModal,
         onPayerAuthenticationFrictionless: closeModal,
         onPayerAuthenticationUnavailable: closeModal,
+        // Declines arrive here only (not in Failure/Unavailable) because it's set.
+        onPaymentDeclined: (data) => {
+          console.log('Declined', data.responseCode, data.merchantAdvice);
+          closeModal(); // e.g. ask the shopper to try a different card
+        },
+        onPayerAuthenticationTimeout: closeModal,
         onSafepayError: (error) => {
           console.error('Safepay error', error);
           closeModal();
@@ -305,6 +311,9 @@ Set properties directly on the element for functions, objects, and non-string va
 | onPayerAuthenticationFrictionless  | function  | Recommended. Called when authentication completes without a 3DS challenge and authorization succeeds. This is the success callback for the frictionless path. |
 | onPayerAuthenticationUnavailable   | function  | Recommended. Called when the payer-auth flow cannot continue before a successful challenge flow is reached, such as enrollment/setup failures or other pre-challenge terminal errors. |
 | onSafepayError                     | function  | Recommended. Called for general Safepay iframe/application errors outside the normal authentication lifecycle. |
+| onPaymentDeclined                  | `(data: PaymentDeclinedData) => void` | Recommended. Called when the card issuer declined the payment (e.g. insufficient funds). See [Declines](#declines). |
+| onPayerAuthenticationTimeout       | `(data: { tracker: string; timeoutMs: number }) => void` | Recommended. Called once if a 3DS challenge gets no outcome within `authenticationTimeoutMs`. See [Timeouts and abandoned challenges](#timeouts-and-abandoned-challenges). |
+| authenticationTimeoutMs            | number    | How long to wait for a 3DS challenge outcome, from when the challenge is required. Defaults to `600000` (10 minutes). `0` disables it. |
 | imperativeRef                      | PayerAuthenticationImperativeRef | Ref object for imperative methods (optional) |
 
 #### Callback Semantics
@@ -313,10 +322,12 @@ The payer authentication callbacks represent different stages of the flow. They 
 
 - `onPayerAuthenticationRequired` means Safepay has finished enrollment and determined that a 3DS challenge is needed. Use it for analytics or UI state if you want to know that a challenge is about to happen. It is not a completion callback, and the internal challenge iframe may begin rendering right away.
 - `onPayerAuthenticationFrictionless` means authentication succeeded without showing a challenge to the user. This is the terminal success callback for the frictionless path.
-- `onPayerAuthenticationSuccess` means the challenge-based 3DS flow completed successfully after the user entered the challenge flow. It does not run for frictionless auth.
-- `onPayerAuthenticationFailure` means the challenge-based 3DS flow failed after the user had already entered the challenge flow.
-- `onPayerAuthenticationUnavailable` means the flow failed before Safepay could complete a successful challenge flow. In practice, this covers enrollment/setup failures and other pre-challenge terminal states.
+- `onPayerAuthenticationSuccess` means the challenge-based 3DS flow completed successfully after the user entered the challenge flow, and the payment was authorized. It does not run for frictionless auth. If the shopper passes the challenge but the issuer declines the payment, this is not called; see [Declines](#declines).
+- `onPayerAuthenticationFailure` means the challenge-based 3DS flow failed after the user had already entered the challenge flow. Without `onPaymentDeclined`, it is also called when the issuer declines the payment after a challenge.
+- `onPayerAuthenticationUnavailable` means the flow failed before Safepay could complete a successful challenge flow. In practice, this covers enrollment/setup failures and other pre-challenge terminal states. Without `onPaymentDeclined`, it is also called when the issuer declines a frictionless payment.
 - `onSafepayError` is the catch-all error callback for general iframe/application errors that do not fit the normal authentication lifecycle.
+- `onPaymentDeclined` means the card issuer declined the payment, for example for insufficient funds. Authentication worked, but the bank refused the charge. When provided, it replaces the failure callback for that decline. See [Declines](#declines).
+- `onPayerAuthenticationTimeout` means a 3DS challenge started, but no outcome arrived in time. The shopper abandoned it, or their connection dropped. See [Timeouts and abandoned challenges](#timeouts-and-abandoned-challenges).
 
 In most integrations, the recommended callback set is:
 
@@ -324,9 +335,52 @@ In most integrations, the recommended callback set is:
 - `onPayerAuthenticationSuccess`
 - `onPayerAuthenticationFailure`
 - `onPayerAuthenticationUnavailable`
+- `onPaymentDeclined`
+- `onPayerAuthenticationTimeout`
 - `onSafepayError`
 
 These cover the terminal success and failure states you usually need to close modals, update UI, or continue checkout. `onPayerAuthenticationRequired` is usually optional and best treated as an informational/analytics hook.
+
+#### Declines
+
+When the card issuer declines the payment, `onPaymentDeclined` is called with:
+
+```ts
+type PaymentDeclinedData = {
+  tracker: string;
+  responseCode: string; // issuer/network response code (ISO 8583), e.g. "51" = insufficient funds
+  merchantAdvice?: { code?: string; codeRaw?: string }; // card network merchant advice, when sent
+  errorMessage: string; // shopper-safe description
+  request_id?: string;
+};
+```
+
+Use it to tell a decline apart from an authentication or integration problem. For example, ask the shopper to use a different card rather than showing a generic error. Don't parse `errorMessage` for this; its wording isn't stable.
+
+If you provide `onPaymentDeclined`, a decline calls only `onPaymentDeclined`. The failure callbacks are not called for that decline, so you don't need to deduplicate. They are still called for every other failure.
+
+If you don't provide `onPaymentDeclined`, a decline is reported the way it was before `onPaymentDeclined` existed: through `onPayerAuthenticationUnavailable` for a frictionless payment, or `onPayerAuthenticationFailure` after a 3DS challenge. Existing integrations keep working without changes.
+
+So if you add `onPaymentDeclined`, handle declines fully there, including closing the payment modal and letting the shopper try again. Don't use it only for logging.
+
+`onPaymentDeclined` is for your UI only. Confirm the payment's final status server-side before fulfilling or cancelling an order. See [Confirming the payment outcome](#confirming-the-payment-outcome).
+
+#### Timeouts and abandoned challenges
+
+Some outcomes never reach the browser. The shopper might close or leave the 3DS challenge, or lose their connection partway through. To cover these, a timer starts when a challenge is required (`onPayerAuthenticationRequired`). If no outcome arrives within `authenticationTimeoutMs` (default 10 minutes), `onPayerAuthenticationTimeout` is called once with `{ tracker, timeoutMs }`.
+
+The timer stops as soon as any outcome callback runs, when the `tracker` changes, or when the component is removed. It doesn't run for frictionless payments, which have no challenge. Set `authenticationTimeoutMs` to `0` to turn it off.
+
+A timeout doesn't mean the payment failed. The shopper may have completed the challenge just before losing their connection. Treat it as "outcome unknown" and confirm the status server-side before retrying, so you don't charge the shopper twice.
+
+#### Confirming the payment outcome
+
+The browser callbacks drive your UI. Your server should decide what happens to the order, using either:
+
+- **Webhooks:** the payment events Safepay sends to your server, or
+- **The tracker's status:** fetch it from your server with `GET /order/payments/v3/{tracker}/status`, for example after a timeout, or before letting the shopper try again.
+
+Don't mark an order as paid or failed based only on a browser callback.
 
 #### Setting Properties vs Attributes
 
@@ -532,6 +586,9 @@ function AuthenticationForm() {
 | onPayerAuthenticationFrictionless| (data: PayerAuthData) => void    | Recommended. Called when authentication completes without a challenge and authorization succeeds. This is the success callback for the frictionless path. |          |
 | onPayerAuthenticationUnavailable | (data: PayerAuthData) => void    | Recommended. Called when the payer-auth flow cannot continue before a successful challenge flow is reached, such as enrollment/setup failures or other pre-challenge terminal errors. |          |
 | onSafepayError                   | (data: SafepayError) => void     | Recommended. Called for general Safepay iframe/application errors outside the normal authentication lifecycle. |          |
+| onPaymentDeclined                | (data: PaymentDeclinedData) => void | Recommended. Called when the card issuer declined the payment (e.g. insufficient funds). See [Declines](#declines). |          |
+| onPayerAuthenticationTimeout     | (data: { tracker: string; timeoutMs: number }) => void | Recommended. Called once if a 3DS challenge gets no outcome within `authenticationTimeoutMs`. See [Timeouts and abandoned challenges](#timeouts-and-abandoned-challenges). |          |
+| authenticationTimeoutMs          | number                          | How long to wait for a 3DS challenge outcome, from when the challenge is required. Defaults to `600000` (10 minutes). `0` disables it. |          |
 | imperativeRef                    | React.MutableRefObject<any>     | Ref to control the component imperatively         | ✅ |
 
 ### Combined Card + Authentication Flow
@@ -701,6 +758,15 @@ export default function CombinedDemo() {
                 }}
                 onPayerAuthenticationUnavailable={(data) => {
                   console.log('onPayerAuthenticationUnavailable', data);
+                  closeModal();
+                }}
+                // Declines arrive here only (not in Failure/Unavailable) because it's set.
+                onPaymentDeclined={(data) => {
+                  console.log('onPaymentDeclined', data.responseCode, data.merchantAdvice);
+                  closeModal(); // e.g. ask the shopper to try a different card
+                }}
+                onPayerAuthenticationTimeout={(data) => {
+                  console.log('onPayerAuthenticationTimeout', data);
                   closeModal();
                 }}
                 onSafepayError={(error) => {

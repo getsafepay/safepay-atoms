@@ -28,8 +28,8 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps
 
-      - name: Run Playwright tests (atoms project)
-        run: pnpm exec playwright test --project=atoms
+      - name: Run Playwright tests (web-components project)
+        run: pnpm exec playwright test --project=web-components
 
   e2e-react:
     runs-on: ubuntu-24.04 # ubuntu-latest is 26.04, which Playwright has no Chromium build for
@@ -109,7 +109,7 @@ jobs:
         run: pnpm exec playwright install --with-deps
 
       - name: Run live regression tests
-        run: pnpm exec playwright test --project=atoms
+        run: pnpm exec playwright test --project=web-components
         env:
           USE_REAL_DROPS: ${{ vars.USE_REAL_DROPS }}
           DROPS_ENV: ${{ vars.DROPS_ENV }}

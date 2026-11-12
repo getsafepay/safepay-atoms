@@ -43,7 +43,16 @@ export async function createLiveSession(): Promise<LiveSession> {
   return { authToken, user, env, _merchantApiKey: merchantApiKey, _secretKey: secretKey, _host: host };
 }
 
-export async function createTracker(session: LiveSession): Promise<string> {
+// Amounts are in minor units (5000 = PKR 50.00).
+export const DEFAULT_AMOUNT = 5000;
+// The Cybersource test processor declines PKR 4051.00 with response code 51
+// (insufficient funds), after authentication has succeeded.
+export const INSUFFICIENT_FUNDS_AMOUNT = 405100;
+
+export async function createTracker(
+  session: LiveSession,
+  { amount = DEFAULT_AMOUNT }: { amount?: number } = {}
+): Promise<string> {
   // Trackers are created server-side with the merchant secret, as a merchant
   // integration would; merchant_api_key must belong to the same merchant.
   const secretClient = new Safepay(session._secretKey, { authType: 'secret', host: session._host });
@@ -53,7 +62,7 @@ export async function createTracker(session: LiveSession): Promise<string> {
     mode: 'payment',
     currency: 'PKR',
     user: session.user,
-    amount: 5000,
+    amount,
     entry_mode: 'raw',
   });
   return trackerRes.data.tracker.token;

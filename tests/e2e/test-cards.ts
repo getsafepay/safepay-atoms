@@ -239,3 +239,10 @@ export const TEST_CARDS: TestCard[] = [
 export const REGRESSION_CARDS = TEST_CARDS.filter((c) =>
   ['2.1', '2.2', '2.10a', '2.11a'].includes(c.scenario)
 );
+
+// Cards that authenticate successfully, used with an amount the test
+// processor declines, so the decline comes from the issuer after 3DS.
+export const LIVE_DECLINE_CARDS: Record<TestCardFlow, TestCard> = {
+  frictionless: TEST_CARDS.find((c) => c.number === '4456530000001005')!, // 2.1, Visa
+  'step-up': TEST_CARDS.find((c) => c.number === '4456530000001096')!, // 2.10a, Visa
+};

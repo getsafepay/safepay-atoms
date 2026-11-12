@@ -79,6 +79,9 @@ export class PayerAuthenticationAtom extends HTMLElement {
     'onPayerAuthenticationRequired',
     'onPayerAuthenticationUnavailable',
     'onSafepayError',
+    'onPaymentDeclined',
+    'onPayerAuthenticationTimeout',
+    'authenticationTimeoutMs',
     'imperativeRef',
   ];
 }

@@ -2,8 +2,8 @@ import { defineConfig, devices } from '@playwright/test';
 
 const projects = [
   {
-    name: 'atoms',
-    testMatch: /\/atoms\.spec\.ts$/,
+    name: 'web-components',
+    testMatch: /web-components\.spec\.ts$/,
     use: {
       baseURL: 'http://localhost:4173',
       ...devices['Desktop Chrome'],
@@ -11,7 +11,7 @@ const projects = [
   },
   {
     name: 'react',
-    testMatch: /react-atoms\.spec\.ts/,
+    testMatch: /react\.spec\.ts$/,
     use: {
       baseURL: 'http://localhost:4174',
       ...devices['Desktop Chrome'],

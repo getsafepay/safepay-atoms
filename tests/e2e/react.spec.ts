@@ -1,6 +1,15 @@
 import { expect, test, Page, Frame } from '@playwright/test';
-import { createLiveSession, createTracker, LiveSession } from './live-session';
-import { REGRESSION_CARDS } from './test-cards';
+import { createLiveSession, createTracker, INSUFFICIENT_FUNDS_AMOUNT, LiveSession } from './live-session';
+import { LIVE_DECLINE_CARDS, REGRESSION_CARDS, TestCard } from './test-cards';
+import {
+  DECLINE_CASES,
+  expectOnlyCallback,
+  LIVE_SETTLE_MS,
+  MOCK_SETTLE_MS,
+  needsNewerDrops,
+  NEEDS_NEWER_DROPS_REASON,
+  sendDeclineFromMockedDrops,
+} from './decline-cases';
 
 const useRealDrops = process.env.USE_REAL_DROPS === '1';
 const dropsEnv = (process.env.DROPS_ENV || 'sandbox').toLowerCase();
@@ -173,7 +182,86 @@ test.describe('Safepay React components (CardCapture + PayerAuthentication)', ()
     await expect(page.locator('#threeds-modal')).toHaveClass(/hide/);
     await page.waitForFunction(() => Boolean((window as any).__atomsCallbacks.success));
   });
+
+  for (const c of DECLINE_CASES) {
+    test(c.title, async ({ page }) => {
+      test.skip(useRealDrops, 'Runs only with mocked drops');
+
+      await page.route('**/cardlink*', async (r) =>
+        r.fulfill({ status: 200, contentType: 'text/html', body: createMockDropsPage('cardlink') })
+      );
+      await page.route('**/authlink*', async (r) =>
+        r.fulfill({ status: 200, contentType: 'text/html', body: createMockDropsPage('authlink') })
+      );
+
+      await renderHost(page);
+
+      await page.evaluate((declinedHandler) => {
+        (window as any).__reactHost.setCardProps({ environment: 'sandbox', authToken: 'tok', tracker: 'trk' });
+        (window as any).__reactHost.setPayerAuthProps({
+          environment: 'sandbox',
+          authToken: 'tok',
+          tracker: 'trk',
+          user: '',
+          declinedHandler,
+        });
+      }, c.declinedHandler);
+
+      await page.waitForSelector('iframe[src*="/drops/authlink"]', { state: 'attached' });
+
+      await sendDeclineFromMockedDrops(page, c);
+      await expectOnlyCallback(page, c, { timeout: 5_000, settleMs: MOCK_SETTLE_MS });
+    });
+  }
 });
+
+// Points both components at a live tracker, enters the card and submits it.
+const submitLiveCard = async (
+  page: Page,
+  session: LiveSession,
+  tracker: string,
+  card: TestCard,
+  { declinedHandler = false }: { declinedHandler?: boolean } = {}
+) => {
+  await page.evaluate(
+    ({ authToken, tracker, user, env, declinedHandler }) => {
+      (window as any).__reactHost.setCardProps({ environment: env, authToken, tracker });
+      (window as any).__reactHost.setPayerAuthProps({ environment: env, authToken, tracker, user, declinedHandler });
+    },
+    { authToken: session.authToken, tracker, user: session.user, env: session.env, declinedHandler }
+  );
+
+  const cardFrame = await waitForFrameUrl(page, 'cardlink');
+  await cardFrame.waitForLoadState('domcontentloaded');
+
+  await cardFrame.getByPlaceholder(/Card number/i).fill(card.number);
+  await cardFrame.getByPlaceholder(/^MM$/i).fill(card.expiry.mm);
+  await cardFrame.getByPlaceholder(/^YY$/i).fill(card.expiry.yy);
+  await cardFrame.getByPlaceholder(/CVV/i).fill(card.cvv);
+
+  await page.evaluate(() => (window as any).__reactHost.submitCard());
+};
+
+// Waits for the step-up challenge and answers it with the Cardinal test code.
+const completeLiveChallenge = async (page: Page) => {
+  await page.waitForFunction(
+    () => Boolean((window as any).__atomsCallbacks.proceedToAuthentication),
+    { timeout: 20_000 }
+  );
+  await expect(page.locator('#threeds-modal')).toHaveClass(/show/);
+
+  const challengeFrame = page
+    .frameLocator('iframe').nth(1)
+    .frameLocator('#threeds_challenge_iframe')
+    .frameLocator('iframe');
+
+  await challengeFrame.getByPlaceholder('Enter Code Here').waitFor({ state: 'visible', timeout: 60_000 });
+  await challengeFrame.getByPlaceholder('Enter Code Here').fill('1234');
+  await challengeFrame.getByRole('button', { name: 'SUBMIT' }).click();
+};
+
+const waitForCallback = (page: Page, name: string, timeout: number) =>
+  page.waitForFunction((name) => Boolean((window as any).__atomsCallbacks[name]), name, { timeout });
 
 test.describe(`live regression against ${dropsEnv} drops (React components)`, () => {
   test.skip(!useRealDrops, 'Opt-in: set USE_REAL_DROPS=1 and X_SFPY_MERCHANT_SECRET to run against a live backend');
@@ -191,65 +279,41 @@ test.describe(`live regression against ${dropsEnv} drops (React components)`, ()
       const tracker = await createTracker(session);
 
       await renderHost(page);
-
-      await page.evaluate(
-        ({ authToken, tracker, user, env }) => {
-          (window as any).__reactHost.setCardProps({ environment: env, authToken, tracker });
-          (window as any).__reactHost.setPayerAuthProps({ environment: env, authToken, tracker, user });
-        },
-        { authToken: session.authToken, tracker, user: session.user, env: session.env }
-      );
-
-      const cardFrame = await waitForFrameUrl(page, 'cardlink');
-      await cardFrame.waitForLoadState('domcontentloaded');
-
-      await cardFrame.getByPlaceholder(/Card number/i).fill(card.number);
-      await cardFrame.getByPlaceholder(/^MM$/i).fill(card.expiry.mm);
-      await cardFrame.getByPlaceholder(/^YY$/i).fill(card.expiry.yy);
-      await cardFrame.getByPlaceholder(/CVV/i).fill(card.cvv);
-
-      await page.evaluate(() => (window as any).__reactHost.submitCard());
+      await submitLiveCard(page, session, tracker, card);
 
       if (card.flow === 'frictionless') {
-        if (card.outcome === 'proceed') {
-          await page.waitForFunction(
-            () => Boolean((window as any).__atomsCallbacks.frictionless),
-            { timeout: 20_000 }
-          );
-        } else {
-          await page.waitForFunction(
-            () => Boolean((window as any).__atomsCallbacks.unavailable),
-            { timeout: 20_000 }
-          );
-        }
+        await waitForCallback(page, card.outcome === 'proceed' ? 'frictionless' : 'unavailable', 20_000);
       } else {
-        await page.waitForFunction(
-          () => Boolean((window as any).__atomsCallbacks.proceedToAuthentication),
-          { timeout: 20_000 }
-        );
-        await expect(page.locator('#threeds-modal')).toHaveClass(/show/);
-
-        const challengeFrame = page
-          .frameLocator('iframe').nth(1)
-          .frameLocator('#threeds_challenge_iframe')
-          .frameLocator('iframe');
-
-        await challengeFrame.getByPlaceholder('Enter Code Here').waitFor({ state: 'visible', timeout: 60_000 });
-        await challengeFrame.getByPlaceholder('Enter Code Here').fill('1234');
-        await challengeFrame.getByRole('button', { name: 'SUBMIT' }).click();
-
-        if (card.outcome === 'proceed') {
-          await page.waitForFunction(
-            () => Boolean((window as any).__atomsCallbacks.success),
-            { timeout: 30_000 }
-          );
-        } else {
-          await page.waitForFunction(
-            () => Boolean((window as any).__atomsCallbacks.failure),
-            { timeout: 30_000 }
-          );
-        }
+        await completeLiveChallenge(page);
+        await waitForCallback(page, card.outcome === 'proceed' ? 'success' : 'failure', 30_000);
       }
+    });
+  }
+});
+
+// Authentication succeeds, then the issuer declines the authorization with
+// response code 51 (insufficient funds).
+test.describe(`live declines against ${dropsEnv} drops (React components)`, () => {
+  test.skip(!useRealDrops, 'Opt-in: set USE_REAL_DROPS=1 and X_SFPY_MERCHANT_SECRET to run against a live backend');
+
+  let session: LiveSession;
+
+  test.beforeAll(async () => {
+    session = await createLiveSession();
+  });
+
+  for (const c of DECLINE_CASES) {
+    test(c.title, async ({ page }) => {
+      test.fixme(needsNewerDrops(c), NEEDS_NEWER_DROPS_REASON);
+      if (c.flow === 'step-up') test.setTimeout(120_000);
+
+      const tracker = await createTracker(session, { amount: INSUFFICIENT_FUNDS_AMOUNT });
+
+      await renderHost(page);
+      await submitLiveCard(page, session, tracker, LIVE_DECLINE_CARDS[c.flow], { declinedHandler: c.declinedHandler });
+      if (c.flow === 'step-up') await completeLiveChallenge(page);
+
+      await expectOnlyCallback(page, c, { timeout: 30_000, settleMs: LIVE_SETTLE_MS, tracker });
     });
   }
 });
