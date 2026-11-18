@@ -23,9 +23,10 @@ const waitForFrameUrl = async (page: Page, substring: string): Promise<Frame> =>
   return Promise.race([navigated, attached]);
 };
 
-// declinedHandler: whether the host sets onPaymentDeclined. Atoms reports a
-// decline differently depending on whether the merchant provided it.
-const renderHost = async (page: Page, { declinedHandler = false }: { declinedHandler?: boolean } = {}) => {
+// unifiedHandler: whether the host sets onPayerAuthenticationError. Negative
+// outcomes report through it (with a `reason`) when set, otherwise through the
+// deprecated per-outcome callbacks.
+const renderHost = async (page: Page, { unifiedHandler = false }: { unifiedHandler?: boolean } = {}) => {
   if (!page.url().startsWith('http://localhost:4173')) {
     await page.goto('http://localhost:4173');
   }
@@ -71,30 +72,33 @@ const renderHost = async (page: Page, { declinedHandler = false }: { declinedHan
             window.__atomsCallbacks.calls.push(name);
           };
 
-          payerAuthAtom.onPayerAuthenticationSuccess = function (data) {
+          const hideModal = () => {
             modal.classList.remove('show');
             modal.classList.add('hide');
-            record('success', data);
           };
-          payerAuthAtom.onPayerAuthenticationFailure = function (data) {
-            modal.classList.remove('show');
-            modal.classList.add('hide');
-            record('failure', data);
+
+          payerAuthAtom.onPayerAuthenticationSuccess = function (data) {
+            hideModal();
+            record('success', data);
           };
           payerAuthAtom.onPayerAuthenticationFrictionless = function (data) {
             record('frictionless', data);
           };
-          payerAuthAtom.onPayerAuthenticationUnavailable = function (data) {
-            record('unavailable', data);
-          };
-          payerAuthAtom.onPayerAuthenticationTimeout = function (data) {
-            record('timeout', data);
-          };
-          if (${declinedHandler}) {
-            payerAuthAtom.onPaymentDeclined = function (data) {
-              modal.classList.remove('show');
-              modal.classList.add('hide');
-              record('declined', data);
+          if (${unifiedHandler}) {
+            // Unified negative-outcome callback: declined / failure / timeout /
+            // unavailable, discriminated by reason.
+            payerAuthAtom.onPayerAuthenticationError = function (e) {
+              if (e.reason === 'declined' || e.reason === 'failure') hideModal();
+              record(e.reason, e);
+            };
+          } else {
+            // Legacy mode: deprecated per-outcome callbacks.
+            payerAuthAtom.onPayerAuthenticationFailure = function (data) {
+              hideModal();
+              record('failure', data);
+            };
+            payerAuthAtom.onPayerAuthenticationUnavailable = function (data) {
+              record('unavailable', data);
             };
           }
 
@@ -456,7 +460,7 @@ test.describe('Safepay Atoms messaging to drops', () => {
         route.fulfill({ status: 200, contentType: 'text/html', body: createMockDropsPage('authlink') })
       );
 
-      await renderHost(page, { declinedHandler: c.declinedHandler });
+      await renderHost(page, { unifiedHandler: c.unifiedHandler });
 
       await page.waitForSelector('iframe[src*="/drops/cardlink"]', { state: 'attached' });
       await page.waitForSelector('iframe[src*="/drops/authlink"]', { state: 'attached' });
@@ -733,7 +737,7 @@ test.describe(`live declines against ${dropsEnv} drops`, () => {
 
       const tracker = await createTracker(session, { amount: INSUFFICIENT_FUNDS_AMOUNT });
 
-      await renderHost(page, { declinedHandler: c.declinedHandler });
+      await renderHost(page, { unifiedHandler: c.unifiedHandler });
       await submitLiveCard(page, session, tracker, LIVE_DECLINE_CARDS[c.flow]);
       if (c.flow === 'step-up') await completeLiveChallenge(page);
 

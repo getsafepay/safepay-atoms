@@ -1,10 +1,10 @@
-interface PayerAuthData {
+export interface PayerAuthData {
   tracker: string;
   request_id?: string;
   errorMessage?: string;
 }
 
-interface PayerAuthErrorData extends PayerAuthData {
+export interface PayerAuthErrorData extends PayerAuthData {
   error: string;
 }
 
@@ -35,6 +35,32 @@ export interface PayerAuthenticationTimeoutData {
   /** The timeout that elapsed, in milliseconds. */
   timeoutMs: number;
 }
+
+/** Why a payer-authentication attempt ended without success. */
+export type PayerAuthenticationErrorReason =
+  | 'failure'
+  | 'declined'
+  | 'timeout'
+  | 'unavailable';
+
+/**
+ * A single negative-outcome event for the payer-authentication atom, reported
+ * through `onPayerAuthenticationError`. Discriminate on `reason`:
+ *   - `failure`     — 3DS challenge authentication failed (`error`).
+ *   - `declined`    — the card issuer declined (`responseCode`, `merchantAdvice`).
+ *   - `timeout`     — a required challenge produced no outcome in time (`timeoutMs`).
+ *   - `unavailable` — enrollment could not be completed (no 3DS ran); depending
+ *                     on the merchant's setup the payment may still proceed to
+ *                     authorization, so branch on `reason` rather than treating
+ *                     every event as fatal.
+ * Every variant carries `tracker`. Display-only — confirm the final payment
+ * status server-side before acting on it.
+ */
+export type PayerAuthenticationError =
+  | ({ reason: 'failure' } & PayerAuthErrorData)
+  | ({ reason: 'declined' } & PaymentDeclinedData)
+  | ({ reason: 'timeout' } & PayerAuthenticationTimeoutData)
+  | ({ reason: 'unavailable' } & PayerAuthData);
 
 interface Billing {
   street_1: string;
@@ -72,24 +98,29 @@ export interface PayerAuthenticationProps {
     do_capture?: boolean;
     do_card_on_file?: boolean;
   };
+  /**
+   * Unified negative-outcome callback. When provided, every non-success outcome
+   * — a 3DS authentication failure, an issuer decline, a challenge timeout, or
+   * enrollment being unavailable — is reported here, discriminated by `reason`,
+   * and the deprecated per-outcome callbacks below do NOT fire (so a single
+   * outcome is reported exactly once). When omitted, the released callbacks fire
+   * exactly as before.
+   */
+  onPayerAuthenticationError?: (data: PayerAuthenticationError) => void;
+  /**
+   * @deprecated Use `onPayerAuthenticationError` and handle `reason === 'failure'`.
+   * Still fires when `onPayerAuthenticationError` is not provided.
+   */
   onPayerAuthenticationFailure?: (data: PayerAuthErrorData) => void;
   onPayerAuthenticationSuccess?: (data: PayerAuthSuccessData) => void;
   onPayerAuthenticationRequired?: (data: PayerAuthData) => void;
   onPayerAuthenticationFrictionless?: (data: PayerAuthData) => void;
+  /**
+   * @deprecated Use `onPayerAuthenticationError` and handle `reason === 'unavailable'`.
+   * Still fires when `onPayerAuthenticationError` is not provided.
+   */
   onPayerAuthenticationUnavailable?: (data: PayerAuthData) => void;
   onSafepayError?: (data: SafepayError) => void;
-  /**
-   * Called when the issuer declined the payment. When provided, it is called
-   * instead of `onPayerAuthenticationUnavailable` (frictionless) or
-   * `onPayerAuthenticationFailure` (after a 3DS challenge) for that decline.
-   * When not provided, declines are reported through those callbacks as before.
-   */
-  onPaymentDeclined?: (data: PaymentDeclinedData) => void;
-  /**
-   * Called once if a 3DS challenge started but no outcome arrived within
-   * `authenticationTimeoutMs` (shopper abandoned it, or the connection dropped).
-   */
-  onPayerAuthenticationTimeout?: (data: PayerAuthenticationTimeoutData) => void;
   /**
    * How long to wait for a 3DS challenge outcome, in milliseconds, measured
    * from when the challenge is required. Defaults to 10 minutes. `0` disables it.

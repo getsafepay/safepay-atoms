@@ -1,39 +1,30 @@
 import { expect, Page } from '@playwright/test';
 import type { TestCardFlow } from './test-cards';
 
-// The public callback each key in window.__atomsCallbacks records.
-export const CALLBACK_NAMES = {
-  declined: 'onPaymentDeclined',
-  unavailable: 'onPayerAuthenticationUnavailable',
-  failure: 'onPayerAuthenticationFailure',
-  success: 'onPayerAuthenticationSuccess',
-  frictionless: 'onPayerAuthenticationFrictionless',
-  timeout: 'onPayerAuthenticationTimeout',
-} as const;
-
 export interface DeclineCase {
   title: string;
   flow: TestCardFlow;
-  // Whether the merchant set onPaymentDeclined.
-  declinedHandler: boolean;
-  // The only callback that may fire for the decline.
+  // Whether the merchant set the unified onPayerAuthenticationError callback.
+  unifiedHandler: boolean;
+  // The only outcome that may be recorded for the decline. With the unified
+  // callback it is reported as `reason`; in legacy mode it falls through to the
+  // deprecated unavailable/failure callback.
   expected: 'declined' | 'unavailable' | 'failure';
-  // The failure event drops sends straight after payment__declined, for older
-  // atoms versions.
+  // The failure event drops sends straight after payment__declined.
   failureEvent: string;
 }
 
-const declineCase = (flow: TestCardFlow, declinedHandler: boolean): DeclineCase => {
-  const expected: DeclineCase['expected'] = declinedHandler
+const declineCase = (flow: TestCardFlow, unifiedHandler: boolean): DeclineCase => {
+  const expected: DeclineCase['expected'] = unifiedHandler
     ? 'declined'
     : flow === 'frictionless'
       ? 'unavailable'
       : 'failure';
   const flowName = flow === 'frictionless' ? 'frictionless' : 'challenge';
   return {
-    title: `${flowName} decline → only ${CALLBACK_NAMES[expected]} (onPaymentDeclined ${declinedHandler ? 'set' : 'not set'})`,
+    title: `${flowName} decline → only ${expected} (onPayerAuthenticationError ${unifiedHandler ? 'set' : 'not set'})`,
     flow,
-    declinedHandler,
+    unifiedHandler,
     expected,
     failureEvent:
       flow === 'frictionless' ? 'safepay-inframe__enrollment__failed' : 'safepay-inframe__cardinal-3ds__failure',
@@ -41,7 +32,8 @@ const declineCase = (flow: TestCardFlow, declinedHandler: boolean): DeclineCase 
 };
 
 // A payment that authenticates and is then declined by the issuer is reported
-// to exactly one callback, depending on whether onPaymentDeclined is set.
+// exactly once: through onPayerAuthenticationError (reason 'declined') when the
+// merchant set it, otherwise through the deprecated failure callback.
 export const DECLINE_CASES: DeclineCase[] = [
   declineCase('frictionless', true),
   declineCase('frictionless', false),
@@ -51,8 +43,8 @@ export const DECLINE_CASES: DeclineCase[] = [
 
 // Drops can only detect a frictionless decline when it is built with
 // @sfpy/node-core 0.3.7 or later (node-core #40). Until then it reports the
-// decline as enrollment__failed alone, so onPaymentDeclined cannot fire.
-export const needsNewerDrops = (c: DeclineCase) => c.flow === 'frictionless' && c.declinedHandler;
+// decline as enrollment__failed alone, so reason 'declined' cannot surface.
+export const needsNewerDrops = (c: DeclineCase) => c.flow === 'frictionless' && c.unifiedHandler;
 export const NEEDS_NEWER_DROPS_REASON = 'Needs drops built with @sfpy/node-core >= 0.3.7';
 
 // Time for a callback that should NOT fire to arrive after the expected one.
@@ -106,10 +98,8 @@ export const expectOnlyCallback = async (
   await page.waitForTimeout(settleMs);
 
   const callbacks = await page.evaluate(() => (window as any).__atomsCallbacks);
-  expect(callbacks.calls.map((key: keyof typeof CALLBACK_NAMES) => CALLBACK_NAMES[key] ?? key)).toEqual([
-    CALLBACK_NAMES[c.expected],
-  ]);
-  if (c.declinedHandler) {
+  expect(callbacks.calls).toEqual([c.expected]);
+  if (c.unifiedHandler && c.expected === 'declined') {
     expect(callbacks.declined.responseCode).toBe(DECLINE_DETAIL.responseCode);
     if (tracker) expect(callbacks.declined.tracker).toBe(tracker);
   }

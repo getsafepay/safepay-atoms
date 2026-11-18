@@ -73,14 +73,14 @@ export class PayerAuthenticationAtom extends HTMLElement {
     'deviceDataCollectionJWT',
     'deviceDataCollectionURL',
     'authorizationOptions',
+    'onPayerAuthenticationError',
+    // Deprecated: superseded by onPayerAuthenticationError (reason 'failure'/'unavailable').
     'onPayerAuthenticationFailure',
     'onPayerAuthenticationSuccess',
     'onPayerAuthenticationFrictionless',
     'onPayerAuthenticationRequired',
     'onPayerAuthenticationUnavailable',
     'onSafepayError',
-    'onPaymentDeclined',
-    'onPayerAuthenticationTimeout',
     'authenticationTimeoutMs',
     'imperativeRef',
   ];

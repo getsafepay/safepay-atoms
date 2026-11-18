@@ -93,20 +93,16 @@
       modal.classList.add('hide');
     }
 
-    // The issuer declined the payment (e.g. insufficient funds). Because this is
-    // set, declines arrive here only, not in the Failure/Unavailable callbacks.
-    payerAuthAtom.onPaymentDeclined = function (data) {
-      console.log('onPaymentDeclined', data.responseCode, data.merchantAdvice);
+    // One callback for every negative outcome, discriminated by `reason`:
+    //   declined    — the issuer declined (e.g. insufficient funds)
+    //   failure     — the 3DS challenge failed
+    //   timeout     — the shopper abandoned the challenge / no outcome in time
+    //   unavailable — enrollment could not complete (no 3DS ran; depending on
+    //                 setup the payment may still proceed to authorization)
+    // Confirm the final payment status server-side before acting on it.
+    payerAuthAtom.onPayerAuthenticationError = function (e) {
+      console.log('onPayerAuthenticationError', e.reason, e);
       closeModal(); // e.g. ask the shopper to try a different card
-    };
-    // The shopper abandoned the 3DS challenge, or no outcome arrived in time.
-    payerAuthAtom.onPayerAuthenticationTimeout = function (data) {
-      console.log('onPayerAuthenticationTimeout', data);
-      closeModal();
-    };
-    payerAuthAtom.onPayerAuthenticationFailure = function (data) {
-      console.log('onPayerAuthenticationFailure', data);
-      closeModal();
     };
     payerAuthAtom.onPayerAuthenticationSuccess = function (data) {
       console.log('onPayerAuthenticationSuccess', data);
@@ -114,10 +110,6 @@
     };
     payerAuthAtom.onPayerAuthenticationFrictionless = function (data) {
       console.log('onPayerAuthenticationFrictionless', data);
-      closeModal();
-    };
-    payerAuthAtom.onPayerAuthenticationUnavailable = function (data) {
-      console.log('onPayerAuthenticationUnavailable', data);
       closeModal();
     };
     payerAuthAtom.onSafepayError = function (error) {

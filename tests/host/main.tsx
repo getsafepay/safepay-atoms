@@ -92,23 +92,23 @@ function App() {
                 setShowModal(false);
                 record('success', data);
               }}
-              onPayerAuthenticationFailure={(data) => {
-                setShowModal(false);
-                record('failure', data);
-              }}
               onPayerAuthenticationFrictionless={(data) => record('frictionless', data)}
-              onPayerAuthenticationUnavailable={(data) => record('unavailable', data)}
-              onPayerAuthenticationTimeout={(data) => record('timeout', data)}
-              // Set only when the test asks for it: atoms reports a decline
-              // differently depending on whether the merchant provided it.
-              onPaymentDeclined={
-                payerAuthProps.declinedHandler
-                  ? (data) => {
+              // Negative outcomes report through the unified callback when the
+              // test asks for it, otherwise through the deprecated ones.
+              {...(payerAuthProps.unifiedHandler
+                ? {
+                    onPayerAuthenticationError: (e: any) => {
+                      if (e.reason === 'declined' || e.reason === 'failure') setShowModal(false);
+                      record(e.reason, e);
+                    },
+                  }
+                : {
+                    onPayerAuthenticationFailure: (data: any) => {
                       setShowModal(false);
-                      record('declined', data);
-                    }
-                  : undefined
-              }
+                      record('failure', data);
+                    },
+                    onPayerAuthenticationUnavailable: (data: any) => record('unavailable', data),
+                  })}
             />
           )}
         </div>

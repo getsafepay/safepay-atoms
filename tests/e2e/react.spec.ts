@@ -196,16 +196,16 @@ test.describe('Safepay React components (CardCapture + PayerAuthentication)', ()
 
       await renderHost(page);
 
-      await page.evaluate((declinedHandler) => {
+      await page.evaluate((unifiedHandler) => {
         (window as any).__reactHost.setCardProps({ environment: 'sandbox', authToken: 'tok', tracker: 'trk' });
         (window as any).__reactHost.setPayerAuthProps({
           environment: 'sandbox',
           authToken: 'tok',
           tracker: 'trk',
           user: '',
-          declinedHandler,
+          unifiedHandler,
         });
-      }, c.declinedHandler);
+      }, c.unifiedHandler);
 
       await page.waitForSelector('iframe[src*="/drops/authlink"]', { state: 'attached' });
 
@@ -221,14 +221,14 @@ const submitLiveCard = async (
   session: LiveSession,
   tracker: string,
   card: TestCard,
-  { declinedHandler = false }: { declinedHandler?: boolean } = {}
+  { unifiedHandler = false }: { unifiedHandler?: boolean } = {}
 ) => {
   await page.evaluate(
-    ({ authToken, tracker, user, env, declinedHandler }) => {
+    ({ authToken, tracker, user, env, unifiedHandler }) => {
       (window as any).__reactHost.setCardProps({ environment: env, authToken, tracker });
-      (window as any).__reactHost.setPayerAuthProps({ environment: env, authToken, tracker, user, declinedHandler });
+      (window as any).__reactHost.setPayerAuthProps({ environment: env, authToken, tracker, user, unifiedHandler });
     },
-    { authToken: session.authToken, tracker, user: session.user, env: session.env, declinedHandler }
+    { authToken: session.authToken, tracker, user: session.user, env: session.env, unifiedHandler }
   );
 
   const cardFrame = await waitForFrameUrl(page, 'cardlink');
@@ -310,7 +310,7 @@ test.describe(`live declines against ${dropsEnv} drops (React components)`, () =
       const tracker = await createTracker(session, { amount: INSUFFICIENT_FUNDS_AMOUNT });
 
       await renderHost(page);
-      await submitLiveCard(page, session, tracker, LIVE_DECLINE_CARDS[c.flow], { declinedHandler: c.declinedHandler });
+      await submitLiveCard(page, session, tracker, LIVE_DECLINE_CARDS[c.flow], { unifiedHandler: c.unifiedHandler });
       if (c.flow === 'step-up') await completeLiveChallenge(page);
 
       await expectOnlyCallback(page, c, { timeout: 30_000, settleMs: LIVE_SETTLE_MS, tracker });
