@@ -55,6 +55,8 @@ jobs:
 
       - name: Run Playwright tests (react project)
         run: pnpm exec playwright test --project=react
+        env:
+          BETTER_STACK_CHECKOUT_RUM_TOKEN: playwright-stub
 
   e2e-react-live:
     runs-on: ubuntu-24.04 # ubuntu-latest is 26.04, which Playwright has no Chromium build for

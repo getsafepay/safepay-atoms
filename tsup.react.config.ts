@@ -18,6 +18,7 @@ export default defineConfig({
     sourcemap: false,
     tsconfig: 'tsconfig.react.json',
     define: {
+        '__SFPY_BETTER_STACK_RUM_TOKEN__': JSON.stringify(process.env.BETTER_STACK_CHECKOUT_RUM_TOKEN || ''),
         'document': 'undefined'
     }
 });
