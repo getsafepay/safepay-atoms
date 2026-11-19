@@ -28,6 +28,9 @@ const cssAsText = (): Plugin => {
 };
 
 export default defineConfig({
+  define: {
+    __SFPY_BETTER_STACK_RUM_TOKEN__: JSON.stringify(process.env.BETTER_STACK_CHECKOUT_RUM_TOKEN || ''),
+  },
   plugins: [react(), cssAsText()],
   root: 'tests/host',
   server: { port: 4174 },

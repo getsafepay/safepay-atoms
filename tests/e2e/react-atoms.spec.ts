@@ -65,13 +65,19 @@ const renderHost = async (page: Page) => {
 test.describe('Safepay React components (CardCapture + PayerAuthentication)', () => {
   test('reports a CardCapture startup failure when Drops loads without sending ready', async ({ page }) => {
     test.skip(useRealDrops, 'Runs only with mocked drops');
+    test.skip(!process.env.BETTER_STACK_CHECKOUT_RUM_TOKEN, 'Requires a stub RUM application token');
+    await page.route('https://betterstack.net/b.js?*', (route) => route.fulfill({
+      contentType: 'application/javascript',
+      headers: { 'access-control-allow-origin': '*' },
+      body: 'window.safepayRumEvents = window.betterstack.q;',
+    }));
     await page.route('**/cardlink*', (route) => route.fulfill({ contentType: 'text/html', body: '<p>Never sends ready</p>' }));
     await page.clock.install();
     await renderHost(page);
     await page.evaluate(() => {
       const host = window as any;
-      host.__telemetry = [];
-      host.betterstack = (...args: unknown[]) => host.__telemetry.push(args);
+      host.__merchantRum = [];
+      host.betterstack = (...args: unknown[]) => host.__merchantRum.push(args);
       host.__reactHost.setCardProps({
         environment: 'sandbox',
         authToken: 'not-for-telemetry',
@@ -84,9 +90,16 @@ test.describe('Safepay React components (CardCapture + PayerAuthentication)', ()
     const attemptId = new URL(src!).searchParams.get('attempt_id');
     expect(attemptId).toMatch(/^[A-Za-z0-9_-]{21}$/);
 
+    await expect(page.locator('iframe[title="Safepay checkout diagnostics"]')).toHaveCount(0);
+    const scriptRequest = page.waitForRequest((request) => request.url() ===
+      `https://betterstack.net/b.js?t=${encodeURIComponent(process.env.BETTER_STACK_CHECKOUT_RUM_TOKEN!)}`);
     await page.clock.runFor(11000);
-    const events = await page.evaluate(() => (window as any).__telemetry);
-    expect(events).toEqual([['track', 'cardcapture_startup_timeout', {
+    await scriptRequest;
+    const rum = await (await page.locator('iframe[title="Safepay checkout diagnostics"]').elementHandle()).contentFrame();
+    if (!rum) throw new Error('Safepay RUM frame was not created');
+    await rum.waitForFunction(() => (window as any).safepayRumEvents);
+    const events = await rum.evaluate(() => (window as any).safepayRumEvents);
+    expect(events).toEqual([['config', { crossDomainCookie: false }], ['init', { autoPageview: false, environment: 'sandbox' }], ['track', 'cardcapture_startup_timeout', {
       source: 'atoms',
       attempt_id: attemptId,
       environment: 'sandbox',
@@ -94,6 +107,7 @@ test.describe('Safepay React components (CardCapture + PayerAuthentication)', ()
       last_step: 'iframe_loaded',
       elapsed_ms: expect.any(Number),
     }]]);
+    expect(await page.evaluate(() => (window as any).__merchantRum)).toEqual([]);
   });
 
   test('renders components and creates iframes when credentials are set', async ({ page }) => {

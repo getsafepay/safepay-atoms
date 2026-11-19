@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { generateUUID } from '../../utils/funcs/generateUUID';
 import { resolveExactOrigin } from '../../utils/funcs/bridgeOrigin';
+import { reportCardCaptureTimeout } from '../../utils/funcs/reportCheckoutFailure';
 import useFunctionQueue from '../hooks/useFunctionQueue';
 
 interface InframeProps {
@@ -185,25 +186,18 @@ const InframeComponent = React.forwardRef(
     }, [attempt]);
 
     React.useEffect(() => {
-      if (isVisible || !attempt.id) return;
+      const attemptId = attempt.id;
+      if (isVisible || !attemptId) return;
       const startedAt = performance.now();
       const timeout = window.setTimeout(() => {
         const { environment, tracker } = telemetryContext.current;
-        const { betterstack } = window as Window & {
-          betterstack?: (command: string, name: string, data: Record<string, unknown>) => void;
-        };
-        try {
-          betterstack?.('track', 'cardcapture_startup_timeout', {
-            source: 'atoms',
-            attempt_id: attempt.id,
-            environment,
-            ...(typeof tracker === 'string' && /^track_[a-f0-9-]{36}$/i.test(tracker) ? { tracker } : {}),
-            last_step: startupStep.current,
-            elapsed_ms: Math.round(performance.now() - startedAt),
-          });
-        } catch {
-          // Telemetry is optional and must not affect the checkout.
-        }
+        reportCardCaptureTimeout({
+          attempt_id: attemptId,
+          tracker,
+          environment,
+          last_step: startupStep.current,
+          elapsed_ms: Math.round(performance.now() - startedAt),
+        });
       }, 10000);
       return () => window.clearTimeout(timeout);
     }, [attempt, isVisible]);
