@@ -49,10 +49,9 @@ export type PayerAuthenticationErrorReason =
  *   - `failure`     — 3DS challenge authentication failed (`error`).
  *   - `declined`    — the card issuer declined (`responseCode`, `merchantAdvice`).
  *   - `timeout`     — a required challenge produced no outcome in time (`timeoutMs`).
- *   - `unavailable` — enrollment could not be completed (no 3DS ran); depending
- *                     on the merchant's setup the payment may still proceed to
- *                     authorization, so branch on `reason` rather than treating
- *                     every event as fatal.
+ *   - `unavailable` — enrollment could not complete (no 3DS ran). The backend
+ *                     only authorizes liability-shifted payments, so today this
+ *                     is always a hard failure, same as `failure`.
  * Every variant carries `tracker`. Display-only — confirm the final payment
  * status server-side before acting on it.
  */

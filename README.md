@@ -358,7 +358,7 @@ The reasons:
 - `declined` — authentication worked but the card issuer refused the charge (e.g. insufficient funds). Use `responseCode` / `merchantAdvice` to tell a decline apart from an authentication or integration problem — for example, ask the shopper to use a different card. Don't parse `errorMessage`; its wording isn't stable.
 - `failure` — the 3DS challenge failed after the shopper entered the challenge flow.
 - `timeout` — a 3DS challenge started but produced no outcome within `authenticationTimeoutMs`. See [Timeouts and abandoned challenges](#timeouts-and-abandoned-challenges).
-- `unavailable` — enrollment could not complete and no 3DS ran. Depending on your setup the payment may still proceed to authorization, so branch on `reason` rather than treating every event as fatal.
+- `unavailable` — enrollment could not complete and no 3DS ran (e.g. the issuer couldn't authenticate, or the card isn't eligible). Safepay only authorizes liability-shifted payments, so today this is always a hard failure, the same as `failure`.
 
 Each outcome is reported exactly once, so you don't need to deduplicate: a decline is reported only as `reason: 'declined'`, not also as `failure`/`unavailable`.
 
