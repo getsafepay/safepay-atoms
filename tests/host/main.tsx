@@ -2,12 +2,17 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { CardCapture, PayerAuthentication } from '../../src/atoms';
 
-type AtomCallbacks = {
+type PayerAuthCallback = 'success' | 'failure' | 'frictionless' | 'unavailable' | 'timeout' | 'declined';
+
+type AtomCallbacks = Record<PayerAuthCallback, unknown | null> & {
   proceedToAuthentication: unknown | null;
-  success: unknown | null;
-  failure: unknown | null;
-  frictionless: unknown | null;
-  unavailable: unknown | null;
+  // Payer auth outcome callbacks in the order they fired.
+  calls: PayerAuthCallback[];
+};
+
+const record = (name: PayerAuthCallback, data: unknown) => {
+  window.__atomsCallbacks[name] = data;
+  window.__atomsCallbacks.calls.push(name);
 };
 
 declare global {
@@ -39,6 +44,9 @@ function App() {
       failure: null,
       frictionless: null,
       unavailable: null,
+      timeout: null,
+      declined: null,
+      calls: [],
     };
     window.__reactHost = {
       setCardProps: (props) => setCardProps((prev) => ({ ...prev, ...props })),
@@ -82,18 +90,25 @@ function App() {
               imperativeRef={payerAuthRef}
               onPayerAuthenticationSuccess={(data) => {
                 setShowModal(false);
-                window.__atomsCallbacks.success = data;
+                record('success', data);
               }}
-              onPayerAuthenticationFailure={(data) => {
-                setShowModal(false);
-                window.__atomsCallbacks.failure = data;
-              }}
-              onPayerAuthenticationFrictionless={(data) => {
-                window.__atomsCallbacks.frictionless = data;
-              }}
-              onPayerAuthenticationUnavailable={(data) => {
-                window.__atomsCallbacks.unavailable = data;
-              }}
+              onPayerAuthenticationFrictionless={(data) => record('frictionless', data)}
+              // Negative outcomes report through the unified callback when the
+              // test asks for it, otherwise through the deprecated ones.
+              {...(payerAuthProps.unifiedHandler
+                ? {
+                    onPayerAuthenticationError: (e: any) => {
+                      if (e.reason === 'declined' || e.reason === 'failure') setShowModal(false);
+                      record(e.reason, e);
+                    },
+                  }
+                : {
+                    onPayerAuthenticationFailure: (data: any) => {
+                      setShowModal(false);
+                      record('failure', data);
+                    },
+                    onPayerAuthenticationUnavailable: (data: any) => record('unavailable', data),
+                  })}
             />
           )}
         </div>
