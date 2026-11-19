@@ -23,6 +23,13 @@ yarn add @sfpy/atoms
 
 ### CardCaptureAtom
 
+For startup diagnostics, initialize a Better Stack JavaScript tag in the host
+page with automatic collection disabled. Both CardCapture entry points use the
+host tag to send `cardcapture_startup_timeout` when the iframe is still hidden
+after ten seconds. The event includes the last handshake step and an
+`attempt_id` shared with Drops. CardCapture works without the tag, and telemetry
+does not change its callbacks.
+
 The `<safepay-card-atom>` component provides card capture functionality. Set its configuration through the element's properties:
 
 ```html

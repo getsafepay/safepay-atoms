@@ -196,6 +196,7 @@ const CardCapture = ({
           ref={inframeMethodsRef}
           onInframeEvent={handleInframeEvent}
           inframeProps={computedProps}
+          environment={normalizedEnv}
         />
       </div>
       {errorMessage && <p className="errorMessage">{errorMessage}</p>}

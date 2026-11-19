@@ -7,6 +7,7 @@ interface InframeProps {
   src: string;
   title: string;
   inframeProps?: any;
+  environment?: string;
   onInframeEvent?: (eventName: string, detail: any) => void;
 }
 
@@ -39,7 +40,7 @@ interface InframeProps {
  * are sent in order and handled correctly by the iframe's content.
  */
 const InframeComponent = React.forwardRef(
-  ({ src, title, inframeProps, onInframeEvent = (e, d) => {} }: InframeProps, ref) => {
+  ({ src, title, inframeProps, environment, onInframeEvent = (e, d) => {} }: InframeProps, ref) => {
     const ACK_TIMEOUT_MS = 1000;
     const MAX_RETRIES = 2;
 
@@ -57,6 +58,19 @@ const InframeComponent = React.forwardRef(
     const inflightAcksRef = React.useRef(new Map<string, { timeoutId: number; entry: PendingMessage }>());
     const flushPendingMessagesRef = React.useRef<() => void>(() => {});
     const messagesProcessedCallback = React.useRef<(() => void) | null>(null);
+    const startupStep = React.useRef<'iframe_opened' | 'iframe_loaded' | 'ready_received' | 'props_acknowledged'>('iframe_opened');
+    const attempt = React.useMemo(() => {
+      try {
+        const url = new URL(src);
+        const id = generateUUID();
+        url.searchParams.set('attempt_id', id);
+        return { id, src: url.toString() };
+      } catch {
+        return { id: undefined, src };
+      }
+    }, [src]);
+    const telemetryContext = React.useRef({ environment, tracker: inframeProps?.tracker });
+    telemetryContext.current = { environment, tracker: inframeProps?.tracker };
     const functionQueue = useFunctionQueue();
     const iframeOrigin = React.useMemo(
       () => resolveExactOrigin(src, typeof window === 'undefined' ? undefined : window.location.href),
@@ -131,6 +145,9 @@ const InframeComponent = React.forwardRef(
               const inflight = inflightAcksRef.current.get(messageId);
               if (inflight?.timeoutId) window.clearTimeout(inflight.timeoutId);
               inflightAcksRef.current.delete(messageId);
+              if (status === 'ok' && inflight?.entry.payload.type === 'safepay-property-update') {
+                startupStep.current = 'props_acknowledged';
+              }
               if (status === 'error') {
                 console.warn(
                   `Iframe ack returned error for message ${messageId}: ${ackDetail?.message || 'unknown error'}`
@@ -140,6 +157,7 @@ const InframeComponent = React.forwardRef(
             return;
           }
           if (name === 'safepay-inframe__ready') {
+            if (!isReadyRef.current) startupStep.current = 'ready_received';
             isReadyRef.current = true;
             setIsReady(true);
             flushPendingMessages();
@@ -158,12 +176,37 @@ const InframeComponent = React.forwardRef(
     React.useEffect(() => {
       // Reset readiness whenever the iframe source changes
       isReadyRef.current = false;
+      startupStep.current = 'iframe_opened';
       setIsReady(false);
       setIsVisible(false);
       pendingMessagesRef.current = [];
       inflightAcksRef.current.forEach(({ timeoutId }) => window.clearTimeout(timeoutId));
       inflightAcksRef.current.clear();
-    }, [src]);
+    }, [attempt]);
+
+    React.useEffect(() => {
+      if (isVisible || !attempt.id) return;
+      const startedAt = performance.now();
+      const timeout = window.setTimeout(() => {
+        const { environment, tracker } = telemetryContext.current;
+        const { betterstack } = window as Window & {
+          betterstack?: (command: string, name: string, data: Record<string, unknown>) => void;
+        };
+        try {
+          betterstack?.('track', 'cardcapture_startup_timeout', {
+            source: 'atoms',
+            attempt_id: attempt.id,
+            environment,
+            ...(typeof tracker === 'string' && /^track_[a-f0-9-]{36}$/i.test(tracker) ? { tracker } : {}),
+            last_step: startupStep.current,
+            elapsed_ms: Math.round(performance.now() - startedAt),
+          });
+        } catch {
+          // Telemetry is optional and must not affect the checkout.
+        }
+      }, 10000);
+      return () => window.clearTimeout(timeout);
+    }, [attempt, isVisible]);
 
     React.useEffect(
       () => () => {
@@ -211,7 +254,10 @@ const InframeComponent = React.forwardRef(
       <iframe
         ref={iframeRef}
         className={'safepay-atoms-iframe'}
-        src={src}
+        src={attempt.src}
+        onLoad={() => {
+          if (startupStep.current === 'iframe_opened') startupStep.current = 'iframe_loaded';
+        }}
         title={title}
         style={isVisible ? undefined : { visibility: 'hidden' }}
       />

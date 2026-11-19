@@ -63,6 +63,39 @@ const renderHost = async (page: Page) => {
 };
 
 test.describe('Safepay React components (CardCapture + PayerAuthentication)', () => {
+  test('reports a CardCapture startup failure when Drops loads without sending ready', async ({ page }) => {
+    test.skip(useRealDrops, 'Runs only with mocked drops');
+    await page.route('**/cardlink*', (route) => route.fulfill({ contentType: 'text/html', body: '<p>Never sends ready</p>' }));
+    await page.clock.install();
+    await renderHost(page);
+    await page.evaluate(() => {
+      const host = window as any;
+      host.__telemetry = [];
+      host.betterstack = (...args: unknown[]) => host.__telemetry.push(args);
+      host.__reactHost.setCardProps({
+        environment: 'sandbox',
+        authToken: 'not-for-telemetry',
+        tracker: 'track_588224f3-5beb-423a-b1ff-aaabedc04855',
+      });
+    });
+    const frame = page.frameLocator('iframe[src*="/cardlink"]');
+    await expect(frame.getByText('Never sends ready')).toBeAttached();
+    const src = await page.locator('iframe[src*="/cardlink"]').getAttribute('src');
+    const attemptId = new URL(src!).searchParams.get('attempt_id');
+    expect(attemptId).toMatch(/^[A-Za-z0-9_-]{21}$/);
+
+    await page.clock.runFor(11000);
+    const events = await page.evaluate(() => (window as any).__telemetry);
+    expect(events).toEqual([['track', 'cardcapture_startup_timeout', {
+      source: 'atoms',
+      attempt_id: attemptId,
+      environment: 'sandbox',
+      tracker: 'track_588224f3-5beb-423a-b1ff-aaabedc04855',
+      last_step: 'iframe_loaded',
+      elapsed_ms: expect.any(Number),
+    }]]);
+  });
+
   test('renders components and creates iframes when credentials are set', async ({ page }) => {
     await renderHost(page);
 
